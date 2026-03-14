@@ -2,6 +2,10 @@ import {
   Controller, Get, Post, Patch, Param, Body,
   Query, ParseIntPipe, UseGuards,
 } from '@nestjs/common';
+import {
+  ApiTags, ApiOperation, ApiResponse, ApiBearerAuth,
+  ApiParam, ApiQuery,
+} from '@nestjs/swagger';
 import { UsuariosService } from './usuarios.service';
 import { CrearPersonaNaturalDto } from './dto/crear-persona-natural.dto';
 import { CrearPersonaJuridicaDto } from './dto/crear-persona-juridica.dto';
@@ -10,14 +14,19 @@ import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
 
+@ApiTags('usuarios')
+@ApiBearerAuth('JWT')
 @UseGuards(JwtAuthGuard, RolesGuard)
 @Controller('usuarios')
 export class UsuariosController {
   constructor(private readonly usuariosService: UsuariosService) {}
 
-  // Lista todos los usuarios (solo admin)
   @Roles('admin')
   @Get()
+  @ApiOperation({ summary: 'Listar usuarios', description: 'Requiere rol admin. Retorna listado paginado de todos los usuarios.' })
+  @ApiQuery({ name: 'page', required: false, example: 1 })
+  @ApiQuery({ name: 'limit', required: false, example: 20 })
+  @ApiResponse({ status: 200, description: 'Listado paginado de usuarios.' })
   listar(
     @Query('page', new ParseIntPipe({ optional: true })) page = 1,
     @Query('limit', new ParseIntPipe({ optional: true })) limit = 20,
@@ -25,15 +34,19 @@ export class UsuariosController {
     return this.usuariosService.listar(page, limit);
   }
 
-  // Obtiene un usuario por ID (solo admin)
   @Roles('admin')
   @Get(':id')
+  @ApiOperation({ summary: 'Obtener usuario por ID' })
+  @ApiParam({ name: 'id', description: 'ID del usuario' })
+  @ApiResponse({ status: 200, description: 'Datos del usuario.' })
+  @ApiResponse({ status: 404, description: 'Usuario no encontrado.' })
   obtenerPorId(@Param('id', ParseIntPipe) id: number) {
     return this.usuariosService.obtenerPorId(id);
   }
 
-  // El usuario autenticado completa su perfil de persona natural
   @Patch('perfil/natural')
+  @ApiOperation({ summary: 'Completar perfil de persona natural', description: 'El usuario autenticado registra o actualiza sus datos como persona natural.' })
+  @ApiResponse({ status: 200, description: 'Perfil de persona natural guardado.' })
   completarPerfilNatural(
     @CurrentUser('id') usuarioId: number,
     @Body() dto: CrearPersonaNaturalDto,
@@ -41,8 +54,9 @@ export class UsuariosController {
     return this.usuariosService.completarPerfilNatural(usuarioId, dto);
   }
 
-  // El usuario autenticado completa su perfil de persona jurídica
   @Patch('perfil/juridica')
+  @ApiOperation({ summary: 'Completar perfil de persona jurídica', description: 'El usuario autenticado registra o actualiza sus datos como persona jurídica (empresa).' })
+  @ApiResponse({ status: 200, description: 'Perfil de persona jurídica guardado.' })
   completarPerfilJuridica(
     @CurrentUser('id') usuarioId: number,
     @Body() dto: CrearPersonaJuridicaDto,
@@ -50,9 +64,11 @@ export class UsuariosController {
     return this.usuariosService.completarPerfilJuridica(usuarioId, dto);
   }
 
-  // Admin aprueba o rechaza un usuario
   @Roles('admin')
   @Patch(':id/estado')
+  @ApiOperation({ summary: 'Cambiar estado de cuenta de un usuario', description: 'Admin aprueba (activo), suspende o rechaza un usuario.' })
+  @ApiParam({ name: 'id', description: 'ID del usuario' })
+  @ApiResponse({ status: 200, description: 'Estado actualizado.' })
   cambiarEstado(
     @Param('id', ParseIntPipe) id: number,
     @Body('estado') estado: string,
@@ -62,9 +78,12 @@ export class UsuariosController {
     return this.usuariosService.cambiarEstado(id, estado, adminId, observaciones);
   }
 
-  // Admin asigna rol a un usuario
   @Roles('admin')
   @Post(':id/roles/:rolId')
+  @ApiOperation({ summary: 'Asignar rol a un usuario' })
+  @ApiParam({ name: 'id', description: 'ID del usuario' })
+  @ApiParam({ name: 'rolId', description: 'ID del rol a asignar' })
+  @ApiResponse({ status: 201, description: 'Rol asignado.' })
   asignarRol(
     @Param('id', ParseIntPipe) usuarioId: number,
     @Param('rolId', ParseIntPipe) rolId: number,

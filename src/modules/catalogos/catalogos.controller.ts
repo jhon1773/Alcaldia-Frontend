@@ -1,76 +1,66 @@
 import { Controller, Get, UseGuards } from '@nestjs/common';
+import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { CatalogosService } from './catalogos.service';
-import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { Public } from '../auth/decorators/public.decorator';
 
-// Los catálogos son públicos para facilitar el llenado de formularios
+@ApiTags('catalogos')
 @Controller('catalogos')
 export class CatalogosController {
   constructor(private readonly catalogosService: CatalogosService) {}
 
   @Public()
   @Get('municipios')
-  municipios() {
-    return this.catalogosService.obtenerMunicipios();
-  }
+  @ApiOperation({ summary: 'Listar municipios de Boyacá' })
+  @ApiResponse({ status: 200, description: 'Lista de municipios.' })
+  municipios() { return this.catalogosService.obtenerMunicipios(); }
 
   @Public()
   @Get('tipos-produccion')
-  tiposProduccion() {
-    return this.catalogosService.obtenerTiposProduccion();
-  }
+  @ApiOperation({ summary: 'Tipos de producción audiovisual' })
+  tiposProduccion() { return this.catalogosService.obtenerTiposProduccion(); }
 
   @Public()
   @Get('estados-tramite')
-  estadosTramite() {
-    return this.catalogosService.obtenerEstadosTramite();
-  }
+  @ApiOperation({ summary: 'Estados posibles de un trámite PUFA' })
+  estadosTramite() { return this.catalogosService.obtenerEstadosTramite(); }
 
   @Public()
   @Get('tipos-espacio')
-  tiposEspacio() {
-    return this.catalogosService.obtenerTiposEspacio();
-  }
+  @ApiOperation({ summary: 'Tipos de espacio para locaciones' })
+  tiposEspacio() { return this.catalogosService.obtenerTiposEspacio(); }
 
   @Public()
   @Get('roles-equipo-tecnico')
-  rolesEquipoTecnico() {
-    return this.catalogosService.obtenerRolesEquipoTecnico();
-  }
+  @ApiOperation({ summary: 'Roles del equipo técnico de producción' })
+  rolesEquipoTecnico() { return this.catalogosService.obtenerRolesEquipoTecnico(); }
 
   @Public()
   @Get('tipos-identificacion')
-  tiposIdentificacion() {
-    return this.catalogosService.obtenerTiposIdentificacion();
-  }
+  @ApiOperation({ summary: 'Tipos de documento de identidad' })
+  tiposIdentificacion() { return this.catalogosService.obtenerTiposIdentificacion(); }
 
   @Public()
   @Get('identidades-genero')
-  identidadesGenero() {
-    return this.catalogosService.obtenerIdentidadesGenero();
-  }
+  @ApiOperation({ summary: 'Opciones de identidad de género' })
+  identidadesGenero() { return this.catalogosService.obtenerIdentidadesGenero(); }
 
   @Public()
   @Get('niveles-educativos')
-  nivelesEducativos() {
-    return this.catalogosService.obtenerNivelesEducativos();
-  }
+  @ApiOperation({ summary: 'Niveles de educación formal' })
+  nivelesEducativos() { return this.catalogosService.obtenerNivelesEducativos(); }
 
   @Public()
   @Get('tipos-tramite')
-  tiposTramite() {
-    return this.catalogosService.obtenerTiposTramite();
-  }
+  @ApiOperation({ summary: 'Tipos de trámite PUFA disponibles' })
+  tiposTramite() { return this.catalogosService.obtenerTiposTramite(); }
 
   @Public()
   @Get('tipos-pago')
-  tiposPago() {
-    return this.catalogosService.obtenerTiposPago();
-  }
+  @ApiOperation({ summary: 'Tipos de pago aceptados' })
+  tiposPago() { return this.catalogosService.obtenerTiposPago(); }
 
   @Public()
   @Get('estados-pago')
-  estadosPago() {
-    return this.catalogosService.obtenerEstadosPago();
-  }
+  @ApiOperation({ summary: 'Estados posibles de un pago' })
+  estadosPago() { return this.catalogosService.obtenerEstadosPago(); }
 }
