@@ -6,6 +6,7 @@ export default registerAs('app', () => ({
   port: parseInt(process.env.PORT ?? process.env.APP_PORT ?? '3000', 10),
   env: process.env.NODE_ENV ?? process.env.APP_ENV ?? 'development',
   prefix: process.env.API_PREFIX ?? 'api/v1',
+  jwtSecret: process.env.JWT_SECRET ?? 'dev-jwt-secret-change-me',
   maxFileSizeMb: parseInt(process.env.MAX_FILE_SIZE_MB ?? '10', 10),
   uploadDest: process.env.UPLOAD_DEST ?? './uploads',
   porcentajeAbonoDefault: parseFloat(process.env.PORCENTAJE_ABONO_DEFAULT ?? '30'),

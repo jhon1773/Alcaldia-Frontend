@@ -24,7 +24,7 @@ import { TipoPerfil } from '../catalogos/entities/tipo-perfil.entity';
         // Acepta JWT_EXPIRES_IN o JWT_EXPIRATION
         const expiracion = configService.get<string>('JWT_EXPIRES_IN') ?? configService.get<string>('JWT_EXPIRATION') ?? '1d';
         return {
-          secret: configService.get<string>('JWT_SECRET') ?? '',
+          secret: configService.get<string>('app.jwtSecret') ?? 'dev-jwt-secret-change-me',
           // Expiracion configurada desde variable de entorno JWT_EXPIRATION
           signOptions: { expiresIn: expiracion as any },
         };
