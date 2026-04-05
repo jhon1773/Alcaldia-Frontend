@@ -2,12 +2,54 @@ import { NestFactory } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
+import { NestExpressApplication } from '@nestjs/platform-express';
+import { join } from 'path';
+import { createServer } from 'net';
 import { AppModule } from './app.module';
 import { HttpExceptionFilter } from './common/filters/http-exception.filter';
 import { RespuestaInterceptor } from './common/interceptors/respuesta.interceptor';
 
+function warnIfNodeVersionIsNotLts() {
+  const current = process.versions.node;
+  const major = Number(current.split('.')[0] ?? '0');
+  const supportedLtsMajors = [20, 22];
+
+  if (!supportedLtsMajors.includes(major)) {
+    console.warn(
+      `[Entorno] Versión de Node detectada: v${current}. ` +
+        `Se recomienda usar Node LTS (${supportedLtsMajors.join(' o ')}) para evitar advertencias ` +
+        `de compatibilidad con pg/TypeORM en desarrollo.`,
+    );
+  }
+}
+
+async function getAvailablePort(preferredPort: number, maxTries = 20): Promise<number> {
+  for (let i = 0; i < maxTries; i += 1) {
+    const candidate = preferredPort + i;
+    const isFree = await new Promise<boolean>((resolve) => {
+      const tester = createServer();
+      tester.once('error', () => resolve(false));
+      tester.once('listening', () => {
+        tester.close(() => resolve(true));
+      });
+      tester.listen(candidate, '0.0.0.0');
+    });
+
+    if (isFree) {
+      return candidate;
+    }
+  }
+
+  return preferredPort;
+}
+
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  warnIfNodeVersionIsNotLts();
+
+  const app = await NestFactory.create<NestExpressApplication>(AppModule);
+
+  // Archivos estáticos para la landing pública
+  app.useStaticAssets(join(process.cwd(), 'public'));
 
   // Prefijo global de la API versionada
   const configService = app.get(ConfigService);
@@ -79,8 +121,12 @@ async function bootstrap() {
     customSiteTitle: 'PUFA-Backend — Documentación API',
   });
 
-  const port = configService.get<number>('app.port', 3000);
+  const preferredPort = configService.get<number>('app.port', 3000);
+  const port = await getAvailablePort(preferredPort);
   await app.listen(port);
+  if (port !== preferredPort) {
+    console.warn(`Puerto ${preferredPort} ocupado. Se inició en el puerto ${port}.`);
+  }
   console.log('PUFA-Backend corriendo en: http://localhost:' + port + '/' + prefix);
   console.log('Documentación Swagger en:  http://localhost:' + port + '/api/docs');
 }

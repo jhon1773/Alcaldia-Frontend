@@ -12,7 +12,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
       ignoreExpiration: false,
       // El operador ! garantiza que JWT_SECRET esté definido antes de iniciar
-      secretOrKey: configService.get<string>('JWT_SECRET')!,
+      secretOrKey: configService.get<string>('app.jwtSecret') ?? 'dev-jwt-secret-change-me',
     });
   }
 

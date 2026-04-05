@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <script src='/route-guard.js'></script><meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" /><title>PUFAB - Admin | Flujo de Permisos</title><link rel="stylesheet" href="/styles.css" /></head>
+  <body class="portal-page admin-page">
+    <header class="gov-header"><div class="container gov-header-inner"><img src="https://www.figma.com/api/mcp/asset/55d910c5-1bcc-479c-acd9-c78a28860e9b" alt="GOV.CO" class="gov-logo" /><nav class="gov-links"><a href="https://www.gov.co/" target="_blank" rel="noreferrer">GOV.CO</a><a href="#">Ministerio de Cultura</a><a href="#">Proimágenes</a></nav></div><div class="flag-strip"></div></header>
+    <nav class="site-nav"><div class="container site-nav-inner"><a href="/" class="brand"><span class="brand-icon">◧</span><span>PUFAB</span></a><button class="menu-toggle" aria-label="Abrir menú" id="menuToggle">☰</button><div class="nav-links" id="navLinks"><a href="/">Inicio</a><a href="/directorio/">Directorio</a><a href="/tramites/">Trámites</a><a href="/contacto/">Contacto</a><a href="/admin/" class="active">Admin</a></div><div class="portal-user">Carlos Rodríguez</div></div></nav>
+
+    <main class="portal-shell container">
+      <aside class="portal-sidebar admin-sidebar">
+        <h2>Panel Administrativo</h2>
+        <a class="portal-link" href="/admin/">Resumen</a>
+        <a class="portal-link" href="/admin/admin-2.html">Usuarios y Accesos</a>
+        <a class="portal-link" href="/admin/admin-3.html">Verificación de Perfiles</a>
+        <a class="portal-link" href="/admin/admin-4.html">Gestión de Activos</a>
+        <a class="portal-link active" href="/admin/admin-5.html">Flujo de Permisos</a>
+        <a class="portal-link" href="/admin/admin-6.html">Comités Técnicos</a>
+        <a class="portal-link" href="/admin/admin-7.html">Finanzas y Reservas</a>
+        <a class="portal-link" href="/admin/admin-8.html">Estadísticas y KPIs</a>
+        <a class="portal-link" href="/admin/admin-9.html">Comunicaciones</a>
+      </aside>
+
+      <section class="portal-content">
+        <div class="portal-breadcrumb">Panel Administrativo > Flujo de Permisos</div>
+        <h1>Flujo de Permisos P.U.F.A.B.</h1>
+        <div class="admin-metrics" id="flujoMetrics"></div>
+        <div class="catalog-toolbar admin-toolbar"><input id="permisoSearch" type="search" placeholder="Buscar permiso..." /><button class="btn btn-secondary" id="buscarPermisoBtn">Buscar</button></div>
+        <div class="admin-stack" id="flujoList">Cargando permisos...</div>
+      </section>
+    </main>
+
+    <script>
+      const menuToggle = document.getElementById('menuToggle');
+      const navLinks = document.getElementById('navLinks');
+      const permisoSearch = document.getElementById('permisoSearch');
+      const buscarPermisoBtn = document.getElementById('buscarPermisoBtn');
+      const flujoMetrics = document.getElementById('flujoMetrics');
+      const flujoList = document.getElementById('flujoList');
+      menuToggle?.addEventListener('click', () => navLinks?.classList.toggle('open'));
+
+      function claseEstado(value) {
+        const v = String(value || '').toLowerCase();
+        if (v.includes('apro')) return 'success';
+        if (v.includes('rech')) return 'danger';
+        if (v.includes('corre')) return 'warning';
+        return 'muted';
+      }
+
+      async function load() {
+        const params = new URLSearchParams();
+        if (permisoSearch.value.trim()) params.set('q', permisoSearch.value.trim());
+        const response = await fetch(`/api/v1/portal/admin/flujo-permisos?${params.toString()}`);
+        const payload = await response.json();
+        const data = payload?.datos || payload;
+
+        flujoMetrics.innerHTML = `
+          <article><strong>${data.resumen.pendientes}</strong><span>Pendientes</span></article>
+          <article><strong>${data.resumen.revision}</strong><span>En revisión</span></article>
+          <article><strong>${data.resumen.aprobados}</strong><span>Aprobados</span></article>
+          <article><strong>${data.resumen.rechazados}</strong><span>Rechazados</span></article>
+        `;
+
+        flujoList.innerHTML = (data.data || []).length
+          ? data.data.map((item) => `<article class="portal-card"><div class="permit-top"><div><small>${item.numero_radicado}</small><h3>${item.proyecto}</h3><p>${item.productora} · ${item.ciudad} · ${item.fecha}</p></div><span class="status-badge ${claseEstado(item.estado_ui)}">${item.estado_ui}</span></div><div class="permit-actions"><a href="#">Ver</a><a href="#" data-accion="aprobar" data-tramite-id="${item.id}">Aprobar</a><a href="#" data-accion="correccion" data-tramite-id="${item.id}">Corrección</a><a href="#" data-accion="rechazar" data-tramite-id="${item.id}">Rechazar</a></div></article>`).join('')
+          : '<article class="portal-card">No hay resultados para la búsqueda.</article>';
+
+        flujoList.querySelectorAll('[data-accion]').forEach((btn) => {
+          btn.addEventListener('click', async (event) => {
+            event.preventDefault();
+            const id = btn.getAttribute('data-tramite-id');
+            const accion = btn.getAttribute('data-accion');
+            await fetch(`/api/v1/portal/admin/flujo-permisos/${id}/estado`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ accion }),
+            });
+            await load();
+          });
+        });
+      }
+
+      permisoSearch?.addEventListener('input', load);
+      buscarPermisoBtn?.addEventListener('click', load);
+      load();
+    </script>
+    <script src='/nav-session.js'></script>
+    <script src='/sidebar-slider.js'></script>
+  </body>
+</html>
