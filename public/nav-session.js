@@ -2,8 +2,37 @@
   if (window.__pufabPortalFetchPatched) return;
   window.__pufabPortalFetchPatched = true;
 
-  const originalFetch = window.fetch.bind(window);
+  const nativeFetch = window.fetch.bind(window);
   const demoFlagKey = 'pufab_demo_mode';
+
+  const localhostApiFallback =
+    window.location.hostname === 'localhost' && window.location.port !== '3000'
+      ? `${window.location.protocol}//localhost:3000`
+      : null;
+
+  async function fetchWithApiFallback(input, init = {}) {
+    const url = typeof input === 'string' ? input : input?.url || '';
+    const isApiPath = url.startsWith('/api/') || url.includes('/api/');
+
+    try {
+      const response = await nativeFetch(input, init);
+      if (
+        localhostApiFallback
+        && isApiPath
+        && response.status === 404
+      ) {
+        const retryUrl = url.startsWith('/') ? `${localhostApiFallback}${url}` : url.replace(window.location.origin, localhostApiFallback);
+        return nativeFetch(retryUrl, init);
+      }
+      return response;
+    } catch (error) {
+      if (!localhostApiFallback || !isApiPath) throw error;
+      const retryUrl = url.startsWith('/') ? `${localhostApiFallback}${url}` : url.replace(window.location.origin, localhostApiFallback);
+      return nativeFetch(retryUrl, init);
+    }
+  }
+
+  const originalFetch = fetchWithApiFallback;
 
   function resolveDemoMode() {
     const params = new URLSearchParams(window.location.search);
@@ -28,24 +57,50 @@
   const demoByPath = {
     '/api/v1/portal/productor/permisos': {
       datos: {
-        permisos: [
-          { id: 1, codigo: 'PUFA-2026-001', proyecto: 'Boyaca en Plano', estado: 'pendiente', progreso: 65, fecha: '2026-04-04' },
-          { id: 2, codigo: 'PUFA-2026-002', proyecto: 'Ruta Libertadora', estado: 'aprobado', progreso: 100, fecha: '2026-03-22' },
+        data: [
+          {
+            id: 1,
+            numero_radicado: 'PUFA-2026-001',
+            proyecto: 'Boyaca en Plano',
+            locacion: 'Tunja',
+            estado: 'pendiente',
+            estado_label: 'Pendiente',
+            progreso: 65,
+            fecha: '2026-04-04',
+            respuesta: '2026-04-12',
+            correcciones: ['Ajustar póliza de responsabilidad civil.'],
+          },
+          {
+            id: 2,
+            numero_radicado: 'PUFA-2026-002',
+            proyecto: 'Ruta Libertadora',
+            locacion: 'Paipa',
+            estado: 'aprobado',
+            estado_label: 'Aprobado',
+            progreso: 100,
+            fecha: '2026-03-22',
+            respuesta: '2026-03-29',
+            correcciones: [],
+          },
         ],
-        correcciones: [{ codigo: 'PUFA-2026-001', vence: '2026-04-12', detalle: 'Ajustar póliza de responsabilidad civil.' }],
       },
     },
     '/api/v1/portal/productor/locaciones': {
       datos: [
-        { id: 1, nombre: 'Centro Histórico de Tunja', municipio: 'Tunja', tipo: 'Urbano', costo: 1500000, estado: 'disponible' },
-        { id: 2, nombre: 'Lago de Tota', municipio: 'Aquitania', tipo: 'Natural', costo: 2200000, estado: 'alta demanda' },
+        { id: 1, nombre: 'Centro Histórico de Tunja', provincia: 'Centro', tipo: 'urbano', precio: 1500000, imagen: '/assets/location-placeholder.svg' },
+        { id: 2, nombre: 'Lago de Tota', provincia: 'Sugamuxi', tipo: 'natural', precio: 2200000, imagen: '/assets/location-placeholder.svg' },
       ],
     },
     '/api/v1/portal/productor/evaluaciones': {
-      datos: [
-        { id: 1, proveedor: 'Andes Rental', promedio: 4.8, reseñas: 34, comentario: 'Entrega puntual y excelente soporte.' },
-        { id: 2, proveedor: 'Boyaca Films Services', promedio: 4.6, reseñas: 19, comentario: 'Buena logística y comunicación.' },
-      ],
+      datos: {
+        codigo: 'PUFA-2026-001',
+        permiso: 'PUFA-2026-001',
+        proyecto: 'Boyaca en Plano',
+        comite: 'Comité Técnico de Locaciones',
+        fecha_limite: '2026-04-20',
+        observaciones: ['Actualizar cronograma operativo.', 'Adjuntar seguro de responsabilidad civil vigente.'],
+        documentos_requeridos: ['Cronograma actualizado', 'Seguro de responsabilidad civil'],
+      },
     },
     '/api/v1/portal/proveedor/panel': {
       datos: {
@@ -209,6 +264,30 @@
     const raw = typeof input === 'string' ? input : input?.url || '';
     return new URL(raw || '/', window.location.origin).pathname;
   }
+
+  const figmaAssetMap = {
+    '55d910c5-1bcc-479c-acd9-c78a28860e9b': '/assets/govco.svg',
+    '511e76a4-6700-42b7-9db5-458f4c2c18ba': '/assets/hero-boyaca.svg',
+    '98e6d230-4a3c-43e5-94c8-78be324402db': '/assets/news-placeholder.svg',
+    '6f13ec87-8cbe-4e88-b8a2-ee0ff5c5527c': '/assets/news-placeholder.svg',
+    '77a655c2-ce42-4373-9dcb-5d34cf237826': '/assets/news-placeholder.svg',
+  };
+
+  function fallbackFigmaImage(img) {
+    const src = img.getAttribute('src') || '';
+    if (!src.includes('figma.com/api/mcp/asset/')) return;
+
+    const assetId = src.split('/asset/')[1]?.split(/[?#]/)[0] || '';
+    const mapped = figmaAssetMap[assetId] || '/assets/location-placeholder.svg';
+    if (img.getAttribute('src') !== mapped) {
+      img.setAttribute('src', mapped);
+    }
+  }
+
+  document.querySelectorAll('img[src*="figma.com/api/mcp/asset/"]').forEach((img) => {
+    img.addEventListener('error', () => fallbackFigmaImage(img), { once: true });
+    fallbackFigmaImage(img);
+  });
 
   if (!demoModeEnabled) {
     return;

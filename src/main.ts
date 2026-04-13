@@ -4,7 +4,6 @@ import { ConfigService } from '@nestjs/config';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { NestExpressApplication } from '@nestjs/platform-express';
 import { join } from 'path';
-import { createServer } from 'net';
 import { AppModule } from './app.module';
 import { HttpExceptionFilter } from './common/filters/http-exception.filter';
 import { RespuestaInterceptor } from './common/interceptors/respuesta.interceptor';
@@ -23,24 +22,24 @@ function warnIfNodeVersionIsNotLts() {
   }
 }
 
-async function getAvailablePort(preferredPort: number, maxTries = 20): Promise<number> {
+async function listenWithFallback(
+  app: NestExpressApplication,
+  preferredPort: number,
+  maxTries = 20,
+): Promise<number> {
   for (let i = 0; i < maxTries; i += 1) {
     const candidate = preferredPort + i;
-    const isFree = await new Promise<boolean>((resolve) => {
-      const tester = createServer();
-      tester.once('error', () => resolve(false));
-      tester.once('listening', () => {
-        tester.close(() => resolve(true));
-      });
-      tester.listen(candidate, '0.0.0.0');
-    });
-
-    if (isFree) {
+    try {
+      await app.listen(candidate, '0.0.0.0');
       return candidate;
+    } catch (error: any) {
+      if (error?.code !== 'EADDRINUSE') {
+        throw error;
+      }
     }
   }
 
-  return preferredPort;
+  throw new Error(`No fue posible iniciar la aplicación. Puertos ocupados desde ${preferredPort} hasta ${preferredPort + maxTries - 1}.`);
 }
 
 async function bootstrap() {
@@ -122,8 +121,7 @@ async function bootstrap() {
   });
 
   const preferredPort = configService.get<number>('app.port', 3000);
-  const port = await getAvailablePort(preferredPort);
-  await app.listen(port);
+  const port = await listenWithFallback(app, preferredPort);
   if (port !== preferredPort) {
     console.warn(`Puerto ${preferredPort} ocupado. Se inició en el puerto ${port}.`);
   }

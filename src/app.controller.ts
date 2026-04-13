@@ -81,6 +81,35 @@ export class AppController {
     return estado?.id ?? null;
   }
 
+  private async ensureAdminLocacionesTable() {
+    await this.dataSource.query(`
+      CREATE TABLE IF NOT EXISTS admin_locaciones (
+        id SERIAL PRIMARY KEY,
+        nombre_lugar VARCHAR(255) NOT NULL,
+        municipio_id INTEGER NULL,
+        tipo_espacio_id INTEGER NULL,
+        observaciones TEXT NULL,
+        activo BOOLEAN DEFAULT true,
+        created_at TIMESTAMP DEFAULT NOW(),
+        updated_at TIMESTAMP DEFAULT NOW()
+      )
+    `);
+  }
+
+  private async ensureAdminComitesTable() {
+    await this.dataSource.query(`
+      CREATE TABLE IF NOT EXISTS admin_comites_tecnicos (
+        id SERIAL PRIMARY KEY,
+        nombre VARCHAR(150) NOT NULL,
+        cargo VARCHAR(80) NOT NULL,
+        especialidad VARCHAR(120) NOT NULL,
+        activo BOOLEAN DEFAULT true,
+        created_at TIMESTAMP DEFAULT NOW(),
+        updated_at TIMESTAMP DEFAULT NOW()
+      )
+    `);
+  }
+
   @Get()
   @Redirect('/', 302)
   getHello() {
@@ -199,6 +228,8 @@ export class AppController {
     @Query('tipo') tipo?: string,
     @Query('provincia') provincia?: string,
   ) {
+    await this.ensureAdminLocacionesTable();
+
     const rows = await this.dataSource.query(`
       SELECT
         tl.id,
@@ -212,22 +243,43 @@ export class AppController {
           ELSE 400000
         END AS precio
       FROM tramite_locaciones tl
-      LEFT JOIN tipo_espacio te ON te.id = tl.tipo_espacio_id
+      LEFT JOIN tipos_espacio te ON te.id = tl.tipo_espacio_id
       LEFT JOIN municipios m ON m.id = tl.municipio_id
       ORDER BY tl.id DESC
       LIMIT 60
     `);
 
+    const manualRows = await this.dataSource.query(`
+      SELECT
+        l.id,
+        l.nombre_lugar AS nombre,
+        COALESCE(LOWER(te.nombre), 'natural') AS tipo,
+        COALESCE(m.nombre, 'Boyacá') AS provincia,
+        CASE
+          WHEN LOWER(COALESCE(te.nombre, '')) LIKE '%patr%' THEN 300000
+          WHEN LOWER(COALESCE(te.nombre, '')) LIKE '%interior%' THEN 250000
+          WHEN LOWER(COALESCE(te.nombre, '')) LIKE '%urban%' THEN 320000
+          ELSE 400000
+        END AS precio
+      FROM admin_locaciones l
+      LEFT JOIN tipos_espacio te ON te.id = l.tipo_espacio_id
+      LEFT JOIN municipios m ON m.id = l.municipio_id
+      WHERE l.activo = true
+      ORDER BY l.id DESC
+      LIMIT 60
+    `);
+
     const images = [
-      'https://www.figma.com/api/mcp/asset/b5edf734-767a-4f10-9335-8ad1ae9a1612',
-      'https://www.figma.com/api/mcp/asset/b76e7138-8273-4407-97de-35e83a360c53',
-      'https://www.figma.com/api/mcp/asset/8257c48e-90f6-4530-902f-9b452baf5417',
-      'https://www.figma.com/api/mcp/asset/4715cfab-dc09-4f64-aeae-b1bc228dc5f4',
-      'https://www.figma.com/api/mcp/asset/9f93a85f-ea22-4330-97cf-0c1fafa30488',
-      'https://www.figma.com/api/mcp/asset/02df3d74-fe4b-48a5-bdca-8631e3271e8a',
+      '/assets/location-placeholder.svg',
+      '/assets/location-placeholder.svg',
+      '/assets/location-placeholder.svg',
+      '/assets/location-placeholder.svg',
+      '/assets/location-placeholder.svg',
+      '/assets/location-placeholder.svg',
     ];
 
-    const locaciones = rows.map((item: any, index: number) => ({
+    const mixedRows = [...manualRows, ...rows];
+    const locaciones = mixedRows.map((item: any, index: number) => ({
       ...item,
       imagen: images[index % images.length],
     }));
@@ -367,17 +419,17 @@ export class AppController {
     const galeria = [
       {
         titulo: 'Rodaje documental en Villa de Leyva',
-        imagen: 'https://www.figma.com/api/mcp/asset/4715cfab-dc09-4f64-aeae-b1bc228dc5f4',
+        imagen: '/assets/location-placeholder.svg',
         categoria: 'Documental',
       },
       {
         titulo: 'Scouting de locaciones rurales',
-        imagen: 'https://www.figma.com/api/mcp/asset/b76e7138-8273-4407-97de-35e83a360c53',
+        imagen: '/assets/location-placeholder.svg',
         categoria: 'Locaciones',
       },
       {
         titulo: 'Producción en centro histórico',
-        imagen: 'https://www.figma.com/api/mcp/asset/9f93a85f-ea22-4330-97cf-0c1fafa30488',
+        imagen: '/assets/location-placeholder.svg',
         categoria: 'Producción',
       },
     ];
@@ -529,16 +581,14 @@ export class AppController {
       `
       SELECT
         u.id,
-        COALESCE(pn.primer_nombre || ' ' || pn.primer_apellido, pj.razon_social, split_part(u.email, '@', 1)) AS nombre,
+        split_part(u.email, '@', 1) AS nombre,
         u.email,
         COALESCE(tp.nombre, 'Sin rol') AS rol,
         CASE WHEN u.activo THEN 'Activo' ELSE 'Inactivo' END AS estado,
-        COALESCE(u.updated_at::text, CURRENT_DATE::text) AS ultimo_acceso
+        COALESCE(u.fecha_actualizacion::text, CURRENT_DATE::text) AS ultimo_acceso
       FROM usuarios u
-      LEFT JOIN personas_naturales pn ON pn.usuario_id = u.id
-      LEFT JOIN personas_juridicas pj ON pj.usuario_id = u.id
       LEFT JOIN tipos_perfil tp ON tp.id = u.tipo_perfil_id
-      WHERE ($1 = '%%' OR LOWER(COALESCE(pn.primer_nombre || ' ' || pn.primer_apellido, pj.razon_social, u.email)) LIKE $1)
+      WHERE ($1 = '%%' OR LOWER(u.email) LIKE $1)
       ORDER BY u.id ASC
       LIMIT 20
     `,
@@ -577,14 +627,12 @@ export class AppController {
     const rows = await this.dataSource.query(`
       SELECT
         p.id,
-        COALESCE(pj.razon_social, pn.primer_nombre || ' ' || pn.primer_apellido, split_part(u.email, '@', 1)) AS nombre,
+        split_part(u.email, '@', 1) AS nombre,
         COALESCE(tp.nombre, 'Proveedor') AS tipo,
-        COALESCE(u.updated_at::date, CURRENT_DATE) AS fecha,
+        COALESCE(p.fecha_actualizacion::date, CURRENT_DATE) AS fecha,
         CASE WHEN p.verificado THEN 'Aprobado' ELSE 'Pendiente' END AS estado
       FROM perfiles_proveedor p
       INNER JOIN usuarios u ON u.id = p.usuario_id
-      LEFT JOIN personas_juridicas pj ON pj.usuario_id = u.id
-      LEFT JOIN personas_naturales pn ON pn.usuario_id = u.id
       LEFT JOIN tipos_perfil tp ON tp.id = u.tipo_perfil_id
       ORDER BY p.id DESC
       LIMIT 12
@@ -625,8 +673,11 @@ export class AppController {
 
   @Get('portal/admin/activos')
   async getPortalAdminActivos() {
-    const rows = await this.dataSource.query(`
+    await this.ensureAdminLocacionesTable();
+
+    const tramiteRows = await this.dataSource.query(`
       SELECT
+        'tramite'::text AS origen,
         tl.id,
         tl.nombre_lugar AS locacion,
         COALESCE(m.nombre, 'Sin ubicación') AS ubicacion,
@@ -644,11 +695,56 @@ export class AppController {
       LIMIT 15
     `);
 
+    const manualRows = await this.dataSource.query(`
+      SELECT
+        'manual'::text AS origen,
+        l.id,
+        l.nombre_lugar AS locacion,
+        COALESCE(m.nombre, 'Sin ubicación') AS ubicacion,
+        CASE WHEN l.activo THEN 'Activo' ELSE 'Inactivo' END AS estado,
+        0::int AS reservas
+      FROM admin_locaciones l
+      LEFT JOIN municipios m ON m.id = l.municipio_id
+      ORDER BY l.id DESC
+      LIMIT 30
+    `);
+
+    const rows = [...manualRows, ...tramiteRows];
+
     return { data: rows, total: rows.length };
   }
 
   @Post('portal/admin/activos/:id/toggle-mantenimiento')
-  async togglePortalAdminActivo(@Param('id') id: string) {
+  async togglePortalAdminActivo(@Param('id') id: string, @Body() body?: { origen?: 'tramite' | 'manual' }) {
+    const origen = body?.origen ?? 'tramite';
+
+    if (origen === 'manual') {
+      const [manual] = await this.dataSource.query(
+        `SELECT id, activo FROM admin_locaciones WHERE id = $1::int LIMIT 1`,
+        [id],
+      );
+
+      if (!manual?.id) {
+        return { ok: false, message: 'Locación manual no encontrada' };
+      }
+
+      await this.dataSource.query(
+        `
+        UPDATE admin_locaciones
+        SET activo = NOT activo,
+            updated_at = NOW()
+        WHERE id = $1::int
+      `,
+        [id],
+      );
+
+      return {
+        ok: true,
+        id: Number(id),
+        estado: manual.activo ? 'Inactivo' : 'Activo',
+      };
+    }
+
     const [loc] = await this.dataSource.query(
       `SELECT id, COALESCE(observaciones, '') AS observaciones FROM tramite_locaciones WHERE id = $1::int LIMIT 1`,
       [id],
@@ -679,6 +775,40 @@ export class AppController {
       id: Number(id),
       estado: inMaintenance ? 'Activo' : 'En mantenimiento',
     };
+  }
+
+  @Post('portal/admin/locaciones')
+  async crearPortalAdminLocacion(
+    @Body()
+    body?: {
+      nombre_lugar?: string;
+      municipio_id?: number;
+      tipo_espacio_id?: number;
+      observaciones?: string;
+    },
+  ) {
+    await this.ensureAdminLocacionesTable();
+
+    const nombre = String(body?.nombre_lugar ?? '').trim();
+    if (!nombre) {
+      return { ok: false, message: 'El nombre de la locación es obligatorio' };
+    }
+
+    const [inserted] = await this.dataSource.query(
+      `
+      INSERT INTO admin_locaciones (nombre_lugar, municipio_id, tipo_espacio_id, observaciones, activo)
+      VALUES ($1, $2, $3, $4, true)
+      RETURNING id, nombre_lugar
+    `,
+      [
+        nombre,
+        body?.municipio_id ?? null,
+        body?.tipo_espacio_id ?? null,
+        body?.observaciones ?? null,
+      ],
+    );
+
+    return { ok: true, data: inserted };
   }
 
   @Get('portal/admin/flujo-permisos')
@@ -789,17 +919,7 @@ export class AppController {
 
   @Get('portal/admin/comites')
   async getPortalAdminComites() {
-    await this.dataSource.query(`
-      CREATE TABLE IF NOT EXISTS admin_comites_tecnicos (
-        id SERIAL PRIMARY KEY,
-        nombre VARCHAR(150) NOT NULL,
-        cargo VARCHAR(80) NOT NULL,
-        especialidad VARCHAR(120) NOT NULL,
-        activo BOOLEAN DEFAULT true,
-        created_at TIMESTAMP DEFAULT NOW(),
-        updated_at TIMESTAMP DEFAULT NOW()
-      )
-    `);
+    await this.ensureAdminComitesTable();
 
     const [count] = await this.dataSource.query(`SELECT COUNT(*)::int AS total FROM admin_comites_tecnicos`);
     if ((count?.total ?? 0) === 0) {
@@ -822,8 +942,44 @@ export class AppController {
     return { data, total: data.length };
   }
 
+  @Post('portal/admin/comites')
+  async crearPortalAdminComite(
+    @Body()
+    body?: {
+      nombre?: string;
+      cargo?: string;
+      especialidad?: string;
+      estado?: string;
+    },
+  ) {
+    await this.ensureAdminComitesTable();
+
+    const nombre = String(body?.nombre ?? '').trim();
+    const cargo = String(body?.cargo ?? '').trim();
+    const especialidad = String(body?.especialidad ?? '').trim();
+    const estado = String(body?.estado ?? 'Activo').trim().toLowerCase();
+
+    if (!nombre || !cargo || !especialidad) {
+      return { ok: false, message: 'Nombre, cargo y especialidad son obligatorios.' };
+    }
+
+    const [inserted] = await this.dataSource.query(
+      `
+      INSERT INTO admin_comites_tecnicos (nombre, cargo, especialidad, activo)
+      VALUES ($1, $2, $3, $4)
+      RETURNING id, nombre, cargo, especialidad,
+      CASE WHEN activo THEN 'Activo' ELSE 'Inactivo' END AS estado
+    `,
+      [nombre, cargo, especialidad, estado !== 'inactivo'],
+    );
+
+    return { ok: true, data: inserted };
+  }
+
   @Post('portal/admin/comites/:id/toggle')
   async togglePortalAdminComite(@Param('id') id: string) {
+    await this.ensureAdminComitesTable();
+
     await this.dataSource.query(`
       UPDATE admin_comites_tecnicos
       SET activo = NOT activo,

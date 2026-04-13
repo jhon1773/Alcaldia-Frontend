@@ -1,6 +1,6 @@
 import {
   Injectable, UnauthorizedException, ConflictException,
-  NotFoundException, BadRequestException,
+  NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -38,18 +38,24 @@ export class AuthService {
     private jwtService: JwtService,
   ) {}
 
-  // Registra un nuevo usuario en estado PENDIENTE
+  // Registra un nuevo usuario en estado ACTIVO para permitir ingreso inmediato
   async registrar(dto: RegistroUsuarioDto) {
     const existe = await this.usuariosRepo.findOne({ where: { email: dto.email } });
     if (existe) {
       throw new ConflictException('Ya existe un usuario registrado con ese correo electrónico');
     }
 
-    const estadoPendiente = await this.estadosCuentaRepo.findOne({
-      where: { codigo: 'pendiente' },
+    let estadoActivo = await this.estadosCuentaRepo.findOne({
+      where: { codigo: 'activo' },
     });
-    if (!estadoPendiente) {
-      throw new BadRequestException('Estado de cuenta pendiente no configurado en el sistema');
+    if (!estadoActivo) {
+      estadoActivo = await this.estadosCuentaRepo.save(
+        this.estadosCuentaRepo.create({
+          codigo: 'activo',
+          nombre: 'Activo',
+          activo: true,
+        }),
+      );
     }
 
     const passwordHash = await bcrypt.hash(dto.password, 10);
@@ -57,15 +63,15 @@ export class AuthService {
     const nuevoUsuario = this.usuariosRepo.create({
       email: dto.email,
       password_hash: passwordHash,
-      tipo_persona: dto.tipo_persona,
+      tipo_persona: dto.tipo_persona || 'natural',
       telefono: dto.telefono,
-      estado_cuenta_id: estadoPendiente.id,
+      estado_cuenta_id: estadoActivo.id,
     });
 
     const usuarioGuardado = await this.usuariosRepo.save(nuevoUsuario);
 
     return {
-      mensaje: 'Registro exitoso. Su cuenta está pendiente de aprobación por un administrador.',
+      mensaje: 'Registro exitoso. Ya puede iniciar sesión.',
       usuario_id: usuarioGuardado.id,
       email: usuarioGuardado.email,
     };

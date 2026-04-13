@@ -1,0 +1,203 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>PUFAB - Registrarse</title>
+    <meta
+      name="description"
+      content="Crea tu cuenta en PUFAB para acceder al sistema de trámites cinematográficos."
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body class="auth-page">
+    <header class="gov-header">
+      <div class="container gov-header-inner">
+        <img
+          src="https://www.figma.com/api/mcp/asset/55d910c5-1bcc-479c-acd9-c78a28860e9b"
+          alt="GOV.CO"
+          class="gov-logo"
+        />
+        <nav class="gov-links">
+          <a href="https://www.gov.co/" target="_blank" rel="noreferrer">GOV.CO</a>
+          <a href="#">Ministerio de Cultura</a>
+          <a href="#">Proimágenes</a>
+        </nav>
+      </div>
+      <div class="flag-strip"></div>
+    </header>
+
+    <nav class="site-nav">
+      <div class="container site-nav-inner">
+        <a href="/" class="brand">
+          <span class="brand-icon">◧</span>
+          <span>PUFAB</span>
+        </a>
+        <button class="menu-toggle" aria-label="Abrir menú" id="menuToggle">☰</button>
+        <div class="nav-links" id="navLinks">
+          <a href="/">Inicio</a>
+          <a href="/directorio/">Directorio</a>
+          <a href="/tramites/">Trámites</a>
+          <a href="/contacto/">Contacto</a>
+          <a href="/iniciar-sesion/">Ingresar</a>
+        </div>
+        <div class="nav-cta">
+          <a class="btn btn-ghost" href="/contacto/">Contacto</a>
+          <a class="btn btn-primary" href="/iniciar-sesion/">Ingresar</a>
+        </div>
+      </div>
+    </nav>
+
+    <main class="auth-shell">
+      <section class="auth-card">
+        <a href="/" class="auth-close" aria-label="Volver al inicio">←</a>
+        <header class="auth-header">
+          <h1>Crear Cuenta</h1>
+          <p>Regístrate para acceder a la plataforma PUFAB</p>
+        </header>
+
+        <section class="auth-banner" id="authBanner">
+          <span class="auth-banner-icon">📝</span>
+          <div>
+            <strong>Paso 1 de 2</strong>
+            <p>Completa tu información básica</p>
+          </div>
+        </section>
+
+        <form class="auth-form" id="signupForm">
+          <label>
+            Nombre completo *
+            <input type="text" name="nombre" placeholder="Tu nombre" required />
+          </label>
+          <label>
+            Correo electrónico *
+            <input type="email" name="email" placeholder="tu@email.co" required />
+          </label>
+          <label>
+            Contraseña *
+            <div class="auth-password">
+              <input type="password" name="password" placeholder="••••••••" id="passwordInput" required />
+              <button type="button" class="auth-password-toggle" id="passwordToggle" aria-label="Mostrar contraseña">◔</button>
+            </div>
+            <small>Mínimo 8 caracteres, incluye mayúsculas, números y símbolos</small>
+          </label>
+          <label>
+            Confirmar contraseña *
+            <div class="auth-password">
+              <input type="password" name="confirmPassword" placeholder="••••••••" id="confirmPasswordInput" required />
+              <button type="button" class="auth-password-toggle" aria-label="Mostrar contraseña">◔</button>
+            </div>
+          </label>
+
+          <label class="auth-remember">
+            <input type="checkbox" name="terms" required />
+            <span>Acepto los <a href="#" target="_blank">términos y condiciones</a> *</span>
+          </label>
+
+          <div id="error-message" class="auth-error" style="display: none;"></div>
+          <div id="success-message" class="auth-success" style="display: none;"></div>
+
+          <button type="submit" class="btn btn-primary full" id="submitBtn">Continuar</button>
+        </form>
+
+        <p class="auth-footer">
+          ¿Ya tienes cuenta?
+          <a href="/iniciar-sesion/">Inicia sesión aquí</a>
+        </p>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <div class="footer-bottom">
+        <p>&copy; 2024 PUFAB - Comisión Fílmica de Boyacá. Todos los derechos reservados.</p>
+      </div>
+    </footer>
+
+    <script src="/api-client.js"></script>
+    <script>
+      const form = document.getElementById('signupForm');
+      const passwordToggle = document.getElementById('passwordToggle');
+      const passwordInput = document.getElementById('passwordInput');
+      const errorMsg = document.getElementById('error-message');
+      const successMsg = document.getElementById('success-message');
+      const submitBtn = document.getElementById('submitBtn');
+
+      // Toggle password visibility
+      passwordToggle.addEventListener('click', (e) => {
+        e.preventDefault();
+        const isPassword = passwordInput.type === 'password';
+        passwordInput.type = isPassword ? 'text' : 'password';
+        passwordToggle.textContent = isPassword ? '◔' : '◔';
+      });
+
+      // Validate password match
+      form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        const nombre = form.nombre.value.trim();
+        const email = form.email.value.trim();
+        const password = form.password.value;
+        const confirmPassword = form.confirmPassword.value;
+        const terms = form.terms.checked;
+
+        errorMsg.style.display = 'none';
+        successMsg.style.display = 'none';
+
+        // Validaciones
+        if (!nombre || !email || !password || !confirmPassword) {
+          errorMsg.textContent = 'Por favor completa todos los campos.';
+          errorMsg.style.display = 'block';
+          return;
+        }
+
+        if (password.length < 8) {
+          errorMsg.textContent = 'La contraseña debe tener mínimo 8 caracteres.';
+          errorMsg.style.display = 'block';
+          return;
+        }
+
+        if (password !== confirmPassword) {
+          errorMsg.textContent = 'Las contraseñas no coinciden.';
+          errorMsg.style.display = 'block';
+          return;
+        }
+
+        if (!terms) {
+          errorMsg.textContent = 'Debes aceptar los términos y condiciones.';
+          errorMsg.style.display = 'block';
+          return;
+        }
+
+        try {
+          submitBtn.disabled = true;
+          submitBtn.textContent = 'Registrando...';
+
+          const result = await API_CLIENT.auth.register(email, password, nombre);
+
+          successMsg.textContent = '✓ Registro exitoso. Redirigiendo...';
+          successMsg.style.display = 'block';
+
+          // Guardar info de usuario para completar perfil después
+          localStorage.setItem('pufab_new_user_email', email);
+          localStorage.setItem('pufab_new_user_nombre', nombre);
+
+          // Redirigir al login después de 2 segundos
+          setTimeout(() => {
+            window.location.href = '/iniciar-sesion/?registered=1';
+          }, 2000);
+        } catch (error) {
+          errorMsg.textContent = error.message || 'Error al registrarse. Intenta de nuevo.';
+          errorMsg.style.display = 'block';
+          submitBtn.disabled = false;
+          submitBtn.textContent = 'Continuar';
+        }
+      });
+    </script>
+  </body>
+</html>

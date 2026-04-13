@@ -30,12 +30,52 @@ export class CatalogosService {
     @InjectRepository(EstadoPago) private estadosPagoRepo: Repository<EstadoPago>,
   ) {}
 
-  obtenerMunicipios() {
+  async obtenerMunicipios() {
+    const municipios = await this.municipiosRepo.find({ order: { nombre: 'ASC' } });
+    if (municipios.length > 0) return municipios;
+
+    await this.municipiosRepo.save(
+      this.municipiosRepo.create([
+        { nombre: 'Tunja', departamento: 'Boyacá' },
+        { nombre: 'Duitama', departamento: 'Boyacá' },
+        { nombre: 'Sogamoso', departamento: 'Boyacá' },
+        { nombre: 'Chiquinquirá', departamento: 'Boyacá' },
+        { nombre: 'Paipa', departamento: 'Boyacá' },
+        { nombre: 'Villa de Leyva', departamento: 'Boyacá' },
+        { nombre: 'Samacá', departamento: 'Boyacá' },
+        { nombre: 'Moniquirá', departamento: 'Boyacá' },
+        { nombre: 'Soatá', departamento: 'Boyacá' },
+        { nombre: 'Garagoa', departamento: 'Boyacá' },
+        { nombre: 'Aquitania', departamento: 'Boyacá' },
+        { nombre: 'Nobsa', departamento: 'Boyacá' },
+        { nombre: 'Tibasosa', departamento: 'Boyacá' },
+        { nombre: 'Ráquira', departamento: 'Boyacá' },
+        { nombre: 'Tenza', departamento: 'Boyacá' },
+      ]),
+    );
+
     return this.municipiosRepo.find({ order: { nombre: 'ASC' } });
   }
 
-  obtenerTiposProduccion() {
-    return this.tiposProduccionRepo.find({ where: { activo: true } });
+  async obtenerTiposProduccion() {
+    const tipos = await this.tiposProduccionRepo.find({ where: { activo: true }, order: { nombre: 'ASC' } });
+    if (tipos.length > 0) return tipos;
+
+    await this.tiposProduccionRepo.save(
+      this.tiposProduccionRepo.create([
+        { nombre: 'Largometraje', descripcion: 'Producción cinematográfica de larga duración', activo: true },
+        { nombre: 'Cortometraje', descripcion: 'Producción audiovisual de corta duración', activo: true },
+        { nombre: 'Serie', descripcion: 'Serie para televisión o plataformas digitales', activo: true },
+        { nombre: 'Documental', descripcion: 'Producción documental', activo: true },
+        { nombre: 'Comercial', descripcion: 'Pieza publicitaria audiovisual', activo: true },
+        { nombre: 'Videoclip', descripcion: 'Producción musical audiovisual', activo: true },
+        { nombre: 'Institucional', descripcion: 'Contenido institucional', activo: true },
+        { nombre: 'Académico', descripcion: 'Proyecto audiovisual de formación', activo: true },
+        { nombre: 'Otro', descripcion: 'Otro tipo de producción', activo: true },
+      ]),
+    );
+
+    return this.tiposProduccionRepo.find({ where: { activo: true }, order: { nombre: 'ASC' } });
   }
 
   obtenerEstadosTramite() {
@@ -47,7 +87,24 @@ export class CatalogosService {
   }
 
   obtenerRolesEquipoTecnico() {
-    return this.rolesEquipoRepo.find({ where: { activo: true } });
+    return this.rolesEquipoRepo.find({ where: { activo: true }, order: { nombre: 'ASC' } }).then(async (roles) => {
+      if (roles.length > 0) return roles;
+
+      await this.rolesEquipoRepo.save(
+        this.rolesEquipoRepo.create([
+          { nombre: 'Director/a', descripcion: 'Dirección general del proyecto', activo: true },
+          { nombre: 'Productor/a', descripcion: 'Gestión de recursos y ejecución', activo: true },
+          { nombre: 'Director/a de Fotografía', descripcion: 'Diseño visual y cámara', activo: true },
+          { nombre: 'Sonidista', descripcion: 'Captura y control de sonido', activo: true },
+          { nombre: 'Gaffer', descripcion: 'Iluminación técnica del set', activo: true },
+          { nombre: 'Arte / Escenografía', descripcion: 'Dirección de arte y ambientación', activo: true },
+          { nombre: 'Maquillaje y Vestuario', descripcion: 'Caracterización y vestuario', activo: true },
+          { nombre: 'Asistente de Producción', descripcion: 'Apoyo logístico en rodaje', activo: true },
+        ]),
+      );
+
+      return this.rolesEquipoRepo.find({ where: { activo: true }, order: { nombre: 'ASC' } });
+    });
   }
 
   obtenerTiposIdentificacion() {

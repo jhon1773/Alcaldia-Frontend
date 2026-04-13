@@ -11,9 +11,15 @@ export class RegistroUsuarioDto {
   @MinLength(8, { message: 'La contraseña debe tener al menos 8 caracteres' })
   password: string;
 
+  @ApiPropertyOptional({ example: 'Juan Pérez García', description: 'Nombre completo del usuario' })
+  @IsOptional()
+  @IsString()
+  nombre?: string;
+
   @ApiProperty({ enum: ['natural', 'juridica'], example: 'natural', description: 'Tipo de persona del usuario' })
   @IsIn(['natural', 'juridica'], { message: 'El tipo de persona debe ser natural o juridica' })
-  tipo_persona: 'natural' | 'juridica';
+  @IsOptional()
+  tipo_persona?: 'natural' | 'juridica';
 
   @ApiPropertyOptional({ example: '3101234567', description: 'Número de teléfono de contacto' })
   @IsOptional()

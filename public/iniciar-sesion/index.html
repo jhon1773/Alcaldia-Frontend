@@ -221,11 +221,11 @@
 
           const payload = await response.json();
           if (!response.ok) {
-            throw new Error(payload?.message || 'No fue posible iniciar sesión');
+            throw new Error(payload?.mensaje || payload?.message || 'No fue posible iniciar sesión');
           }
 
           const tipoPerfil = payload?.datos?.usuario?.tipo_perfil || payload?.usuario?.tipo_perfil;
-          const roleKey = perfilToRole[tipoPerfil] || selectedRole;
+          const roleKey = perfilToRole[tipoPerfil] || 'producer';
           const role = roleMap[roleKey] || roleMap.academy;
           const redirectParam = new URLSearchParams(window.location.search).get('redirect');
           const safeRedirect = redirectParam && redirectParam.startsWith('/') ? redirectParam : null;
@@ -241,6 +241,7 @@
               startedAt: new Date().toISOString(),
             }),
           );
+          localStorage.setItem('pufab_token', payload?.datos?.access_token || payload?.access_token || '');
 
           window.location.href = safeRedirect || role.path;
         } catch (error) {

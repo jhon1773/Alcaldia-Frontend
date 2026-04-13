@@ -12,7 +12,7 @@
         <a class="portal-link" href="/admin/">Resumen</a>
         <a class="portal-link" href="/admin/admin-2.html">Usuarios y Accesos</a>
         <a class="portal-link" href="/admin/admin-3.html">Verificación de Perfiles</a>
-        <a class="portal-link" href="/admin/admin-4.html">Gestión de Activos</a>
+        <a class="portal-link" href="/admin/admin-4.html">Gestión de Locaciones</a>
         <a class="portal-link active" href="/admin/admin-5.html">Flujo de Permisos</a>
         <a class="portal-link" href="/admin/admin-6.html">Comités Técnicos</a>
         <a class="portal-link" href="/admin/admin-7.html">Finanzas y Reservas</a>
@@ -61,7 +61,7 @@
         `;
 
         flujoList.innerHTML = (data.data || []).length
-          ? data.data.map((item) => `<article class="portal-card"><div class="permit-top"><div><small>${item.numero_radicado}</small><h3>${item.proyecto}</h3><p>${item.productora} · ${item.ciudad} · ${item.fecha}</p></div><span class="status-badge ${claseEstado(item.estado_ui)}">${item.estado_ui}</span></div><div class="permit-actions"><a href="#">Ver</a><a href="#" data-accion="aprobar" data-tramite-id="${item.id}">Aprobar</a><a href="#" data-accion="correccion" data-tramite-id="${item.id}">Corrección</a><a href="#" data-accion="rechazar" data-tramite-id="${item.id}">Rechazar</a></div></article>`).join('')
+          ? data.data.map((item) => `<article class="portal-card"><div class="permit-top"><div><small>${item.numero_radicado}</small><h3>${item.proyecto}</h3><p>${item.productora} · ${item.ciudad} · ${item.fecha}</p></div><span class="status-badge ${claseEstado(item.estado_ui)}">${item.estado_ui}</span></div><div class="permit-actions"><button style="background:none;border:none;color:#2d7e3e;cursor:pointer;text-decoration:underline;">Ver</button><button style="background:none;border:none;color:#2d7e3e;cursor:pointer;text-decoration:underline;" data-accion="aprobar" data-tramite-id="${item.id}">Aprobar</button><button style="background:none;border:none;color:#2d7e3e;cursor:pointer;text-decoration:underline;" data-accion="correccion" data-tramite-id="${item.id}">Corrección</button><button style="background:none;border:none;color:#2d7e3e;cursor:pointer;text-decoration:underline;" data-accion="rechazar" data-tramite-id="${item.id}">Rechazar</button></div></article>`).join('')
           : '<article class="portal-card">No hay resultados para la búsqueda.</article>';
 
         flujoList.querySelectorAll('[data-accion]').forEach((btn) => {

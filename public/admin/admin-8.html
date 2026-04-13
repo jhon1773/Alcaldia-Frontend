@@ -12,7 +12,7 @@
         <a class="portal-link" href="/admin/">Resumen</a>
         <a class="portal-link" href="/admin/admin-2.html">Usuarios y Accesos</a>
         <a class="portal-link" href="/admin/admin-3.html">Verificación de Perfiles</a>
-        <a class="portal-link" href="/admin/admin-4.html">Gestión de Activos</a>
+        <a class="portal-link" href="/admin/admin-4.html">Gestión de Locaciones</a>
         <a class="portal-link" href="/admin/admin-5.html">Flujo de Permisos</a>
         <a class="portal-link" href="/admin/admin-6.html">Comités Técnicos</a>
         <a class="portal-link" href="/admin/admin-7.html">Finanzas y Reservas</a>
@@ -30,7 +30,19 @@
       menuToggle?.addEventListener('click', () => navLinks?.classList.toggle('open'));
 
       function bars(items, className) {
-        return `<div class="${className}">${items.map((i) => `<div><i style="height:${Math.max(24, Number(i.total || 0) * 8)}px"></i><span>${i.mes}</span></div>`).join('')}</div>`;
+        const values = items.map((i) => Number(i.total || 0));
+        const maxValue = Math.max(1, ...values);
+        const minHeight = 24;
+        const maxHeight = 180;
+
+        return `<div class="${className}">${items
+          .map((i) => {
+            const value = Number(i.total || 0);
+            const ratio = Math.max(0, value) / maxValue;
+            const height = Math.round(minHeight + ratio * (maxHeight - minHeight));
+            return `<div><i style="height:${height}px"></i><span>${i.mes}</span></div>`;
+          })
+          .join('')}</div>`;
       }
 
       async function load() {

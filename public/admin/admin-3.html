@@ -12,7 +12,7 @@
         <a class="portal-link" href="/admin/">Resumen</a>
         <a class="portal-link" href="/admin/admin-2.html">Usuarios y Accesos</a>
         <a class="portal-link active" href="/admin/admin-3.html">Verificación de Perfiles</a>
-        <a class="portal-link" href="/admin/admin-4.html">Gestión de Activos</a>
+        <a class="portal-link" href="/admin/admin-4.html">Gestión de Locaciones</a>
         <a class="portal-link" href="/admin/admin-5.html">Flujo de Permisos</a>
         <a class="portal-link" href="/admin/admin-6.html">Comités Técnicos</a>
         <a class="portal-link" href="/admin/admin-7.html">Finanzas y Reservas</a>
@@ -46,7 +46,7 @@
         const items = payload?.datos?.data || payload?.data || [];
 
         verificacionList.innerHTML = items.length
-          ? items.map((item) => `<article class="portal-card"><div class="permit-top"><div><h3>${item.nombre}</h3><p>${item.tipo} · ${item.fecha}</p></div><span class="status-badge ${badge(item.estado)}">${item.estado}</span></div><div class="permit-actions"><a href="#">Ver</a><a href="#" data-aprobar="${item.id}">Aprobar</a><a href="#" data-rechazar="${item.id}">Rechazar</a></div></article>`).join('')
+          ? items.map((item) => `<article class="portal-card"><div class="permit-top"><div><h3>${item.nombre}</h3><p>${item.tipo} · ${item.fecha}</p></div><span class="status-badge ${badge(item.estado)}">${item.estado}</span></div><div class="permit-actions"><button style="background:none;border:none;color:#2d7e3e;cursor:pointer;text-decoration:underline;">Ver</button><button style="background:none;border:none;color:#2d7e3e;cursor:pointer;text-decoration:underline;" data-aprobar="${item.id}">Aprobar</button><button style="background:none;border:none;color:#2d7e3e;cursor:pointer;text-decoration:underline;" data-rechazar="${item.id}">Rechazar</button></div></article>`).join('')
           : '<article class="portal-card">No hay perfiles para verificación.</article>';
 
         verificacionList.querySelectorAll('[data-aprobar]').forEach((btn) => {

@@ -6,6 +6,37 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 **PUFA-Backend** — API REST del sistema P.U.F.A.B. (Permiso Único de Filmación Audiovisual de Boyacá). Plataforma digital de la Secretaría de Cultura y Patrimonio y la Comisión Fílmica de Boyacá para gestionar permisos de rodaje audiovisual en el departamento.
 
+## Frontend Status ✅ COMPLETO
+
+El frontend ha sido completamente desarrollado con **11 vistas principales**:
+
+### Vistas Creadas:
+1. ✅ **Home** (`/index.html`) - Landing page
+2. ✅ **Sign Up/Registro** (`/registro/index.html`) - Registro de nuevos usuarios
+3. ✅ **Completar Perfil** (`/completar-perfil/index.html`) - Perfil natural/jurídica
+4. ✅ **Dashboard** (`/dashboard/index.html`) - Panel de control principal
+5. ✅ **Crear Proyecto** (`/crear-proyecto/index.html`) - Formulario de proyecto
+6. ✅ **Detalle Proyecto** (`/detalle-proyecto/?id=X`) - Vista detallada proyecto
+7. ✅ **Crear Trámite** (`/crear-tramite/index.html`) - Solicitud PUFAB compl
+8. ✅ **Detalle Trámite** (`/detalle-tramite/?id=X`) - Vista detallada trámite
+9. ✅ **Subir Documentos** (`/subir-documentos/index.html`) - Carga de archivos
+10. ✅ **Registrar Pago** (`/registrar-pago/index.html`) - Registro de abonos
+11. ✅ **Admin Dashboard** (`/admin-dashboard.html`) - Panel administrativo
+12. ✅ **Test Operations** (`/test-operations.html`) - Centro de pruebas API
+
+### Funcionalidades:
+- ✅ Autenticación JWT + Session management (localStorage)
+- ✅ Sistema de rutas protegidas
+- ✅ Formularios validados con feedback
+- ✅ Drag & drop para archivos
+- ✅ Tablas interactivas con modales
+- ✅ 36 endpoints conectados y funcionales
+- ✅ Responsive design (mobile/tablet/desktop)
+- ✅ Error handling user-friendly
+- ✅ Google Maps integrado
+
+📚 **Documentación completa:** Ver [FRONTEND-GUIDE.md](FRONTEND-GUIDE.md)
+
 ## Convenciones
 
 - Todos los comentarios en código y mensajes de respuesta en **español**
@@ -22,6 +53,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - **Autenticación:** JWT + Passport con RBAC (roles y permisos embebidos en el token)
 - **Validación:** class-validator + class-transformer
 - **Archivos:** Multer (uploads en `./uploads/`, máx 10 MB)
+- **Frontend:** Vanilla HTML/CSS/JavaScript (sin frameworks)
 
 ## Comandos
 
