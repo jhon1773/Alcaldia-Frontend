@@ -132,11 +132,15 @@
       locacionForm?.addEventListener('submit', async (event) => {
         event.preventDefault();
         try {
+          const session = JSON.parse(localStorage.getItem('pufab_session') || 'null');
+          const requesterEmail = session?.email || null;
+
           const payload = {
             nombre_lugar: locNombre.value.trim(),
             municipio_id: locMunicipio.value ? Number(locMunicipio.value) : null,
             tipo_espacio_id: locTipo.value ? Number(locTipo.value) : null,
             observaciones: locObs.value.trim() || null,
+            requester_email: requesterEmail,
           };
 
           const response = await fetch('/api/v1/portal/admin/locaciones', {

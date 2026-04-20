@@ -296,11 +296,19 @@
             <!-- LOCACIONES -->
             <div class="tramite-section">
               <h3>📍 Locaciones de Rodaje</h3>
-              <p style="color: var(--muted); font-size: 13px; margin-bottom: 1rem;">Agrega las locaciones donde planeas rodar (mínimo 1)</p>
+              <p style="color: var(--muted); font-size: 13px; margin-bottom: 1rem;">Selecciona las locaciones ya registradas donde planeas rodar (mínimo 1)</p>
+
+              <div class="form-group" style="display: grid; grid-template-columns: 1fr auto; gap: 0.75rem; align-items: end; margin-bottom: 1rem;">
+                <div>
+                  <label for="locacionExistente">Locación disponible</label>
+                  <select id="locacionExistente">
+                    <option value="">Cargando locaciones...</option>
+                  </select>
+                </div>
+                <button type="button" class="add-btn" id="addLocacionExistente">+ Agregar</button>
+              </div>
 
               <div id="locaciones-list" class="item-list"></div>
-
-              <button type="button" class="add-btn" id="addLocacion">+ Agregar Locación</button>
             </div>
 
             <!-- EQUIPO TÉCNICO -->
@@ -351,31 +359,6 @@
       </div>
     </main>
 
-    <!-- Modal para agregar locación -->
-    <div id="locacionModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; flex-display: flex; align-items: center; justify-content: center;">
-      <div style="background: white; padding: 2rem; border-radius: 14px; max-width: 500px; width: 90%;">
-        <h3>Agregar Locación</h3>
-        <div class="form-group">
-          <label for="locacionNombre">Nombre de la locación *</label>
-          <input type="text" id="locacionNombre" placeholder="Ej: Centro Histórico de Tunja" />
-        </div>
-        <div class="form-group">
-          <label for="locacionTipo">Tipo de espacio *</label>
-          <select id="locacionTipo">
-            <option value="">Selecciona tipo</option>
-          </select>
-        </div>
-        <div class="form-group">
-          <label for="locacionDescripcion">Descripción</label>
-          <textarea id="locacionDescripcion" placeholder="Detalles adicionales de la locación"></textarea>
-        </div>
-        <div style="display: flex; gap: 1rem;">
-          <button type="button" id="cancelLocacion" class="btn btn-ghost" style="flex: 1;">Cancelar</button>
-          <button type="button" id="saveLocacion" class="btn btn-primary" style="flex: 1;">Guardar Locación</button>
-        </div>
-      </div>
-    </div>
-
     <!-- Modal para agregar equipo -->
     <div id="equipoModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; display: flex; align-items: center; justify-content: center;">
       <div style="background: white; padding: 2rem; border-radius: 14px; max-width: 500px; width: 90%;">
@@ -411,11 +394,11 @@
       const logoutBtn = document.getElementById('logoutBtn');
 
       // Modales
-      const locacionModal = document.getElementById('locacionModal');
       const equipoModal = document.getElementById('equipoModal');
 
       // Arrays para almacenar datos
       let locaciones = [];
+      let locacionesDisponibles = [];
       let equipoTecnico = [];
 
       // Logout
@@ -426,28 +409,19 @@
 
       // Cargar catálogos
       async function loadCatalogos() {
-        const selectTipo = document.getElementById('locacionTipo');
         const selectRol = document.getElementById('equipoRol');
         const selectProyecto = document.getElementById('proyecto');
+        const selectLocacionExistente = document.getElementById('locacionExistente');
 
-        selectTipo.innerHTML = '<option value="">Selecciona tipo</option>';
         selectRol.innerHTML = '<option value="">Selecciona rol</option>';
         selectProyecto.innerHTML = '<option value="">Cargando proyectos...</option>';
+        selectLocacionExistente.innerHTML = '<option value="">Cargando locaciones...</option>';
 
-        const [tiposResult, rolesResult, proyectosResult] = await Promise.allSettled([
-          API_CLIENT.catalogos.tiposEspacio(),
+        const [rolesResult, proyectosResult, locacionesResult] = await Promise.allSettled([
           API_CLIENT.catalogos.rolesEquipoTecnico(),
-          API_CLIENT.proyectos.listar(1, 100),
+          API_CLIENT.portal.productor.proyectosMenu(),
+          API_CLIENT.portal.productor.locacionesMenu(),
         ]);
-
-        if (tiposResult.status === 'fulfilled' && Array.isArray(tiposResult.value)) {
-          tiposResult.value.forEach((tipo) => {
-            const option = document.createElement('option');
-            option.value = tipo.id;
-            option.textContent = tipo.nombre;
-            selectTipo.appendChild(option);
-          });
-        }
 
         if (rolesResult.status === 'fulfilled' && Array.isArray(rolesResult.value)) {
           rolesResult.value.forEach((rol) => {
@@ -459,8 +433,7 @@
         }
 
         if (proyectosResult.status === 'fulfilled') {
-          const proyectos = proyectosResult.value;
-          const proyectosList = proyectos?.data || proyectos;
+          const proyectosList = proyectosResult.value?.data || proyectosResult.value;
           selectProyecto.innerHTML = '<option value="">Selecciona proyecto</option>';
           (Array.isArray(proyectosList) ? proyectosList : []).forEach((proy) => {
             const option = document.createElement('option');
@@ -468,9 +441,36 @@
             option.textContent = proy.titulo || proy.nombre_proyecto || `Proyecto ${proy.id}`;
             selectProyecto.appendChild(option);
           });
+          if (selectProyecto.options.length <= 1) {
+            selectProyecto.innerHTML = '<option value="">No hay proyectos registrados</option>';
+          }
         } else {
-          selectProyecto.innerHTML = '<option value="">No fue posible cargar proyectos</option>';
-          console.error('Error cargando proyectos:', proyectosResult.reason);
+          try {
+            const fallback = await API_CLIENT.proyectos.listar(1, 100);
+            const proyectosList = fallback?.data || fallback;
+            selectProyecto.innerHTML = '<option value="">Selecciona proyecto</option>';
+            (Array.isArray(proyectosList) ? proyectosList : []).forEach((proy) => {
+              const option = document.createElement('option');
+              option.value = proy.id;
+              option.textContent = proy.titulo || proy.nombre_proyecto || `Proyecto ${proy.id}`;
+              selectProyecto.appendChild(option);
+            });
+          } catch (fallbackError) {
+            selectProyecto.innerHTML = '<option value="">No fue posible cargar proyectos</option>';
+            console.error('Error cargando proyectos:', proyectosResult.reason, fallbackError);
+          }
+        }
+
+        if (locacionesResult.status === 'fulfilled') {
+          locacionesDisponibles = Array.isArray(locacionesResult.value?.data)
+            ? locacionesResult.value.data
+            : Array.isArray(locacionesResult.value)
+              ? locacionesResult.value
+              : [];
+          renderLocacionesDisponibles();
+        } else {
+          selectLocacionExistente.innerHTML = '<option value="">No fue posible cargar locaciones</option>';
+          console.error('Error cargando locaciones existentes:', locacionesResult.reason);
         }
 
         if (selectRol.options.length <= 1) {
@@ -478,39 +478,44 @@
         }
       }
 
-      // Agregar locación
-      document.getElementById('addLocacion').addEventListener('click', (e) => {
-        e.preventDefault();
-        document.getElementById('locacionNombre').value = '';
-        document.getElementById('locacionTipo').value = '';
-        document.getElementById('locacionDescripcion').value = '';
-        locacionModal.style.display = 'flex';
-      });
+      function renderLocacionesDisponibles() {
+        const selectLocacionExistente = document.getElementById('locacionExistente');
+        selectLocacionExistente.innerHTML = '<option value="">Selecciona una locación existente</option>';
+        locacionesDisponibles.forEach((loc) => {
+          const option = document.createElement('option');
+          option.value = loc.id_unico;
+          option.textContent = `${loc.nombre_lugar} - ${loc.municipio_nombre || 'Sin municipio'}`;
+          selectLocacionExistente.appendChild(option);
+        });
 
-      document.getElementById('cancelLocacion').addEventListener('click', (e) => {
-        e.preventDefault();
-        locacionModal.style.display = 'none';
-      });
+        if (!locacionesDisponibles.length) {
+          selectLocacionExistente.innerHTML = '<option value="">No hay locaciones registradas</option>';
+        }
+      }
 
-      document.getElementById('saveLocacion').addEventListener('click', (e) => {
+      document.getElementById('addLocacionExistente').addEventListener('click', (e) => {
         e.preventDefault();
-        const nombre = document.getElementById('locacionNombre').value;
-        const tipo = document.getElementById('locacionTipo').value;
-        const descripcion = document.getElementById('locacionDescripcion').value;
+        const selectLocacionExistente = document.getElementById('locacionExistente');
+        const selectedId = selectLocacionExistente.value;
 
-        if (!nombre || !tipo) {
-          alert('Por favor completa nombre y tipo de locación');
+        if (!selectedId) {
+          alert('Selecciona una locación del menú.');
           return;
         }
 
-        locaciones.push({
-          nombre,
-          tipo: parseInt(tipo),
-          descripcion,
-        });
+        const locacion = locacionesDisponibles.find((l) => l.id_unico === selectedId);
+        if (!locacion) {
+          alert('No se encontró la locación seleccionada.');
+          return;
+        }
 
+        if (locaciones.some((l) => l.id_unico === locacion.id_unico)) {
+          alert('Esta locación ya fue agregada.');
+          return;
+        }
+
+        locaciones.push(locacion);
         renderLocaciones();
-        locacionModal.style.display = 'none';
       });
 
       function renderLocaciones() {
@@ -520,8 +525,8 @@
             (loc, idx) => `
           <div class="item-card">
             <div>
-              <strong>${loc.nombre}</strong>
-              <p style="margin: 0.25rem 0 0; font-size: 12px; color: var(--muted);">${loc.descripcion || 'Sin descripción'}</p>
+              <strong>${loc.nombre_lugar}</strong>
+              <p style="margin: 0.25rem 0 0; font-size: 12px; color: var(--muted);">${loc.municipio_nombre || 'Sin municipio'} · ${loc.tipo_espacio_nombre || 'Sin tipo de espacio'}</p>
             </div>
             <button type="button" onclick="removeLocacion(${idx})">Eliminar</button>
           </div>
@@ -631,9 +636,10 @@
           submitBtn.textContent = 'Creando solicitud...';
 
           const locacionesPayload = locaciones.map((loc) => ({
-            nombre_lugar: loc.nombre,
-            tipo_espacio_id: loc.tipo,
-            observaciones: loc.descripcion || undefined,
+            municipio_id: loc.municipio_id || undefined,
+            tipo_espacio_id: loc.tipo_espacio_id || undefined,
+            nombre_lugar: loc.nombre_lugar,
+            observaciones: loc.observaciones || undefined,
           }));
 
           const equipoPayload = equipoTecnico.map((eq) => ({

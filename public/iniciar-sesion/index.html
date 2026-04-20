@@ -200,6 +200,14 @@
         academico: 'academy',
       };
 
+      // Mapeo inverso: de key frontend a tipo_perfil en BD
+      const roleToPerfilBD = {
+        admin: 'admin',
+        producer: 'productora',
+        provider: 'proveedor',
+        academy: 'academico',
+      };
+
       form?.addEventListener('submit', async (event) => {
         event.preventDefault();
         const email = String(document.querySelector('input[name="email"]')?.value || '').trim();
@@ -213,10 +221,11 @@
         if (submitBtn) submitBtn.textContent = 'Validando...';
 
         try {
+          const rolBD = roleToPerfilBD[selectedRole] || selectedRole;
           const response = await fetch('/api/v1/auth/login', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ email, password }),
+            body: JSON.stringify({ email, password, rolSolicitado: rolBD }),
           });
 
           const payload = await response.json();
@@ -226,6 +235,14 @@
 
           const tipoPerfil = payload?.datos?.usuario?.tipo_perfil || payload?.usuario?.tipo_perfil;
           const roleKey = perfilToRole[tipoPerfil] || 'producer';
+          
+          // Valida que el rol devuelto por el backend coincida con el rol seleccionado en el formulario
+          if (roleKey !== selectedRole) {
+            throw new Error(
+              `Este usuario no pertenece al rol "${roleMap[selectedRole]?.label || selectedRole}". Su perfil es: ${roleMap[roleKey]?.label || tipoPerfil}.`
+            );
+          }
+
           const role = roleMap[roleKey] || roleMap.academy;
           const redirectParam = new URLSearchParams(window.location.search).get('redirect');
           const safeRedirect = redirectParam && redirectParam.startsWith('/') ? redirectParam : null;

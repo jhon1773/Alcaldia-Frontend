@@ -64,9 +64,6 @@ npm run start:dev
 # Build de producción
 npm run build
 
-# Ejecutar seed de datos iniciales (requiere DB configurada)
-npx ts-node -r tsconfig-paths/register src/database/seeds/seed.ts
-
 # Tests
 npm run test
 npm run test:e2e
@@ -75,7 +72,7 @@ npm run test:cov
 
 ## Variables de entorno
 
-Copiar `.env.example` a `.env` y configurar antes de iniciar:
+Crear `.env` en la raíz y configurar antes de iniciar:
 - `DB_HOST`, `DB_PORT`, `DB_USERNAME`, `DB_PASSWORD`, `DB_DATABASE`
 - `JWT_SECRET` (mínimo 32 caracteres en producción), `JWT_EXPIRATION` (default: `1d`)
 - `APP_PORT` (default: `3000`), `APP_ENV` (`development` activa `synchronize: true`)
@@ -114,7 +111,6 @@ src/
 ├── config/
 │   ├── app.config.ts
 │   └── database.config.ts
-├── database/seeds/seed.ts                    # Seed inicial de datos
 └── modules/
     ├── auth/           # JWT, RBAC, guards, decoradores, estrategia Passport
     ├── usuarios/       # Usuario, PersonaNatural, PersonaJuridica, VigenciaEstimulo

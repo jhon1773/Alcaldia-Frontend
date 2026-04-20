@@ -108,4 +108,129 @@ export class PerfilesService {
     await this.perfilesProveedorRepo.update(perfilId, { verificado: true });
     return { mensaje: 'Proveedor verificado exitosamente' };
   }
+
+  // Lista todos los perfiles pendientes de verificación
+  async listarPerfilesVerificacion() {
+    const perfiles = await this.perfilesProveedorRepo.find({
+      relations: ['usuario'],
+      order: { fecha_creacion: 'DESC' },
+    });
+
+    return {
+      ok: true,
+      data: perfiles.map((p) => ({
+        id: p.id,
+        nombre: p.usuario?.email?.split('@')[0] || 'N/A',
+        email: p.usuario?.email || 'N/A',
+        tipo: 'Proveedor',
+        estado: p.estado || 'pendiente',
+        telefono: p.telefono || 'N/A',
+        sitio_web: p.sitio_web || 'N/A',
+        descripcion: p.descripcion_perfil || 'N/A',
+        fecha: p.fecha_creacion?.toISOString().split('T')[0] || 'N/A',
+        activo: p.activo,
+        fecha_actualizacion: p.fecha_actualizacion?.toISOString().split('T')[0],
+      })),
+    };
+  }
+
+  // Obtiene los detalles de un perfil específico
+  async obtenerDetallesVerificacion(perfilId: number) {
+    const perfil = await this.perfilesProveedorRepo.findOne({
+      where: { id: perfilId },
+      relations: ['usuario'],
+    });
+
+    if (!perfil) {
+      return {
+        ok: false,
+        error: 'Perfil no encontrado',
+      };
+    }
+
+    return {
+      ok: true,
+      data: {
+        id: perfil.id,
+        nombre: perfil.usuario?.email?.split('@')[0] || 'N/A',
+        email: perfil.usuario?.email || 'N/A',
+        tipo: 'Proveedor',
+        estado: perfil.estado || 'pendiente',
+        telefono: perfil.telefono || 'N/A',
+        sitio_web: perfil.sitio_web || 'N/A',
+        descripcion: perfil.descripcion_perfil || 'N/A',
+        fecha: perfil.fecha_creacion?.toISOString().split('T')[0] || 'N/A',
+        activo: perfil.activo,
+        fecha_actualizacion: perfil.fecha_actualizacion?.toISOString().split('T')[0],
+        motivo_rechazo: perfil.motivo_rechazo || null,
+      },
+    };
+  }
+
+  // Aprueba un perfil de verificación
+  async aprobarPerfil(perfilId: number) {
+    const perfil = await this.perfilesProveedorRepo.findOne({ where: { id: perfilId } });
+
+    if (!perfil) {
+      return {
+        ok: false,
+        error: 'Perfil no encontrado',
+      };
+    }
+
+    await this.perfilesProveedorRepo.update(perfilId, {
+      estado: 'aprobado',
+      verificado: true,
+      activo: true,
+      motivo_rechazo: null,
+    });
+
+    return {
+      ok: true,
+      mensaje: 'Perfil aprobado correctamente',
+    };
+  }
+
+  // Rechaza un perfil de verificación
+  async rechazarPerfil(perfilId: number, motivo: string = 'No especificado') {
+    const perfil = await this.perfilesProveedorRepo.findOne({ where: { id: perfilId } });
+
+    if (!perfil) {
+      return {
+        ok: false,
+        error: 'Perfil no encontrado',
+      };
+    }
+
+    await this.perfilesProveedorRepo.update(perfilId, {
+      estado: 'rechazado',
+      verificado: false,
+      activo: false,
+      motivo_rechazo: motivo,
+    });
+
+    return {
+      ok: true,
+      mensaje: 'Perfil rechazado correctamente',
+    };
+  }
+
+  // Elimina un perfil de verificación
+  async eliminarPerfil(perfilId: number) {
+    const perfil = await this.perfilesProveedorRepo.findOne({ where: { id: perfilId } });
+
+    if (!perfil) {
+      return {
+        ok: false,
+        error: 'Perfil no encontrado',
+      };
+    }
+
+    await this.perfilesProveedorRepo.remove(perfil);
+
+    return {
+      ok: true,
+      mensaje: 'Perfil eliminado correctamente',
+    };
+  }
 }

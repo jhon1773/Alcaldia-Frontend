@@ -8,6 +8,8 @@ import { TramiteEquipoTecnico } from './entities/tramite-equipo-tecnico.entity';
 import { TramiteEntidad } from './entities/tramite-entidad.entity';
 import { HistorialTramite } from './entities/historial-tramite.entity';
 import { EstadoTramite } from '../catalogos/entities/estado-tramite.entity';
+import { Usuario } from '../usuarios/entities/usuario.entity';
+import { Proyecto } from '../proyectos/entities/proyecto.entity';
 
 @Module({
   imports: [
@@ -18,6 +20,8 @@ import { EstadoTramite } from '../catalogos/entities/estado-tramite.entity';
       TramiteEntidad,
       HistorialTramite,
       EstadoTramite,
+      Usuario,
+      Proyecto,
     ]),
   ],
   controllers: [TramitesController],

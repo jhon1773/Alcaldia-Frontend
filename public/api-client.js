@@ -4,7 +4,10 @@
  */
 
 const API_CLIENT = (function () {
-  const API_BASE = 'http://localhost:3000/api/v1';
+  const API_BASE =
+    typeof window !== 'undefined' && window.location?.origin
+      ? `${window.location.origin}/api/v1`
+      : 'http://localhost:3000/api/v1';
   const SESSION_KEY = 'pufab_session';
   const TOKEN_KEY = 'pufab_token';
 
@@ -272,6 +275,14 @@ const API_CLIENT = (function () {
         request('PATCH', `/entidades/${id}`, data),
       eliminar: (id) =>
         request('DELETE', `/entidades/${id}`),
+    },
+
+    // Portal productor (datos para UI pública)
+    portal: {
+      productor: {
+        proyectosMenu: () => request('GET', '/portal/productor/proyectos-menu'),
+        locacionesMenu: () => request('GET', '/portal/productor/locaciones-menu'),
+      },
     },
   };
 })();

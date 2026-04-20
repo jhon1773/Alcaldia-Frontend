@@ -99,6 +99,13 @@ export class AuthService {
       );
     }
 
+    // Valida que el rol solicitado coincida con el tipo_perfil del usuario
+    if (dto.rolSolicitado && usuario.tipo_perfil?.codigo !== dto.rolSolicitado) {
+      throw new UnauthorizedException(
+        `Este usuario no pertenece al rol "${dto.rolSolicitado}". Su perfil es: ${usuario.tipo_perfil?.nombre ?? 'desconocido'}.`,
+      );
+    }
+
     // Carga roles y permisos del usuario para embeber en el JWT
     const rolesPermisos = await this.obtenerRolesYPermisos(usuario.id);
 

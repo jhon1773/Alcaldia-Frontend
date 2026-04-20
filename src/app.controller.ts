@@ -1,13 +1,52 @@
-import { Body, Controller, Get, Param, Post, Query, Redirect } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, Query, Redirect, Logger } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { DataSource } from 'typeorm';
+import * as nodemailer from 'nodemailer';
 import { AppService } from './app.service';
 
 @Controller()
 export class AppController {
+  private readonly logger = new Logger(AppController.name);
+
   constructor(
     private readonly appService: AppService,
     private readonly dataSource: DataSource,
+    private readonly configService: ConfigService,
   ) {}
+
+  private async enviarCorreoSiConfig(to: string, subject: string, html: string) {
+    const smtpHost = this.configService.get<string>('app.smtpHost');
+    const smtpPort = this.configService.get<number>('app.smtpPort', 587);
+    const smtpSecure = this.configService.get<boolean>('app.smtpSecure', false);
+    const smtpUser = this.configService.get<string>('app.smtpUser');
+    const smtpPass = this.configService.get<string>('app.smtpPass');
+    const smtpFrom = this.configService.get<string>('app.smtpFrom');
+
+    if (!smtpHost || !smtpFrom || !smtpUser || !smtpPass || !to) {
+      return;
+    }
+
+    try {
+      const transporter = nodemailer.createTransport({
+        host: smtpHost,
+        port: smtpPort,
+        secure: smtpSecure,
+        auth: {
+          user: smtpUser,
+          pass: smtpPass,
+        },
+      });
+
+      await transporter.sendMail({
+        from: smtpFrom,
+        to,
+        subject,
+        html,
+      });
+    } catch (error: any) {
+      this.logger.warn(`No se pudo enviar correo a ${to}: ${error?.message ?? error}`);
+    }
+  }
 
   private async getPrimaryPerfilProveedorId() {
     const [perfil] = await this.dataSource.query(`
@@ -220,6 +259,78 @@ export class AppController {
       : data;
 
     return { data: filtered, total: filtered.length };
+  }
+
+  @Get('portal/productor/proyectos-menu')
+  async getPortalProductorProyectosMenu() {
+    const rows = await this.dataSource.query(`
+      SELECT
+        p.id,
+        p.nombre_proyecto,
+        COALESCE(tp.nombre, 'Sin tipo') AS tipo_produccion,
+        COALESCE(p.fecha_creacion::date, CURRENT_DATE) AS fecha
+      FROM proyectos p
+      LEFT JOIN tipos_produccion tp ON tp.id = p.tipo_produccion_id
+      ORDER BY p.fecha_creacion DESC, p.id DESC
+      LIMIT 300
+    `);
+
+    return { data: rows, total: rows.length };
+  }
+
+  @Get('portal/productor/locaciones-menu')
+  async getPortalProductorLocacionesMenu() {
+    await this.ensureAdminLocacionesTable();
+
+    const tramiteRows = await this.dataSource.query(`
+      SELECT
+        CONCAT('tramite-', tl.id) AS id_unico,
+        tl.id AS id_origen,
+        'tramite'::text AS origen,
+        tl.nombre_lugar,
+        tl.municipio_id,
+        COALESCE(m.nombre, 'Sin municipio') AS municipio_nombre,
+        tl.tipo_espacio_id,
+        COALESCE(te.nombre, 'Sin tipo') AS tipo_espacio_nombre,
+        tl.observaciones
+      FROM tramite_locaciones tl
+      LEFT JOIN municipios m ON m.id = tl.municipio_id
+      LEFT JOIN tipos_espacio te ON te.id = tl.tipo_espacio_id
+      WHERE NULLIF(TRIM(COALESCE(tl.nombre_lugar, '')), '') IS NOT NULL
+      ORDER BY tl.id DESC
+      LIMIT 300
+    `);
+
+    const manualRows = await this.dataSource.query(`
+      SELECT
+        CONCAT('manual-', l.id) AS id_unico,
+        l.id AS id_origen,
+        'manual'::text AS origen,
+        l.nombre_lugar,
+        l.municipio_id,
+        COALESCE(m.nombre, 'Sin municipio') AS municipio_nombre,
+        l.tipo_espacio_id,
+        COALESCE(te.nombre, 'Sin tipo') AS tipo_espacio_nombre,
+        l.observaciones
+      FROM admin_locaciones l
+      LEFT JOIN municipios m ON m.id = l.municipio_id
+      LEFT JOIN tipos_espacio te ON te.id = l.tipo_espacio_id
+      WHERE l.activo = true
+        AND NULLIF(TRIM(COALESCE(l.nombre_lugar, '')), '') IS NOT NULL
+      ORDER BY l.id DESC
+      LIMIT 300
+    `);
+
+    const dedup = new Map<string, any>();
+    for (const row of [...manualRows, ...tramiteRows]) {
+      const key = `${String(row.nombre_lugar).toLowerCase()}|${row.municipio_id ?? ''}|${row.tipo_espacio_id ?? ''}`;
+      if (!dedup.has(key)) {
+        dedup.set(key, row);
+      }
+    }
+
+    const data = Array.from(dedup.values());
+    return { data, total: data.length };
   }
 
   @Get('portal/productor/locaciones')
@@ -543,9 +654,35 @@ export class AppController {
     const [stats] = await this.dataSource.query(`
       SELECT
         (SELECT COUNT(*)::int FROM usuarios WHERE activo = true) AS usuarios,
-        (SELECT COUNT(*)::int FROM tramites WHERE estado_tramite_id IS NULL) AS permisos_pendientes,
-        COALESCE((SELECT SUM(COALESCE(presupuesto_total, 0))::numeric FROM proyectos), 0) AS reservas,
-        (SELECT ROUND(AVG(CASE WHEN p.verificado THEN 100 ELSE 88 END), 0)::int FROM perfiles_proveedor p) AS satisfaccion
+        (
+          SELECT COUNT(*)::int
+          FROM tramites t
+          LEFT JOIN estados_tramite e ON e.id = t.estado_tramite_id
+          WHERE LOWER(COALESCE(e.nombre, '')) NOT LIKE '%aprob%'
+            AND LOWER(COALESCE(e.nombre, '')) NOT LIKE '%rech%'
+        ) AS permisos_pendientes,
+        (
+          SELECT COALESCE(SUM(COALESCE(p.presupuesto_total, 0))::numeric, 0)
+          FROM proyectos p
+          WHERE date_trunc('month', p.fecha_creacion) = date_trunc('month', CURRENT_DATE)
+        ) AS reservas,
+        (
+          SELECT
+            CASE
+              WHEN COUNT(*) = 0 THEN 100
+              ELSE ROUND((COUNT(*) FILTER (WHERE verificado = true) * 100.0) / COUNT(*))::int
+            END
+          FROM perfiles_proveedor
+        ) AS satisfaccion,
+        (SELECT COUNT(*)::int FROM perfiles_proveedor WHERE verificado = false) AS perfiles_por_revisar,
+        (
+          SELECT COUNT(*)::int
+          FROM pagos pg
+          LEFT JOIN estados_pago ep ON ep.id = pg.estado_pago_id
+          WHERE ep.id IS NULL
+             OR LOWER(COALESCE(ep.nombre, '')) LIKE '%pend%'
+             OR LOWER(COALESCE(ep.nombre, '')) LIKE '%revision%'
+        ) AS pagos_por_confirmar
     `);
 
     const notificaciones = await this.dataSource.query(`
@@ -565,10 +702,10 @@ export class AppController {
         satisfaccion: stats?.satisfaccion ?? 94,
       },
       acciones: [
-        { titulo: 'Revisar Permisos', detalle: '23 pendientes' },
-        { titulo: 'Verificar Perfiles', detalle: '8 por revisar' },
-        { titulo: 'Pagos', detalle: '5 por confirmar' },
-        { titulo: 'Notificaciones', detalle: '12 sin leer' },
+        { titulo: 'Revisar Permisos', detalle: `${stats?.permisos_pendientes ?? 0} pendientes` },
+        { titulo: 'Verificar Perfiles', detalle: `${stats?.perfiles_por_revisar ?? 0} por revisar` },
+        { titulo: 'Pagos', detalle: `${stats?.pagos_por_confirmar ?? 0} por confirmar` },
+        { titulo: 'Notificaciones', detalle: `${notificaciones.length} recientes` },
       ],
       notificaciones,
     };
@@ -589,7 +726,7 @@ export class AppController {
       FROM usuarios u
       LEFT JOIN tipos_perfil tp ON tp.id = u.tipo_perfil_id
       WHERE ($1 = '%%' OR LOWER(u.email) LIKE $1)
-      ORDER BY u.id ASC
+      ORDER BY u.id DESC
       LIMIT 20
     `,
       [search],
@@ -604,7 +741,7 @@ export class AppController {
       `
       UPDATE usuarios
       SET activo = NOT activo,
-          updated_at = NOW()
+          fecha_actualizacion = NOW()
       WHERE id = $1::int
     `,
       [id],
@@ -620,6 +757,117 @@ export class AppController {
       id: usuario?.id ?? Number(id),
       estado: usuario?.activo ? 'Activo' : 'Inactivo',
     };
+  }
+
+  @Post('portal/admin/usuarios/:id/eliminar')
+  async eliminarPortalAdminUsuario(@Param('id') id: string) {
+    const userId = Number(id);
+    const [usuarioObjetivo] = await this.dataSource.query(
+      `SELECT id, email FROM usuarios WHERE id = $1::int LIMIT 1`,
+      [userId],
+    );
+
+    if (!usuarioObjetivo) {
+      return { ok: false, error: 'Usuario no encontrado' };
+    }
+
+    // Si el usuario tiene actividad operativa, no se elimina físicamente para no romper trazabilidad.
+    const [actividad] = await this.dataSource.query(
+      `
+      SELECT
+        (SELECT COUNT(*)::int FROM proyectos p WHERE p.usuario_id = $1::int) AS proyectos,
+        (SELECT COUNT(*)::int FROM tramites t WHERE t.usuario_solicitante_id = $1::int) AS tramites,
+        (SELECT COUNT(*)::int FROM pagos pg WHERE pg.usuario_id = $1::int) AS pagos
+    `,
+      [userId],
+    );
+
+    const totalActividad =
+      Number(actividad?.proyectos ?? 0) +
+      Number(actividad?.tramites ?? 0) +
+      Number(actividad?.pagos ?? 0);
+
+    if (totalActividad > 0) {
+      await this.dataSource.query(
+        `
+        UPDATE usuarios
+        SET activo = false,
+            fecha_actualizacion = NOW()
+        WHERE id = $1::int
+      `,
+        [userId],
+      );
+
+      return {
+        ok: true,
+        id: userId,
+        accion: 'desactivado',
+        mensaje:
+          'El usuario tiene actividad (proyectos, tramites o pagos). Se desactivo en lugar de eliminarlo para conservar integridad.',
+      };
+    }
+
+    try {
+      await this.dataSource.query('BEGIN');
+
+      await this.dataSource.query(
+        `UPDATE solicitudes_registro SET admin_revisor_id = NULL WHERE admin_revisor_id = $1::int`,
+        [userId],
+      );
+      await this.dataSource.query(
+        `UPDATE historial_solicitudes_registro SET usuario_actor_id = NULL WHERE usuario_actor_id = $1::int`,
+        [userId],
+      );
+      await this.dataSource.query(
+        `UPDATE historial_tramite SET usuario_actor_id = NULL WHERE usuario_actor_id = $1::int`,
+        [userId],
+      );
+      await this.dataSource.query(
+        `UPDATE tramite_entidades SET usuario_revisor_id = NULL WHERE usuario_revisor_id = $1::int`,
+        [userId],
+      );
+      await this.dataSource.query(
+        `UPDATE documentos SET validado_por_usuario_id = NULL WHERE validado_por_usuario_id = $1::int`,
+        [userId],
+      );
+      await this.dataSource.query(
+        `UPDATE documentos SET usuario_id = NULL WHERE usuario_id = $1::int`,
+        [userId],
+      );
+      await this.dataSource.query(
+        `UPDATE usuario_roles SET asignado_por = NULL WHERE asignado_por = $1::int`,
+        [userId],
+      );
+
+      await this.dataSource.query(`DELETE FROM usuario_roles WHERE usuario_id = $1::int`, [userId]);
+      await this.dataSource.query(`DELETE FROM historial_solicitudes_registro WHERE solicitud_registro_id IN (SELECT id FROM solicitudes_registro WHERE usuario_id = $1::int)`, [userId]);
+      await this.dataSource.query(`DELETE FROM solicitudes_registro WHERE usuario_id = $1::int`, [userId]);
+
+      await this.dataSource.query(`DELETE FROM perfil_proveedor_especialidades WHERE perfil_proveedor_id IN (SELECT id FROM perfiles_proveedor WHERE usuario_id = $1::int)`, [userId]);
+      await this.dataSource.query(`DELETE FROM perfil_proveedor_subcategorias WHERE perfil_proveedor_id IN (SELECT id FROM perfiles_proveedor WHERE usuario_id = $1::int)`, [userId]);
+      await this.dataSource.query(`DELETE FROM perfiles_proveedor WHERE usuario_id = $1::int`, [userId]);
+      await this.dataSource.query(`DELETE FROM perfiles_productora WHERE usuario_id = $1::int`, [userId]);
+      await this.dataSource.query(`DELETE FROM perfiles_academico WHERE usuario_id = $1::int`, [userId]);
+      await this.dataSource.query(`DELETE FROM personas_naturales WHERE usuario_id = $1::int`, [userId]);
+      await this.dataSource.query(`DELETE FROM personas_juridicas WHERE usuario_id = $1::int`, [userId]);
+
+      await this.dataSource.query(`DELETE FROM usuarios WHERE id = $1::int`, [userId]);
+
+      await this.dataSource.query('COMMIT');
+
+      return {
+        ok: true,
+        id: userId,
+        accion: 'eliminado',
+        mensaje: 'Usuario eliminado definitivamente.',
+      };
+    } catch (error) {
+      await this.dataSource.query('ROLLBACK');
+      return {
+        ok: false,
+        error: 'No se pudo eliminar el usuario: ' + error.message,
+      };
+    }
   }
 
   @Get('portal/admin/verificacion')
@@ -639,6 +887,130 @@ export class AppController {
     `);
 
     return { data: rows, total: rows.length };
+  }
+
+  @Post('portal/admin/verificacion/perfiles')
+  async crearPortalAdminPerfilVerificacion(
+    @Body() body?: {
+      email?: string;
+      descripcion?: string;
+      sitio_web?: string;
+      telefono?: string;
+    },
+  ) {
+    const email = (body?.email ?? '').trim().toLowerCase();
+    const telefono = (body?.telefono ?? '').trim();
+    if (!email) {
+      return { ok: false, error: 'El email es obligatorio.' };
+    }
+
+    const [usuario] = await this.dataSource.query(
+      `SELECT id, email FROM usuarios WHERE LOWER(email) = $1 LIMIT 1`,
+      [email],
+    );
+
+    if (!usuario) {
+      return { ok: false, error: 'No existe un usuario con ese email.' };
+    }
+
+    if (telefono) {
+      await this.dataSource.query(
+        `
+        UPDATE usuarios
+        SET telefono = $2,
+            fecha_actualizacion = NOW()
+        WHERE id = $1::int
+      `,
+        [usuario.id, telefono],
+      );
+    }
+
+    const [existente] = await this.dataSource.query(
+      `SELECT id FROM perfiles_proveedor WHERE usuario_id = $1::int LIMIT 1`,
+      [usuario.id],
+    );
+
+    if (existente) {
+      return {
+        ok: true,
+        ya_existia: true,
+        id: existente.id,
+        mensaje: 'El usuario ya tiene perfil de proveedor para verificación.',
+      };
+    }
+
+    const [perfil] = await this.dataSource.query(
+      `
+      INSERT INTO perfiles_proveedor (usuario_id, descripcion_perfil, sitio_web, visible_directorio, verificado, fecha_creacion, fecha_actualizacion)
+      VALUES ($1::int, $2, $3, true, false, NOW(), NOW())
+      RETURNING id, usuario_id, verificado
+    `,
+      [usuario.id, body?.descripcion ?? null, body?.sitio_web ?? null],
+    );
+
+    return {
+      ok: true,
+      data: perfil,
+      mensaje: 'Perfil creado correctamente y listo para verificación.',
+    };
+  }
+
+  @Post('portal/admin/verificacion/:id/eliminar')
+  async eliminarPortalAdminPerfilVerificacion(@Param('id') id: string) {
+    const perfilId = Number(id);
+    const [perfil] = await this.dataSource.query(
+      `SELECT id FROM perfiles_proveedor WHERE id = $1::int LIMIT 1`,
+      [perfilId],
+    );
+
+    if (!perfil) {
+      return { ok: false, error: 'Perfil no encontrado.' };
+    }
+
+    await this.dataSource.query(
+      `DELETE FROM perfil_proveedor_especialidades WHERE perfil_proveedor_id = $1::int`,
+      [perfilId],
+    );
+    await this.dataSource.query(
+      `DELETE FROM perfil_proveedor_subcategorias WHERE perfil_proveedor_id = $1::int`,
+      [perfilId],
+    );
+    await this.dataSource.query(`DELETE FROM perfiles_proveedor WHERE id = $1::int`, [perfilId]);
+
+    return {
+      ok: true,
+      id: perfilId,
+      mensaje: 'Perfil eliminado correctamente.',
+    };
+  }
+
+  @Get('portal/admin/verificacion/:id')
+  async getPortalAdminVerificacionDetalle(@Param('id') id: string) {
+    const [perfil] = await this.dataSource.query(`
+      SELECT
+        p.id,
+        u.email,
+        split_part(u.email, '@', 1) AS nombre,
+        COALESCE(tp.nombre, 'Proveedor') AS tipo,
+        COALESCE(p.descripcion_perfil, 'Sin descripción') AS descripcion,
+        COALESCE(p.sitio_web, 'N/A') AS sitio_web,
+        COALESCE(NULLIF(TRIM(COALESCE(u.telefono, '')), ''), 'N/A') AS telefono,
+        CASE WHEN p.verificado THEN 'Aprobado' ELSE 'Pendiente' END AS estado,
+        COALESCE(p.fecha_actualizacion::date, CURRENT_DATE) AS fecha_actualizacion,
+        u.activo,
+        COALESCE(u.fecha_registro::date, CURRENT_DATE) AS fecha_registro
+      FROM perfiles_proveedor p
+      INNER JOIN usuarios u ON u.id = p.usuario_id
+      LEFT JOIN tipos_perfil tp ON tp.id = u.tipo_perfil_id
+      WHERE p.id = $1::int
+      LIMIT 1
+    `, [id]);
+
+    if (!perfil) {
+      return { ok: false, error: 'Perfil no encontrado' };
+    }
+
+    return { ok: true, data: perfil };
   }
 
   @Post('portal/admin/verificacion/:id/aprobar')
@@ -785,6 +1157,7 @@ export class AppController {
       municipio_id?: number;
       tipo_espacio_id?: number;
       observaciones?: string;
+      requester_email?: string;
     },
   ) {
     await this.ensureAdminLocacionesTable();
@@ -808,6 +1181,21 @@ export class AppController {
       ],
     );
 
+    const correoSolicitante = String(body?.requester_email ?? '').trim().toLowerCase();
+    if (correoSolicitante) {
+      await this.enviarCorreoSiConfig(
+        correoSolicitante,
+        'PUFAB: locación registrada correctamente',
+        `
+          <h2>Locación registrada</h2>
+          <p>La locación fue creada exitosamente en el sistema.</p>
+          <p><strong>Locación:</strong> ${inserted?.nombre_lugar ?? nombre}</p>
+          <p><strong>ID:</strong> ${inserted?.id ?? 'N/A'}</p>
+          <p>Ya puedes seleccionarla en el trámite de permiso.</p>
+        `,
+      );
+    }
+
     return { ok: true, data: inserted };
   }
 
@@ -818,12 +1206,13 @@ export class AppController {
         t.id,
         t.numero_radicado,
         COALESCE(p.nombre_proyecto, 'Proyecto sin nombre') AS proyecto,
-        COALESCE(p.productora, 'Productora') AS productora,
+        COALESCE(split_part(us.email, '@', 1), 'Productora') AS productora,
         COALESCE(m.nombre, 'Boyacá') AS ciudad,
         COALESCE(e.nombre, 'Pendiente') AS estado,
         COALESCE(t.fecha_solicitud::date, CURRENT_DATE) AS fecha
       FROM tramites t
       LEFT JOIN proyectos p ON p.id = t.proyecto_id
+      LEFT JOIN usuarios us ON us.id = p.usuario_id
       LEFT JOIN estados_tramite e ON e.id = t.estado_tramite_id
       LEFT JOIN LATERAL (
         SELECT l.*
@@ -861,6 +1250,67 @@ export class AppController {
       resumen,
       data: data.map((item: any) => ({ ...item, estado_ui: normalize(item.estado) })),
       total: data.length,
+    };
+  }
+
+  @Get('portal/admin/flujo-permisos/:id')
+  async getPortalAdminFlujoPermisoDetalle(@Param('id') id: string) {
+    const [tramite] = await this.dataSource.query(`
+      SELECT
+        t.id,
+        t.numero_radicado,
+        COALESCE(p.nombre_proyecto, 'Proyecto sin nombre') AS proyecto,
+        COALESCE(p.sinopsis, '') AS descripcion_proyecto,
+        COALESCE(split_part(us.email, '@', 1), 'Productora') AS productora,
+        0::int AS duracion_minutos,
+        COALESCE(p.presupuesto_total, 0) AS presupuesto_total,
+        'N/A'::text AS director,
+        COALESCE(m.nombre, 'Boyacá') AS ciudad,
+        COALESCE(e.nombre, 'Pendiente') AS estado,
+        COALESCE(t.fecha_solicitud::date, CURRENT_DATE) AS fecha_solicitud,
+        COALESCE(t.fecha_respuesta::date, null) AS fecha_respuesta,
+        t.requiere_seguro_rc,
+        t.requiere_plan_manejo_transito,
+        t.consentimiento_comunidades_aplica
+      FROM tramites t
+      LEFT JOIN proyectos p ON p.id = t.proyecto_id
+      LEFT JOIN usuarios us ON us.id = p.usuario_id
+      LEFT JOIN estados_tramite e ON e.id = t.estado_tramite_id
+      LEFT JOIN LATERAL (
+        SELECT l.*
+        FROM tramite_locaciones l
+        WHERE l.tramite_id = t.id
+        ORDER BY l.id ASC
+        LIMIT 1
+      ) tl ON true
+      LEFT JOIN municipios m ON m.id = tl.municipio_id
+      WHERE t.id = $1::int
+      LIMIT 1
+    `, [id]);
+
+    if (!tramite) {
+      return { ok: false, error: 'Permiso no encontrado' };
+    }
+
+    const normalize = (value: string) => {
+      const n = String(value || '').toLowerCase();
+      if (n.includes('aprob')) return 'Aprobado';
+      if (n.includes('rech')) return 'Rechazado';
+      if (n.includes('subsan') || n.includes('corre')) return 'En corrección';
+      return 'Pendiente';
+    };
+
+    return { 
+      ok: true, 
+      data: { 
+        ...tramite, 
+        estado_ui: normalize(tramite.estado),
+        requiere_documentos: [
+          tramite.requiere_seguro_rc && 'Certificado de Seguro RC',
+          tramite.requiere_plan_manejo_transito && 'Plan de Manejo de Tránsito',
+          tramite.consentimiento_comunidades_aplica && 'Consentimiento de Comunidades'
+        ].filter(Boolean)
+      } 
     };
   }
 
@@ -1041,7 +1491,10 @@ export class AppController {
   }
 
   @Get('portal/admin/kpis')
-  async getPortalAdminKpis() {
+  async getPortalAdminKpis(@Query('dias') dias?: string) {
+    const rangoDiasSolicitado = Number.parseInt(dias ?? '30', 10);
+    const rangoDias = [7, 30, 90].includes(rangoDiasSolicitado) ? rangoDiasSolicitado : 30;
+
     const [stats] = await this.dataSource.query(`
       SELECT
         COALESCE(ROUND(AVG(EXTRACT(DAY FROM (COALESCE(t.fecha_respuesta, CURRENT_DATE) - t.fecha_solicitud))), 1), 0) AS tiempo_respuesta,
@@ -1073,9 +1526,127 @@ export class AppController {
       LIMIT 6
     `);
 
+    const trazabilidadDiaria = await this.dataSource.query(`
+      WITH dias AS (
+        SELECT generate_series((CURRENT_DATE - ($1 * INTERVAL '1 day'))::date, CURRENT_DATE::date, INTERVAL '1 day')::date AS fecha
+      ),
+      registros AS (
+        SELECT fecha_registro::date AS fecha, COUNT(*)::int AS total
+        FROM usuarios
+        WHERE fecha_registro >= (CURRENT_DATE - ($1 * INTERVAL '1 day'))
+        GROUP BY fecha_registro::date
+      ),
+      tramites_dia AS (
+        SELECT
+          fecha_solicitud::date AS fecha,
+          COUNT(*)::int AS total,
+          COALESCE(SUM(COALESCE(costo_proyecto_base, 0)), 0)::numeric AS costo_total,
+          COALESCE(SUM(COALESCE(valor_abono_requerido, 0)), 0)::numeric AS abono_total
+        FROM tramites
+        WHERE fecha_solicitud >= (CURRENT_DATE - ($1 * INTERVAL '1 day'))
+        GROUP BY fecha_solicitud::date
+      )
+      SELECT
+        TO_CHAR(d.fecha, 'DD Mon') AS dia,
+        d.fecha,
+        COALESCE(r.total, 0)::int AS registros,
+        COALESCE(t.total, 0)::int AS tramites,
+        COALESCE(t.costo_total, 0)::numeric AS costo_total,
+        COALESCE(t.abono_total, 0)::numeric AS abono_total
+      FROM dias d
+      LEFT JOIN registros r ON r.fecha = d.fecha
+      LEFT JOIN tramites_dia t ON t.fecha = d.fecha
+      ORDER BY d.fecha ASC
+    `, [rangoDias]);
+
+    const costosRecientes = await this.dataSource.query(`
+      SELECT
+        t.numero_radicado AS radicado,
+        COALESCE(p.nombre_proyecto, 'Proyecto sin nombre') AS proyecto,
+        COALESCE(u.email, 'Sin solicitante') AS solicitante,
+        TO_CHAR(t.fecha_solicitud, 'DD Mon YYYY') AS fecha,
+        COALESCE(p.presupuesto_total, 0)::numeric AS presupuesto_total,
+        COALESCE(t.costo_proyecto_base, 0)::numeric AS costo_base,
+        COALESCE(t.valor_abono_requerido, 0)::numeric AS abono_requerido,
+        COALESCE((t.porcentaje_abono)::numeric, 0)::numeric AS porcentaje_abono,
+        CASE
+          WHEN LOWER(COALESCE(e.nombre, '')) LIKE '%aprob%' THEN 'Aprobado'
+          WHEN LOWER(COALESCE(e.nombre, '')) LIKE '%rech%' THEN 'Rechazado'
+          ELSE 'En trámite'
+        END AS estado
+      FROM tramites t
+      LEFT JOIN proyectos p ON p.id = t.proyecto_id
+      LEFT JOIN usuarios u ON u.id = t.usuario_solicitante_id
+      LEFT JOIN estados_tramite e ON e.id = t.estado_tramite_id
+      ORDER BY t.fecha_solicitud DESC
+      LIMIT 10
+    `);
+
+    const estadosTramite = await this.dataSource.query(`
+      SELECT
+        COALESCE(e.nombre, 'Sin estado') AS estado,
+        COUNT(t.id)::int AS total
+      FROM tramites t
+      LEFT JOIN estados_tramite e ON e.id = t.estado_tramite_id
+      GROUP BY COALESCE(e.nombre, 'Sin estado')
+      ORDER BY COUNT(t.id) DESC, COALESCE(e.nombre, 'Sin estado') ASC
+    `);
+
+    const actividadUsuarios = await this.dataSource.query(`
+      SELECT
+        u.id,
+        u.email,
+        u.tipo_persona,
+        COUNT(DISTINCT t.id)::int AS tramites,
+        COUNT(DISTINCT sr.id)::int AS solicitudes_registro,
+        COALESCE(MAX(GREATEST(COALESCE(t.fecha_solicitud, '1970-01-01'::timestamp), COALESCE(sr.fecha_envio, '1970-01-01'::timestamp))), CURRENT_TIMESTAMP) AS ultimo_movimiento
+      FROM usuarios u
+      LEFT JOIN tramites t ON t.usuario_solicitante_id = u.id
+      LEFT JOIN solicitudes_registro sr ON sr.usuario_id = u.id
+      WHERE t.id IS NOT NULL OR sr.id IS NOT NULL
+      GROUP BY u.id, u.email, u.tipo_persona
+      ORDER BY COUNT(DISTINCT t.id) DESC, COUNT(DISTINCT sr.id) DESC, u.email ASC
+      LIMIT 10
+    `);
+
+    const rankingDias = [...trazabilidadDiaria]
+      .sort((a: any, b: any) => (Number(b.tramites || 0) + Number(b.registros || 0)) - (Number(a.tramites || 0) + Number(a.registros || 0)))
+      .slice(0, 7);
+
     return {
+      rangoDias,
       permisosProcesados,
       ingresosMensuales: ingresosMensuales.map((i: any) => ({ ...i, total: Number(i.total) })),
+      trazabilidadDiaria: trazabilidadDiaria.map((i: any) => ({
+        ...i,
+        registros: Number(i.registros ?? 0),
+        tramites: Number(i.tramites ?? 0),
+        costo_total: Number(i.costo_total ?? 0),
+        abono_total: Number(i.abono_total ?? 0),
+      })),
+      costosRecientes: costosRecientes.map((i: any) => ({
+        ...i,
+        presupuesto_total: Number(i.presupuesto_total ?? 0),
+        costo_base: Number(i.costo_base ?? 0),
+        abono_requerido: Number(i.abono_requerido ?? 0),
+        porcentaje_abono: Number(i.porcentaje_abono ?? 0),
+      })),
+      estadosTramite: estadosTramite.map((i: any) => ({
+        ...i,
+        total: Number(i.total ?? 0),
+      })),
+      actividadUsuarios: actividadUsuarios.map((i: any) => ({
+        ...i,
+        tramites: Number(i.tramites ?? 0),
+        solicitudes_registro: Number(i.solicitudes_registro ?? 0),
+      })),
+      rankingDias: rankingDias.map((i: any) => ({
+        ...i,
+        registros: Number(i.registros ?? 0),
+        tramites: Number(i.tramites ?? 0),
+        costo_total: Number(i.costo_total ?? 0),
+        abono_total: Number(i.abono_total ?? 0),
+      })),
       indicadores: {
         tiempo_respuesta: Number(stats?.tiempo_respuesta ?? 0),
         satisfaccion: Number(stats?.satisfaccion ?? 0),
