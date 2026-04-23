@@ -1,8 +1,31 @@
-import { Body, Controller, Get, Param, Post, Query, Redirect, Logger } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  Post,
+  Query,
+  Redirect,
+  Logger,
+  UploadedFile,
+  UseInterceptors,
+  UseGuards,
+} from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { DataSource } from 'typeorm';
 import * as nodemailer from 'nodemailer';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { diskStorage } from 'multer';
+import { randomUUID } from 'crypto';
+import { existsSync, mkdirSync, readFileSync } from 'fs';
+import { writeFile } from 'fs/promises';
+import { extname, join } from 'path';
+import PDFDocument from 'pdfkit';
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const SVGtoPDF = require('svg-to-pdfkit');
 import { AppService } from './app.service';
+import { JwtAuthGuard } from './modules/auth/guards/jwt-auth.guard';
+import { CurrentUser } from './modules/auth/decorators/current-user.decorator';
 
 @Controller()
 export class AppController {
@@ -57,6 +80,32 @@ export class AppController {
       LIMIT 1
     `);
     return perfil?.id ?? null;
+  }
+
+  private async getPerfilProveedorPorUsuario(usuarioId: number) {
+    const [perfil] = await this.dataSource.query(
+      `
+      SELECT
+        p.id,
+        p.usuario_id,
+        p.descripcion_perfil,
+        p.sitio_web,
+        p.verificado,
+        p.visible_directorio,
+        p.telefono,
+        p.estado,
+        p.activo,
+        u.email,
+        u.telefono AS usuario_telefono
+      FROM perfiles_proveedor p
+      INNER JOIN usuarios u ON u.id = p.usuario_id
+      WHERE p.usuario_id = $1::int
+      LIMIT 1
+    `,
+      [usuarioId],
+    );
+
+    return perfil ?? null;
   }
 
   private async ensureProveedorPortalTables(perfilId: number) {
@@ -135,6 +184,428 @@ export class AppController {
     `);
   }
 
+  private async ensureAdminLocacionesImagenesTable() {
+    await this.dataSource.query(`
+      CREATE TABLE IF NOT EXISTS admin_locaciones_imagenes (
+        id SERIAL PRIMARY KEY,
+        locacion_id INTEGER NOT NULL,
+        url TEXT NOT NULL,
+        nombre_archivo VARCHAR(255) NULL,
+        orden INTEGER NULL,
+        created_at TIMESTAMP DEFAULT NOW()
+      )
+    `);
+
+    await this.dataSource.query(`
+      ALTER TABLE admin_locaciones_imagenes
+      ADD COLUMN IF NOT EXISTS orden INTEGER
+    `);
+
+    await this.dataSource.query(`
+      UPDATE admin_locaciones_imagenes
+      SET orden = id
+      WHERE orden IS NULL
+    `);
+  }
+
+  private async ensureReportesTable() {
+    await this.dataSource.query(`
+      CREATE TABLE IF NOT EXISTS admin_reportes_generados (
+        id SERIAL PRIMARY KEY,
+        seccion VARCHAR(60) NOT NULL,
+        archivo_url TEXT NOT NULL,
+        archivo_nombre VARCHAR(255) NOT NULL,
+        parametros JSONB NULL,
+        resumen JSONB NULL,
+        created_at TIMESTAMP DEFAULT NOW()
+      )
+    `);
+  }
+
+  private formatSummaryLabel(key: string) {
+    return String(key || '')
+      .replaceAll('_', ' ')
+      .replace(/\b\w/g, (l) => l.toUpperCase());
+  }
+
+  private getColumnsForSection(seccion: string, headers: string[]) {
+    const columnsBySection: Record<string, Array<{ key: string; label: string; width: number }>> = {
+      usuarios: [
+        { key: 'nombre', label: 'Nombre', width: 0.18 },
+        { key: 'email', label: 'Correo', width: 0.33 },
+        { key: 'rol', label: 'Rol', width: 0.15 },
+        { key: 'estado', label: 'Estado', width: 0.12 },
+        { key: 'ultimo_acceso', label: 'Último acceso', width: 0.22 },
+      ],
+      verificacion: [
+        { key: 'id', label: 'ID', width: 0.1 },
+        { key: 'nombre', label: 'Nombre', width: 0.32 },
+        { key: 'tipo', label: 'Tipo', width: 0.2 },
+        { key: 'estado', label: 'Estado', width: 0.16 },
+        { key: 'fecha', label: 'Fecha', width: 0.22 },
+      ],
+      locaciones: [
+        { key: 'locacion', label: 'Locación', width: 0.3 },
+        { key: 'ubicacion', label: 'Ubicación', width: 0.24 },
+        { key: 'estado', label: 'Estado', width: 0.14 },
+        { key: 'reservas', label: 'Reservas', width: 0.12 },
+        { key: 'imagenes', label: 'Imágenes', width: 0.1 },
+        { key: 'origen', label: 'Origen', width: 0.1 },
+      ],
+      permisos: [
+        { key: 'radicado', label: 'Radicado', width: 0.17 },
+        { key: 'proyecto', label: 'Proyecto', width: 0.28 },
+        { key: 'productora', label: 'Productora', width: 0.2 },
+        { key: 'ciudad', label: 'Ciudad', width: 0.12 },
+        { key: 'estado', label: 'Estado', width: 0.11 },
+        { key: 'fecha', label: 'Fecha', width: 0.12 },
+      ],
+      comites: [
+        { key: 'id', label: 'ID', width: 0.08 },
+        { key: 'nombre', label: 'Nombre', width: 0.3 },
+        { key: 'cargo', label: 'Cargo', width: 0.2 },
+        { key: 'especialidad', label: 'Especialidad', width: 0.26 },
+        { key: 'estado', label: 'Estado', width: 0.16 },
+      ],
+      finanzas: [
+        { key: 'id', label: 'Radicado', width: 0.18 },
+        { key: 'cliente', label: 'Cliente', width: 0.25 },
+        { key: 'servicio', label: 'Servicio', width: 0.22 },
+        { key: 'monto', label: 'Monto', width: 0.2 },
+        { key: 'estado', label: 'Estado', width: 0.15 },
+      ],
+      kpis: [
+        { key: 'dia', label: 'Día', width: 0.2 },
+        { key: 'registros', label: 'Registros', width: 0.2 },
+        { key: 'tramites', label: 'Trámites', width: 0.2 },
+        { key: 'costo_total', label: 'Costo Total', width: 0.2 },
+        { key: 'abono_total', label: 'Abono Total', width: 0.2 },
+      ],
+      comunicaciones: [
+        { key: 'id', label: 'ID', width: 0.08 },
+        { key: 'campaña', label: 'Campaña', width: 0.28 },
+        { key: 'canal', label: 'Canal', width: 0.2 },
+        { key: 'alcance', label: 'Alcance', width: 0.24 },
+        { key: 'estado', label: 'Estado', width: 0.2 },
+      ],
+    };
+
+    const configured = columnsBySection[seccion] ?? [];
+    if (configured.length) return configured;
+
+    const width = headers.length ? 1 / headers.length : 1;
+    return headers.map((h) => ({ key: h, label: this.formatSummaryLabel(h), width }));
+  }
+
+  private buildPdfBuffer(
+    seccion: string,
+    title: string,
+    rows: Array<Record<string, any>>,
+    summary: Record<string, any> = {},
+  ) {
+    return new Promise<Buffer>((resolve, reject) => {
+      const doc = new PDFDocument({ margin: 36, size: 'A4', bufferPages: true });
+      const chunks: Buffer[] = [];
+
+      doc.on('data', (chunk) => chunks.push(chunk));
+      doc.on('end', () => resolve(Buffer.concat(chunks)));
+      doc.on('error', (err) => reject(err));
+
+      const logoPath = join(process.cwd(), 'public', 'assets', 'logos', 'logo-pufab.svg');
+      const govPath = join(process.cwd(), 'public', 'assets', 'logos', 'govco.svg');
+
+      const drawHeader = () => {
+        const topY = 24;
+        doc.rect(20, 20, 555, 38).fill('#f3fdf6');
+        doc.fillColor('#14532d');
+        doc.fontSize(11).text('Comisión Fílmica de Boyacá', 90, topY + 4);
+        doc.fontSize(9).fillColor('#4b5563').text('Reporte oficial PUFAB', 90, topY + 18);
+
+        if (existsSync(logoPath)) {
+          const svg = readFileSync(logoPath, 'utf8');
+          SVGtoPDF(doc, svg, 36, 24, { width: 42, height: 30 });
+        }
+
+        if (existsSync(govPath)) {
+          const svgGov = readFileSync(govPath, 'utf8');
+          SVGtoPDF(doc, svgGov, 474, 24, { width: 85, height: 24 });
+        }
+
+        doc.moveDown(1.6);
+      };
+
+      drawHeader();
+      doc.fontSize(17).fillColor('#111827').text(title, { align: 'left' });
+      doc.moveDown(0.2);
+      doc.fontSize(9).fillColor('#6b7280').text(`Generado: ${new Date().toLocaleString('es-CO')}`);
+      doc.moveDown(0.7);
+
+      const summaryEntries = Object.entries(summary || {});
+      if (summaryEntries.length) {
+        doc.fontSize(11).fillColor('#111827').text('Resumen');
+        doc.moveDown(0.25);
+        summaryEntries.forEach(([k, v]) => {
+          doc
+            .fontSize(10)
+            .fillColor('#111827')
+            .text(`- ${this.formatSummaryLabel(k)}: ${v}`);
+        });
+        doc.moveDown(0.6);
+      }
+
+      if (!rows.length) {
+        doc.fontSize(10).fillColor('#111827').text('No hay datos para este reporte.');
+        const range = doc.bufferedPageRange();
+        for (let i = 0; i < range.count; i += 1) {
+          doc.switchToPage(range.start + i);
+          doc.fontSize(8).fillColor('#6b7280').text(
+            `Página ${i + 1} de ${range.count}`,
+            0,
+            815,
+            { align: 'center' },
+          );
+        }
+        doc.end();
+        return;
+      }
+
+      const headers = Object.keys(rows[0]);
+      const columns = this.getColumnsForSection(seccion, headers);
+      const tableX = 36;
+      const tableWidth = 523;
+      const rowBasePadding = 6;
+
+      const drawTableHeader = () => {
+        let x = tableX;
+        const y = doc.y;
+        doc.rect(tableX, y, tableWidth, 20).fill('#ecfdf3');
+        columns.forEach((col) => {
+          const colWidth = tableWidth * col.width;
+          doc
+            .fillColor('#14532d')
+            .fontSize(9)
+            .text(col.label, x + 4, y + 5, { width: colWidth - 8, align: 'left' });
+          x += colWidth;
+        });
+        doc.y = y + 24;
+      };
+
+      drawTableHeader();
+
+      rows.forEach((row, index) => {
+        const cellHeights = columns.map((col) => {
+          const text = row[col.key] === null || row[col.key] === undefined
+            ? ''
+            : String(row[col.key]).replace(/\s+/g, ' ').trim();
+          return doc.heightOfString(text, {
+            width: tableWidth * col.width - 8,
+            align: 'left',
+          });
+        });
+        const contentHeight = Math.max(...cellHeights, 12);
+        const rowHeight = contentHeight + rowBasePadding * 2;
+
+        if (doc.y + rowHeight > 760) {
+          doc.addPage();
+          drawHeader();
+          drawTableHeader();
+        }
+
+        const y = doc.y;
+        doc.rect(tableX, y, tableWidth, rowHeight).fill(index % 2 === 0 ? '#ffffff' : '#f9fafb');
+
+        let x = tableX;
+        columns.forEach((col) => {
+          const colWidth = tableWidth * col.width;
+          const text = row[col.key] === null || row[col.key] === undefined
+            ? ''
+            : String(row[col.key]).replace(/\s+/g, ' ').trim();
+
+          doc
+            .fillColor('#111827')
+            .fontSize(8.5)
+            .text(text, x + 4, y + rowBasePadding, {
+              width: colWidth - 8,
+              align: 'left',
+            });
+
+          doc
+            .strokeColor('#e5e7eb')
+            .lineWidth(0.5)
+            .moveTo(x, y)
+            .lineTo(x, y + rowHeight)
+            .stroke();
+          x += colWidth;
+        });
+
+        doc
+          .strokeColor('#e5e7eb')
+          .lineWidth(0.5)
+          .moveTo(tableX + tableWidth, y)
+          .lineTo(tableX + tableWidth, y + rowHeight)
+          .stroke();
+
+        doc
+          .strokeColor('#e5e7eb')
+          .lineWidth(0.5)
+          .moveTo(tableX, y + rowHeight)
+          .lineTo(tableX + tableWidth, y + rowHeight)
+          .stroke();
+
+        doc.y = y + rowHeight;
+      });
+
+      const range = doc.bufferedPageRange();
+      for (let i = 0; i < range.count; i += 1) {
+        doc.switchToPage(range.start + i);
+        doc.fontSize(8).fillColor('#6b7280').text(
+          `Página ${i + 1} de ${range.count}`,
+          0,
+          815,
+          { align: 'center' },
+        );
+      }
+
+      doc.end();
+    });
+  }
+
+  private async getReportDataBySeccion(seccion: string) {
+    switch (seccion) {
+      case 'usuarios': {
+        const usuarios = await this.getPortalAdminUsuarios('');
+        const data = Array.isArray((usuarios as any)?.data) ? (usuarios as any).data : [];
+        return {
+          title: 'Usuarios y Accesos',
+          summary: { total_usuarios: data.length },
+          rows: data.map((u: any) => ({
+            nombre: u.nombre,
+            email: u.email,
+            rol: u.rol,
+            estado: u.estado,
+            ultimo_acceso: u.ultimo_acceso,
+          })),
+        };
+      }
+      case 'verificacion': {
+        const perfiles = await this.getPortalAdminVerificacion();
+        const data = Array.isArray((perfiles as any)?.data) ? (perfiles as any).data : [];
+        return {
+          title: 'Verificación de Perfiles',
+          summary: { total_perfiles: data.length },
+          rows: data.map((p: any) => ({
+            id: p.id,
+            nombre: p.nombre,
+            tipo: p.tipo,
+            estado: p.estado,
+            fecha: p.fecha,
+          })),
+        };
+      }
+      case 'locaciones': {
+        const activos = await this.getPortalAdminActivos();
+        const data = Array.isArray((activos as any)?.data) ? (activos as any).data : [];
+        return {
+          title: 'Gestión de Locaciones',
+          summary: { total_locaciones: data.length },
+          rows: data.map((l: any) => ({
+            origen: l.origen,
+            id: l.id,
+            locacion: l.locacion,
+            ubicacion: l.ubicacion,
+            estado: l.estado,
+            reservas: l.reservas,
+            imagenes: l.total_imagenes ?? 0,
+          })),
+        };
+      }
+      case 'permisos': {
+        const permisos = await this.getPortalAdminFlujoPermisos('');
+        const data = Array.isArray((permisos as any)?.data) ? (permisos as any).data : [];
+        const resumen = (permisos as any)?.resumen ?? {};
+        return {
+          title: 'Flujo de Permisos',
+          summary: resumen,
+          rows: data.map((p: any) => ({
+            radicado: p.numero_radicado,
+            proyecto: p.proyecto,
+            productora: p.productora,
+            ciudad: p.ciudad,
+            estado: p.estado_ui,
+            fecha: p.fecha,
+          })),
+        };
+      }
+      case 'comites': {
+        const comites = await this.getPortalAdminComites();
+        const data = Array.isArray((comites as any)?.data) ? (comites as any).data : [];
+        return {
+          title: 'Comités Técnicos',
+          summary: { total_comites: data.length },
+          rows: data.map((c: any) => ({
+            id: c.id,
+            nombre: c.nombre,
+            cargo: c.cargo,
+            especialidad: c.especialidad,
+            estado: c.estado,
+          })),
+        };
+      }
+      case 'finanzas': {
+        const finanzas = await this.getPortalAdminFinanzas();
+        const reservas = Array.isArray((finanzas as any)?.reservas) ? (finanzas as any).reservas : [];
+        const metrics = (finanzas as any)?.metrics ?? {};
+        return {
+          title: 'Finanzas y Reservas',
+          summary: metrics,
+          rows: reservas.map((r: any) => ({
+            id: r.id,
+            cliente: r.cliente,
+            servicio: r.servicio,
+            monto: r.monto,
+            estado: r.estado,
+          })),
+        };
+      }
+      case 'kpis': {
+        const kpis = await this.getPortalAdminKpis('30');
+        const diarios = Array.isArray((kpis as any)?.trazabilidadDiaria) ? (kpis as any).trazabilidadDiaria : [];
+        return {
+          title: 'Estadísticas y KPIs',
+          summary: {
+            rango_dias: (kpis as any)?.rangoDias,
+            tiempo_respuesta: (kpis as any)?.stats?.tiempo_respuesta,
+            satisfaccion: (kpis as any)?.stats?.satisfaccion,
+          },
+          rows: diarios.map((d: any) => ({
+            dia: d.dia,
+            registros: d.registros,
+            tramites: d.tramites,
+            costo_total: d.costo_total,
+            abono_total: d.abono_total,
+          })),
+        };
+      }
+      case 'comunicaciones': {
+        const comunicaciones = await this.getPortalAdminComunicaciones();
+        const data = Array.isArray((comunicaciones as any)?.data) ? (comunicaciones as any).data : [];
+        return {
+          title: 'Comunicaciones',
+          summary: { total: data.length },
+          rows: data.map((c: any) => ({
+            id: c.id,
+            campaña: c.campana,
+            canal: c.canal,
+            alcance: c.alcance,
+            estado: c.estado,
+          })),
+        };
+      }
+      default:
+        return null;
+    }
+  }
+
   private async ensureAdminComitesTable() {
     await this.dataSource.query(`
       CREATE TABLE IF NOT EXISTS admin_comites_tecnicos (
@@ -171,6 +642,12 @@ export class AppController {
   @Redirect('/iniciar-sesion/', 302)
   getIniciarSesion() {
     return { url: '/iniciar-sesion/' };
+  }
+
+  @Get('registro')
+  @Redirect('/registro/', 302)
+  getRegistro() {
+    return { url: '/registro/' };
   }
 
   @Get('tramites')
@@ -340,9 +817,13 @@ export class AppController {
     @Query('provincia') provincia?: string,
   ) {
     await this.ensureAdminLocacionesTable();
+    await this.ensureAdminLocacionesImagenesTable();
 
     const rows = await this.dataSource.query(`
       SELECT
+        CONCAT('tramite-', tl.id) AS id_unico,
+        tl.id AS id_origen,
+        'tramite'::text AS origen,
         tl.id,
         tl.nombre_lugar AS nombre,
         COALESCE(LOWER(te.nombre), 'natural') AS tipo,
@@ -362,10 +843,14 @@ export class AppController {
 
     const manualRows = await this.dataSource.query(`
       SELECT
+        CONCAT('manual-', l.id) AS id_unico,
+        l.id AS id_origen,
+        'manual'::text AS origen,
         l.id,
         l.nombre_lugar AS nombre,
         COALESCE(LOWER(te.nombre), 'natural') AS tipo,
         COALESCE(m.nombre, 'Boyacá') AS provincia,
+        li.url AS imagen,
         CASE
           WHEN LOWER(COALESCE(te.nombre, '')) LIKE '%patr%' THEN 300000
           WHEN LOWER(COALESCE(te.nombre, '')) LIKE '%interior%' THEN 250000
@@ -375,6 +860,13 @@ export class AppController {
       FROM admin_locaciones l
       LEFT JOIN tipos_espacio te ON te.id = l.tipo_espacio_id
       LEFT JOIN municipios m ON m.id = l.municipio_id
+      LEFT JOIN LATERAL (
+        SELECT i.url
+        FROM admin_locaciones_imagenes i
+        WHERE i.locacion_id = l.id
+        ORDER BY i.id DESC
+        LIMIT 1
+      ) li ON true
       WHERE l.activo = true
       ORDER BY l.id DESC
       LIMIT 60
@@ -392,7 +884,7 @@ export class AppController {
     const mixedRows = [...manualRows, ...rows];
     const locaciones = mixedRows.map((item: any, index: number) => ({
       ...item,
-      imagen: images[index % images.length],
+      imagen: item.imagen || images[index % images.length],
     }));
 
     const query = (buscar ?? '').toLowerCase().trim();
@@ -447,22 +939,28 @@ export class AppController {
     };
   }
 
+  @UseGuards(JwtAuthGuard)
   @Get('portal/proveedor/panel')
-  async getPortalProveedorPanel() {
-    const [perfil] = await this.dataSource.query(`
+  async getPortalProveedorPanel(@CurrentUser('id') usuarioId: number) {
+    const perfil = await this.getPerfilProveedorPorUsuario(usuarioId);
+    const perfilPublico = perfil ?? (await this.dataSource.query(`
       SELECT
         p.id,
         p.descripcion_perfil,
         p.sitio_web,
         p.verificado,
+        p.visible_directorio,
+        p.telefono,
+        p.estado,
+        p.activo,
         u.email,
-        u.telefono
+        u.telefono AS usuario_telefono
       FROM perfiles_proveedor p
       INNER JOIN usuarios u ON u.id = p.usuario_id
       WHERE p.visible_directorio = true
       ORDER BY p.id ASC
       LIMIT 1
-    `);
+    `))[0];
 
     const servicios = await this.dataSource.query(`
       SELECT e.nombre
@@ -471,7 +969,7 @@ export class AppController {
       WHERE pe.perfil_proveedor_id = $1
       ORDER BY e.nombre ASC
       LIMIT 6
-    `, [perfil?.id ?? 0]);
+    `, [perfil?.id ?? perfilPublico?.id ?? 0]);
 
     const solicitudesRaw = await this.dataSource.query(`
       SELECT
@@ -500,14 +998,17 @@ export class AppController {
       tarifaBase: 180000,
     };
 
+    const nombreBase = perfil?.email ?? perfilPublico?.email ?? 'proveedor';
+
     return {
-      nombre: perfil?.email ? String(perfil.email).split('@')[0].replaceAll('.', ' ') : 'Proveedor',
+      perfil_id: perfil?.id ?? perfilPublico?.id ?? null,
+      nombre: String(nombreBase).split('@')[0].replaceAll('.', ' '),
       rol: 'Proveedor Audiovisual',
       ciudad: 'Boyacá, Colombia',
-      rating: perfil?.verificado ? 4.9 : 4.5,
+      rating: (perfil?.verificado ?? perfilPublico?.verificado) ? 4.9 : 4.5,
       resenas: metricas.reseñas,
       descripcion:
-        perfil?.descripcion_perfil ?? 'Perfil profesional para servicios audiovisuales en Boyacá.',
+        perfil?.descripcion_perfil ?? perfilPublico?.descripcion_perfil ?? 'Perfil profesional para servicios audiovisuales en Boyacá.',
       metricas,
       servicios: servicios.length
         ? servicios.map((s: any, idx: number) => ({ nombre: s.nombre, precio: 150000 + idx * 50000 }))
@@ -517,16 +1018,17 @@ export class AppController {
         ],
       solicitudes,
       contacto: {
-        email: perfil?.email ?? 'proveedor@pufab.gov.co',
-        telefono: perfil?.telefono ?? '3000000000',
-        sitio_web: perfil?.sitio_web,
+        email: perfil?.email ?? perfilPublico?.email ?? 'proveedor@pufab.gov.co',
+        telefono: perfil?.telefono ?? perfilPublico?.telefono ?? perfil?.usuario_telefono ?? perfilPublico?.usuario_telefono ?? '3000000000',
+        sitio_web: perfil?.sitio_web ?? perfilPublico?.sitio_web,
       },
     };
   }
 
+  @UseGuards(JwtAuthGuard)
   @Get('portal/proveedor/portafolio')
-  async getPortalProveedorPortafolio() {
-    const panel = await this.getPortalProveedorPanel();
+  async getPortalProveedorPortafolio(@CurrentUser('id') usuarioId: number) {
+    const panel = await this.getPortalProveedorPanel(usuarioId);
     const galeria = [
       {
         titulo: 'Rodaje documental en Villa de Leyva',
@@ -554,10 +1056,12 @@ export class AppController {
     };
   }
 
+  @UseGuards(JwtAuthGuard)
   @Get('portal/proveedor/disponibilidad')
-  async getPortalProveedorDisponibilidad() {
-    const panel = await this.getPortalProveedorPanel();
-    const perfilId = await this.getPrimaryPerfilProveedorId();
+  async getPortalProveedorDisponibilidad(@CurrentUser('id') usuarioId: number) {
+    const panel = await this.getPortalProveedorPanel(usuarioId);
+    const perfil = await this.getPerfilProveedorPorUsuario(usuarioId);
+    const perfilId = perfil?.id ?? (await this.getPrimaryPerfilProveedorId());
     if (!perfilId) {
       return { nombre: panel.nombre, ciudad: panel.ciudad, semana: [] };
     }
@@ -589,19 +1093,22 @@ export class AppController {
     };
   }
 
+  @UseGuards(JwtAuthGuard)
   @Get('portal/proveedor/solicitudes')
-  async getPortalProveedorSolicitudes() {
-    const panel = await this.getPortalProveedorPanel();
+  async getPortalProveedorSolicitudes(@CurrentUser('id') usuarioId: number) {
+    const panel = await this.getPortalProveedorPanel(usuarioId);
     return {
       total: panel.solicitudes.length,
       solicitudes: panel.solicitudes,
     };
   }
 
+  @UseGuards(JwtAuthGuard)
   @Get('portal/proveedor/mensajes')
-  async getPortalProveedorMensajes() {
-    const panel = await this.getPortalProveedorPanel();
-    const perfilId = await this.getPrimaryPerfilProveedorId();
+  async getPortalProveedorMensajes(@CurrentUser('id') usuarioId: number) {
+    const panel = await this.getPortalProveedorPanel(usuarioId);
+    const perfil = await this.getPerfilProveedorPorUsuario(usuarioId);
+    const perfilId = perfil?.id ?? (await this.getPrimaryPerfilProveedorId());
     if (!perfilId) {
       return { total: 0, mensajes: [] };
     }
@@ -647,6 +1154,68 @@ export class AppController {
       total: mensajes.length,
       mensajes,
     };
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Post('portal/proveedor/disponibilidad')
+  async guardarPortalProveedorDisponibilidad(
+    @CurrentUser('id') usuarioId: number,
+    @Body() body?: { dia_semana?: string; estado?: string; horas?: string },
+  ) {
+    const perfil = await this.getPerfilProveedorPorUsuario(usuarioId);
+    if (!perfil?.id) {
+      return { ok: false, message: 'No se encontró un perfil de proveedor asociado al usuario.' };
+    }
+
+    const dia = String(body?.dia_semana ?? '').trim();
+    const estado = String(body?.estado ?? '').trim();
+    const horas = String(body?.horas ?? '').trim();
+
+    if (!dia || !estado || !horas) {
+      return { ok: false, message: 'Debes enviar dia_semana, estado y horas.' };
+    }
+
+    await this.ensureProveedorPortalTables(perfil.id);
+    await this.dataSource.query(
+      `
+      INSERT INTO proveedor_disponibilidad (perfil_proveedor_id, dia_semana, estado, horas)
+      VALUES ($1, $2, $3, $4)
+      ON CONFLICT (perfil_proveedor_id, dia_semana)
+      DO UPDATE SET estado = EXCLUDED.estado, horas = EXCLUDED.horas, updated_at = NOW()
+    `,
+      [perfil.id, dia, estado, horas],
+    );
+
+    return { ok: true, message: 'Disponibilidad guardada correctamente.' };
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Post('portal/proveedor/mensajes')
+  async guardarPortalProveedorMensaje(
+    @CurrentUser('id') usuarioId: number,
+    @Body() body?: { titulo?: string; texto?: string },
+  ) {
+    const perfil = await this.getPerfilProveedorPorUsuario(usuarioId);
+    if (!perfil?.id) {
+      return { ok: false, message: 'No se encontró un perfil de proveedor asociado al usuario.' };
+    }
+
+    const titulo = String(body?.titulo ?? '').trim();
+    const texto = String(body?.texto ?? '').trim();
+    if (!titulo || !texto) {
+      return { ok: false, message: 'Debes enviar titulo y texto.' };
+    }
+
+    await this.ensureProveedorPortalTables(perfil.id);
+    await this.dataSource.query(
+      `
+      INSERT INTO proveedor_mensajes (perfil_proveedor_id, titulo, fecha, texto)
+      VALUES ($1, $2, CURRENT_DATE, $3)
+    `,
+      [perfil.id, titulo, texto],
+    );
+
+    return { ok: true, message: 'Mensaje enviado correctamente.' };
   }
 
   @Get('portal/admin/resumen')
@@ -733,6 +1302,64 @@ export class AppController {
     );
 
     return { data: rows, total: rows.length };
+  }
+
+  @Get('portal/admin/roles')
+  async getPortalAdminRoles() {
+    const data = await this.dataSource.query(`
+      SELECT id, codigo, nombre
+      FROM tipos_perfil
+      WHERE activo = true
+      ORDER BY CASE codigo
+        WHEN 'productora' THEN 1
+        WHEN 'proveedor' THEN 2
+        WHEN 'academico' THEN 3
+        WHEN 'admin' THEN 4
+        ELSE 10
+      END, nombre ASC
+    `);
+
+    return { data, total: data.length };
+  }
+
+  @Post('portal/admin/usuarios/:id/rol')
+  async actualizarPortalAdminUsuarioRol(
+    @Param('id') id: string,
+    @Body() body?: { tipo_perfil_codigo?: string },
+  ) {
+    const codigo = String(body?.tipo_perfil_codigo ?? '').trim().toLowerCase();
+    if (!codigo) {
+      return { ok: false, message: 'Debes enviar tipo_perfil_codigo.' };
+    }
+
+    const [perfil] = await this.dataSource.query(
+      `SELECT id, codigo, nombre FROM tipos_perfil WHERE LOWER(codigo) = $1 LIMIT 1`,
+      [codigo],
+    );
+
+    if (!perfil) {
+      return { ok: false, message: 'El rol solicitado no existe.' };
+    }
+
+    await this.dataSource.query(
+      `
+      UPDATE usuarios
+      SET tipo_perfil_id = $2::int,
+          fecha_actualizacion = NOW()
+      WHERE id = $1::int
+    `,
+      [id, perfil.id],
+    );
+
+    return {
+      ok: true,
+      data: {
+        usuario_id: Number(id),
+        tipo_perfil_id: perfil.id,
+        tipo_perfil_codigo: perfil.codigo,
+        tipo_perfil_nombre: perfil.nombre,
+      },
+    };
   }
 
   @Post('portal/admin/usuarios/:id/toggle')
@@ -1046,6 +1673,7 @@ export class AppController {
   @Get('portal/admin/activos')
   async getPortalAdminActivos() {
     await this.ensureAdminLocacionesTable();
+    await this.ensureAdminLocacionesImagenesTable();
 
     const tramiteRows = await this.dataSource.query(`
       SELECT
@@ -1073,10 +1701,24 @@ export class AppController {
         l.id,
         l.nombre_lugar AS locacion,
         COALESCE(m.nombre, 'Sin ubicación') AS ubicacion,
+        li.url AS imagen_principal,
+        COALESCE(img.total, 0)::int AS total_imagenes,
         CASE WHEN l.activo THEN 'Activo' ELSE 'Inactivo' END AS estado,
         0::int AS reservas
       FROM admin_locaciones l
       LEFT JOIN municipios m ON m.id = l.municipio_id
+      LEFT JOIN LATERAL (
+        SELECT i.url
+        FROM admin_locaciones_imagenes i
+        WHERE i.locacion_id = l.id
+        ORDER BY COALESCE(i.orden, i.id) ASC
+        LIMIT 1
+      ) li ON true
+      LEFT JOIN LATERAL (
+        SELECT COUNT(*)::int AS total
+        FROM admin_locaciones_imagenes i
+        WHERE i.locacion_id = l.id
+      ) img ON true
       ORDER BY l.id DESC
       LIMIT 30
     `);
@@ -1161,6 +1803,7 @@ export class AppController {
     },
   ) {
     await this.ensureAdminLocacionesTable();
+    await this.ensureAdminLocacionesImagenesTable();
 
     const nombre = String(body?.nombre_lugar ?? '').trim();
     if (!nombre) {
@@ -1197,6 +1840,218 @@ export class AppController {
     }
 
     return { ok: true, data: inserted };
+  }
+
+  @Post('portal/admin/locaciones/:id/imagenes')
+  @UseInterceptors(
+    FileInterceptor('imagen', {
+      storage: diskStorage({
+        destination: (_req, _file, cb) => {
+          const dir = join(process.cwd(), 'uploads', 'locaciones');
+          if (!existsSync(dir)) {
+            mkdirSync(dir, { recursive: true });
+          }
+          cb(null, dir);
+        },
+        filename: (_req, file, cb) => {
+          const safeExt = extname(file.originalname || '').toLowerCase() || '.jpg';
+          cb(null, `${Date.now()}-${randomUUID()}${safeExt}`);
+        },
+      }),
+      fileFilter: (_req, file, cb) => {
+        const allowed = ['image/jpeg', 'image/png', 'image/webp', 'image/jpg'];
+        cb(null, allowed.includes(file.mimetype));
+      },
+      limits: { fileSize: 8 * 1024 * 1024 },
+    }),
+  )
+  async subirImagenLocacion(
+    @Param('id') id: string,
+    @UploadedFile() imagen?: Express.Multer.File,
+  ) {
+    await this.ensureAdminLocacionesTable();
+    await this.ensureAdminLocacionesImagenesTable();
+
+    if (!imagen) {
+      return { ok: false, message: 'Debes adjuntar una imagen válida (JPG, PNG o WEBP).' };
+    }
+
+    const [locacion] = await this.dataSource.query(
+      `SELECT id FROM admin_locaciones WHERE id = $1::int LIMIT 1`,
+      [id],
+    );
+
+    if (!locacion) {
+      return { ok: false, message: 'Locación no encontrada.' };
+    }
+
+    const [count] = await this.dataSource.query(
+      `SELECT COUNT(*)::int AS total FROM admin_locaciones_imagenes WHERE locacion_id = $1::int`,
+      [id],
+    );
+
+    if ((count?.total ?? 0) >= 10) {
+      return { ok: false, message: 'Esta locación ya tiene el máximo de 10 imágenes.' };
+    }
+
+    const publicUrl = `/uploads/locaciones/${imagen.filename}`;
+    const [saved] = await this.dataSource.query(
+      `
+      INSERT INTO admin_locaciones_imagenes (locacion_id, url, nombre_archivo, orden)
+      VALUES ($1::int, $2, $3, $4)
+      RETURNING id, locacion_id, url, nombre_archivo, created_at
+    `,
+      [id, publicUrl, imagen.originalname || imagen.filename, (count?.total ?? 0) + 1],
+    );
+
+    return { ok: true, data: saved };
+  }
+
+  @Get('portal/admin/locaciones/:id/imagenes')
+  async listarImagenesLocacion(@Param('id') id: string) {
+    await this.ensureAdminLocacionesImagenesTable();
+    const data = await this.dataSource.query(
+      `
+      SELECT id, locacion_id, url, nombre_archivo, COALESCE(orden, id) AS orden, created_at
+      FROM admin_locaciones_imagenes
+      WHERE locacion_id = $1::int
+      ORDER BY COALESCE(orden, id) ASC
+    `,
+      [id],
+    );
+
+    return { ok: true, data };
+  }
+
+  @Post('portal/admin/locaciones/:id/imagenes/reordenar')
+  async reordenarImagenesLocacion(
+    @Param('id') id: string,
+    @Body() body?: { imagen_ids?: number[] },
+  ) {
+    await this.ensureAdminLocacionesImagenesTable();
+
+    const ids = Array.isArray(body?.imagen_ids)
+      ? body?.imagen_ids.filter((value) => Number.isFinite(Number(value))).map((value) => Number(value))
+      : [];
+
+    if (!ids.length) {
+      return { ok: false, message: 'Debes enviar imagen_ids para reordenar.' };
+    }
+
+    const existentes = await this.dataSource.query(
+      `
+      SELECT id
+      FROM admin_locaciones_imagenes
+      WHERE locacion_id = $1::int
+    `,
+      [id],
+    );
+
+    const existentesSet = new Set((existentes || []).map((item: any) => Number(item.id)));
+    const validos = ids.filter((imagenId) => existentesSet.has(imagenId));
+
+    if (!validos.length) {
+      return { ok: false, message: 'No se encontraron imágenes válidas para esta locación.' };
+    }
+
+    for (let i = 0; i < validos.length; i += 1) {
+      await this.dataSource.query(
+        `
+        UPDATE admin_locaciones_imagenes
+        SET orden = $2
+        WHERE id = $1::int
+      `,
+        [validos[i], i + 1],
+      );
+    }
+
+    return { ok: true, total: validos.length };
+  }
+
+  @Post('portal/admin/locaciones/:id/imagenes/:imagenId/eliminar')
+  async eliminarImagenLocacion(
+    @Param('id') id: string,
+    @Param('imagenId') imagenId: string,
+  ) {
+    await this.ensureAdminLocacionesImagenesTable();
+
+    await this.dataSource.query(
+      `
+      DELETE FROM admin_locaciones_imagenes
+      WHERE id = $1::int
+        AND locacion_id = $2::int
+    `,
+      [imagenId, id],
+    );
+
+    const restantes = await this.dataSource.query(
+      `
+      SELECT id
+      FROM admin_locaciones_imagenes
+      WHERE locacion_id = $1::int
+      ORDER BY COALESCE(orden, id) ASC
+    `,
+      [id],
+    );
+
+    for (let i = 0; i < restantes.length; i += 1) {
+      await this.dataSource.query(
+        `UPDATE admin_locaciones_imagenes SET orden = $2 WHERE id = $1::int`,
+        [restantes[i].id, i + 1],
+      );
+    }
+
+    return { ok: true };
+  }
+
+  @Post('reportes/admin/:seccion')
+  async generarReporteAdmin(
+    @Param('seccion') seccion: string,
+    @Body() body?: { parametros?: Record<string, any> },
+  ) {
+    const normalized = String(seccion || '').toLowerCase();
+    const data = await this.getReportDataBySeccion(normalized);
+
+    if (!data) {
+      return { ok: false, message: `Sección de reporte no soportada: ${seccion}` };
+    }
+
+    await this.ensureReportesTable();
+
+    const reportsDir = join(process.cwd(), 'uploads', 'reportes');
+    if (!existsSync(reportsDir)) {
+      mkdirSync(reportsDir, { recursive: true });
+    }
+
+    const buffer = await this.buildPdfBuffer(normalized, data.title, data.rows, data.summary);
+    const fileName = `reporte-${normalized}-${Date.now()}.pdf`;
+    const absoluteFile = join(reportsDir, fileName);
+    await writeFile(absoluteFile, buffer);
+
+    const publicUrl = `/uploads/reportes/${fileName}`;
+    const [saved] = await this.dataSource.query(
+      `
+      INSERT INTO admin_reportes_generados (seccion, archivo_url, archivo_nombre, parametros, resumen)
+      VALUES ($1, $2, $3, $4::jsonb, $5::jsonb)
+      RETURNING id, seccion, archivo_url, archivo_nombre, created_at
+    `,
+      [
+        normalized,
+        publicUrl,
+        fileName,
+        JSON.stringify(body?.parametros ?? {}),
+        JSON.stringify(data.summary ?? {}),
+      ],
+    );
+
+    return {
+      ok: true,
+      data: {
+        ...saved,
+        total_filas: data.rows.length,
+        title: data.title,
+      },
+    };
   }
 
   @Get('portal/admin/flujo-permisos')
@@ -1767,7 +2622,7 @@ export class AppController {
         COALESCE(LOWER(te.nombre), 'natural') AS tipo,
         COUNT(*)::int AS total
       FROM tramite_locaciones tl
-      LEFT JOIN tipo_espacio te ON te.id = tl.tipo_espacio_id
+      LEFT JOIN tipos_espacio te ON te.id = tl.tipo_espacio_id
       GROUP BY COALESCE(LOWER(te.nombre), 'natural')
       ORDER BY total DESC
       LIMIT 5

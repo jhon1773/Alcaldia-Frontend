@@ -58,6 +58,11 @@ export class AuthService {
       );
     }
 
+    const rolRegistro = dto.rolSolicitado || 'productora';
+    const tipoPerfil = await this.tiposPerfilRepo.findOne({
+      where: { codigo: rolRegistro, activo: true },
+    });
+
     const passwordHash = await bcrypt.hash(dto.password, 10);
 
     const nuevoUsuario = this.usuariosRepo.create({
@@ -66,6 +71,7 @@ export class AuthService {
       tipo_persona: dto.tipo_persona || 'natural',
       telefono: dto.telefono,
       estado_cuenta_id: estadoActivo.id,
+      tipo_perfil_id: tipoPerfil?.id ?? undefined,
     });
 
     const usuarioGuardado = await this.usuariosRepo.save(nuevoUsuario);

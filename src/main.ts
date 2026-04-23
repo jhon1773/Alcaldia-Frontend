@@ -49,6 +49,7 @@ async function bootstrap() {
 
   // Archivos estáticos para la landing pública
   app.useStaticAssets(join(process.cwd(), 'public'));
+  app.useStaticAssets(join(process.cwd(), 'uploads'), { prefix: '/uploads/' });
 
   // Prefijo global de la API versionada
   const configService = app.get(ConfigService);

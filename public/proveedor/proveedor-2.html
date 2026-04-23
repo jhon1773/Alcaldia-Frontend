@@ -44,6 +44,7 @@
       <section class="portal-content" id="portafolioContent">Cargando portafolio...</section>
     </main>
 
+    <script src="/api-client.js"></script>
     <script>
       const menuToggle = document.getElementById('menuToggle');
       const navLinks = document.getElementById('navLinks');
@@ -56,31 +57,33 @@
       }
 
       async function init() {
-        const response = await fetch('/api/v1/portal/proveedor/portafolio');
-        const payload = await response.json();
-        const data = payload?.datos || payload;
+        try {
+          const data = await API_CLIENT.portal.proveedor.portafolio();
 
-        portafolioContent.innerHTML = `
-          <div class="portal-breadcrumb">Panel de Proveedor > Portafolio</div>
-          <div class="provider-header">
-            <div>
-              <h1>Portafolio de ${data.nombre}</h1>
-              <p>${data.rol}</p>
-              <small>${data.descripcion}</small>
+          portafolioContent.innerHTML = `
+            <div class="portal-breadcrumb">Panel de Proveedor > Portafolio</div>
+            <div class="provider-header">
+              <div>
+                <h1>Portafolio de ${data.nombre}</h1>
+                <p>${data.rol}</p>
+                <small>${data.descripcion}</small>
+              </div>
+              <a class="btn btn-primary" href="/crear-proyecto/">Agregar Proyecto</a>
             </div>
-            <a class="btn btn-primary" href="#">Agregar Proyecto</a>
-          </div>
 
-          <section class="portal-card">
-            <h3>Servicios Publicados</h3>
-            <div class="services-list">${(data.servicios || []).map((s) => `<div><span>${s.nombre}</span><strong>${money(s.precio)}</strong></div>`).join('')}</div>
-          </section>
+            <section class="portal-card">
+              <h3>Servicios Publicados</h3>
+              <div class="services-list">${(data.servicios || []).map((s) => `<div><span>${s.nombre}</span><strong>${money(s.precio)}</strong></div>`).join('')}</div>
+            </section>
 
-          <section class="portal-card">
-            <h3>Galería de Trabajos</h3>
-            <div class="provider-gallery">${(data.galeria || []).map((item) => `<img src="${item.imagen}" alt="${item.titulo}" />`).join('')}</div>
-          </section>
-        `;
+            <section class="portal-card">
+              <h3>Galería de Trabajos</h3>
+              <div class="provider-gallery">${(data.galeria || []).map((item) => `<img src="${item.imagen}" alt="${item.titulo}" />`).join('')}</div>
+            </section>
+          `;
+        } catch (error) {
+          portafolioContent.innerHTML = `<article class="portal-card"><h1>No fue posible cargar el portafolio</h1><p>${error?.message || 'Intenta de nuevo más tarde.'}</p><a class="btn btn-primary" href="/crear-proyecto/">Crear proyecto</a></article>`;
+        }
       }
 
       init();

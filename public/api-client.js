@@ -144,8 +144,15 @@ const API_CLIENT = (function () {
 
     // Auth
     auth: {
-      register: (email, password, nombre) =>
-        request('POST', '/auth/register', { email, password, nombre }),
+      register: (email, password, nombre, extra = {}) =>
+        request('POST', '/auth/register', {
+          email,
+          password,
+          nombre,
+          tipo_persona: extra.tipo_persona || 'natural',
+          telefono: extra.telefono || undefined,
+          rolSolicitado: extra.rolSolicitado || undefined,
+        }),
       login: (email, password) =>
         request('POST', '/auth/login', { email, password }),
       me: () => request('GET', '/auth/me'),
@@ -282,6 +289,24 @@ const API_CLIENT = (function () {
       productor: {
         proyectosMenu: () => request('GET', '/portal/productor/proyectos-menu'),
         locacionesMenu: () => request('GET', '/portal/productor/locaciones-menu'),
+      },
+      proveedor: {
+        panel: () => request('GET', '/portal/proveedor/panel'),
+        portafolio: () => request('GET', '/portal/proveedor/portafolio'),
+        disponibilidad: () => request('GET', '/portal/proveedor/disponibilidad'),
+        solicitudes: () => request('GET', '/portal/proveedor/solicitudes'),
+        mensajes: () => request('GET', '/portal/proveedor/mensajes'),
+        guardarDisponibilidad: (dia_semana, estado, horas) =>
+          request('POST', '/portal/proveedor/disponibilidad', { dia_semana, estado, horas }),
+        enviarMensaje: (titulo, texto) =>
+          request('POST', '/portal/proveedor/mensajes', { titulo, texto }),
+      },
+      academico: {
+        panel: () => request('GET', '/portal/academico/panel'),
+        observatorio: () => request('GET', '/portal/academico/observatorio'),
+        capacitacion: (q = '') => request('GET', `/portal/academico/capacitacion?q=${encodeURIComponent(q)}`),
+        pasantias: () => request('GET', '/portal/academico/pasantias'),
+        recursos: () => request('GET', '/portal/academico/recursos'),
       },
     },
   };

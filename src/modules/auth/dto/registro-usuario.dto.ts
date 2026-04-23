@@ -25,4 +25,15 @@ export class RegistroUsuarioDto {
   @IsOptional()
   @IsString()
   telefono?: string;
+
+  @ApiPropertyOptional({
+    enum: ['productora', 'proveedor', 'academico'],
+    example: 'productora',
+    description: 'Rol inicial de registro (admin no permitido en registro público)',
+  })
+  @IsOptional()
+  @IsIn(['productora', 'proveedor', 'academico'], {
+    message: 'El rol inicial debe ser productora, proveedor o academico',
+  })
+  rolSolicitado?: 'productora' | 'proveedor' | 'academico';
 }

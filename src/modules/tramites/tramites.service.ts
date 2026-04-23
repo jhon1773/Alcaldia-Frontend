@@ -151,6 +151,7 @@ export class TramitesService {
     const smtpUser = this.configService.get<string>('app.smtpUser');
     const smtpPass = this.configService.get<string>('app.smtpPass');
     const smtpFrom = this.configService.get<string>('app.smtpFrom');
+    const smtpAdminTo = this.configService.get<string>('app.smtpAdminTo');
 
     if (!smtpHost || !smtpFrom || !smtpUser || !smtpPass) {
       return;
@@ -190,6 +191,21 @@ export class TramitesService {
           <p>Te notificaremos cuando cambie de estado. Conserva este número para el seguimiento.</p>
         `,
       });
+
+      if (smtpAdminTo && smtpAdminTo !== usuario.email) {
+        await transporter.sendMail({
+          from: smtpFrom,
+          to: smtpAdminTo,
+          subject: `PUFAB: nuevo trámite pendiente de revisión (${numeroRadicado})`,
+          html: `
+            <h2>Nuevo trámite pendiente de revisión</h2>
+            <p>Un usuario envió un trámite que requiere validación.</p>
+            <p><strong>Radicado:</strong> ${numeroRadicado}</p>
+            <p><strong>Proyecto:</strong> ${nombreProyecto}</p>
+            <p><strong>Solicitante:</strong> ${usuario.email}</p>
+          `,
+        });
+      }
     } catch (error: any) {
       this.logger.warn(`No se pudo enviar correo de confirmación del trámite ${numeroRadicado}: ${error?.message ?? error}`);
     }

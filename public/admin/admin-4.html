@@ -38,12 +38,27 @@
             <label style="display:grid;gap:6px;font-size:13px;">Observaciones
               <input id="locObs" placeholder="Opcional" style="padding:8px;border:1px solid #ddd;border-radius:8px;" />
             </label>
+            <label style="display:grid;gap:6px;font-size:13px;">Imágenes de la locación
+              <input id="locImagenes" type="file" accept="image/*" multiple style="padding:8px;border:1px solid #ddd;border-radius:8px;background:#fff;" />
+            </label>
             <button type="submit" style="padding:10px 14px;background:#2d7e3e;color:#fff;border:none;border-radius:8px;cursor:pointer;">Guardar locación</button>
           </form>
+          <div id="locImagenesInfo" style="margin-top:8px;color:#4b5563;font-size:12px;"></div>
         </div>
         <div class="portal-card"><div class="admin-table" id="activosTable">Cargando activos...</div></div>
       </section>
     </main>
+
+    <div id="modalImagenesLocacion" class="modal-overlay" style="display:none; position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.5); z-index:1000; align-items:center; justify-content:center;">
+      <div style="background:#fff; width:min(720px, 92%); max-height:80vh; overflow-y:auto; border-radius:10px; padding:1rem 1.2rem; box-shadow: 0 10px 36px rgba(0,0,0,0.2);">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+          <h3 style="margin:0;">Gestionar imágenes de locación</h3>
+          <button type="button" id="cerrarModalImagenes" style="background:none;border:none;font-size:20px;cursor:pointer;">✕</button>
+        </div>
+        <p id="modalImagenesTitulo" style="margin:0 0 12px; color:#4b5563; font-size:13px;"></p>
+        <div id="listaImagenesLocacion" style="display:grid; gap:8px;"></div>
+      </div>
+    </div>
 
     <script>
       const menuToggle = document.getElementById('menuToggle');
@@ -54,6 +69,14 @@
       const locMunicipio = document.getElementById('locMunicipio');
       const locTipo = document.getElementById('locTipo');
       const locObs = document.getElementById('locObs');
+      const locImagenes = document.getElementById('locImagenes');
+      const locImagenesInfo = document.getElementById('locImagenesInfo');
+      const modalImagenesLocacion = document.getElementById('modalImagenesLocacion');
+      const cerrarModalImagenes = document.getElementById('cerrarModalImagenes');
+      const listaImagenesLocacion = document.getElementById('listaImagenesLocacion');
+      const modalImagenesTitulo = document.getElementById('modalImagenesTitulo');
+      const MAX_IMAGENES_LOCACION = 10;
+      let imagenesLocacionState = { locacionId: null, locacionNombre: '', items: [] };
 
       menuToggle?.addEventListener('click', () => navLinks?.classList.toggle('open'));
 
@@ -97,8 +120,8 @@
           }
 
           activosTable.innerHTML = `
-            <div class="admin-table-head"><span>Locación</span><span>Ubicación</span><span>Estado</span><span>Reservas</span><span>Acciones</span></div>
-            ${items.map((a) => `<div class="admin-table-row"><span>${a.locacion || 'N/A'}</span><span>${a.ubicacion || 'N/A'}</span><span><i class="status-badge ${badge(a.estado)}">${a.estado || 'Desconocido'}</i></span><span>${a.reservas || 0}</span><span><button style="background:none;border:none;color:#2d7e3e;cursor:pointer;text-decoration:underline;" data-toggle-activo="${a.id}" data-origen="${a.origen || 'tramite'}">${String(a.estado || '').toLowerCase().includes('manten') || String(a.estado || '').toLowerCase().includes('inactivo') ? '▶ Activar' : '⏸ Mantenimiento'}</button></span></div>`).join('')}
+            <div class="admin-table-head"><span>Locación</span><span>Ubicación</span><span>Imagen</span><span>Estado</span><span>Reservas</span><span>Acciones</span></div>
+            ${items.map((a) => `<div class="admin-table-row" style="grid-template-columns: 1.2fr 1fr 1fr 1fr .8fr 1.5fr;"><span>${a.locacion || 'N/A'}</span><span>${a.ubicacion || 'N/A'}</span><span>${a.imagen_principal ? `<img src="${a.imagen_principal}" alt="${a.locacion || 'Locación'}" style="width:56px;height:40px;object-fit:cover;border-radius:6px;border:1px solid #e5e7eb;" />` : '<small style="color:#6b7280;">Sin imagen</small>'}${a.total_imagenes ? `<small style="display:block;color:#6b7280;">${a.total_imagenes} archivo(s)</small>` : ''}</span><span><i class="status-badge ${badge(a.estado)}">${a.estado || 'Desconocido'}</i></span><span>${a.reservas || 0}</span><span><button style="background:none;border:none;color:#2d7e3e;cursor:pointer;text-decoration:underline;" data-toggle-activo="${a.id}" data-origen="${a.origen || 'tramite'}">${String(a.estado || '').toLowerCase().includes('manten') || String(a.estado || '').toLowerCase().includes('inactivo') ? '▶ Activar' : '⏸ Mantenimiento'}</button>${a.origen === 'manual' ? `<button style="margin-left:10px;background:none;border:none;color:#14532d;cursor:pointer;text-decoration:underline;" data-gestionar-imagenes="${a.id}" data-locacion="${(a.locacion || '').replace(/"/g, '&quot;')}">🖼 Gestionar imágenes</button>` : ''}</span></div>`).join('')}
           `;
 
           activosTable.querySelectorAll('[data-toggle-activo]').forEach((btn) => {
@@ -123,11 +146,139 @@
               }
             });
           });
+
+          activosTable.querySelectorAll('[data-gestionar-imagenes]').forEach((btn) => {
+            btn.addEventListener('click', async (event) => {
+              event.preventDefault();
+              const id = btn.getAttribute('data-gestionar-imagenes');
+              const nombre = btn.getAttribute('data-locacion') || 'Locación';
+              await abrirGestionImagenes(id, nombre);
+            });
+          });
         } catch (error) {
           activosTable.innerHTML = `<p style="color: red;">Error: ${error.message}</p>`;
           console.error(error);
         }
       }
+
+      async function cargarImagenesLocacion(locacionId) {
+        const response = await fetch(`/api/v1/portal/admin/locaciones/${locacionId}/imagenes`);
+        const payload = await response.json();
+        const result = payload?.datos || payload;
+        if (!response.ok || result?.ok === false) {
+          throw new Error(result?.message || 'No se pudieron cargar imágenes de la locación.');
+        }
+        return result?.data || [];
+      }
+
+      function renderListaImagenesLocacion() {
+        const items = imagenesLocacionState.items || [];
+        if (!items.length) {
+          listaImagenesLocacion.innerHTML = '<p style="margin:0;color:#6b7280;">No hay imágenes para esta locación.</p>';
+          return;
+        }
+
+        listaImagenesLocacion.innerHTML = items.map((img, index) => `
+          <div style="display:grid;grid-template-columns:72px 1fr auto;gap:10px;align-items:center;padding:8px;border:1px solid #e5e7eb;border-radius:8px;">
+            <img src="${img.url}" alt="Imagen locación" style="width:72px;height:52px;object-fit:cover;border-radius:6px;border:1px solid #d1d5db;" />
+            <div>
+              <strong style="font-size:13px;">${img.nombre_archivo || 'Imagen'}</strong>
+              <small style="display:block;color:#6b7280;">Orden: ${index + 1}</small>
+            </div>
+            <div style="display:flex;gap:8px;">
+              <button type="button" data-move-up="${img.id}" ${index === 0 ? 'disabled' : ''} style="padding:6px 8px;border:1px solid #d1d5db;border-radius:6px;background:#fff;cursor:pointer;">↑</button>
+              <button type="button" data-move-down="${img.id}" ${index === items.length - 1 ? 'disabled' : ''} style="padding:6px 8px;border:1px solid #d1d5db;border-radius:6px;background:#fff;cursor:pointer;">↓</button>
+              <button type="button" data-delete-img="${img.id}" style="padding:6px 8px;border:1px solid #fca5a5;border-radius:6px;background:#fee2e2;color:#991b1b;cursor:pointer;">Eliminar</button>
+            </div>
+          </div>
+        `).join('');
+
+        listaImagenesLocacion.querySelectorAll('[data-move-up]').forEach((btn) => {
+          btn.addEventListener('click', () => moverImagen(btn.getAttribute('data-move-up'), -1));
+        });
+        listaImagenesLocacion.querySelectorAll('[data-move-down]').forEach((btn) => {
+          btn.addEventListener('click', () => moverImagen(btn.getAttribute('data-move-down'), 1));
+        });
+        listaImagenesLocacion.querySelectorAll('[data-delete-img]').forEach((btn) => {
+          btn.addEventListener('click', () => eliminarImagen(btn.getAttribute('data-delete-img')));
+        });
+      }
+
+      async function abrirGestionImagenes(locacionId, nombre) {
+        try {
+          const items = await cargarImagenesLocacion(locacionId);
+          imagenesLocacionState = { locacionId, locacionNombre: nombre, items };
+          modalImagenesTitulo.textContent = `${nombre} (${items.length}/${MAX_IMAGENES_LOCACION} imágenes)`;
+          renderListaImagenesLocacion();
+          modalImagenesLocacion.style.display = 'flex';
+        } catch (error) {
+          alert('Error cargando imágenes: ' + error.message);
+        }
+      }
+
+      async function persistirOrdenImagenes() {
+        const ids = imagenesLocacionState.items.map((item) => Number(item.id));
+        const response = await fetch(`/api/v1/portal/admin/locaciones/${imagenesLocacionState.locacionId}/imagenes/reordenar`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ imagen_ids: ids }),
+        });
+        const payload = await response.json();
+        const result = payload?.datos || payload;
+        if (!response.ok || result?.ok === false) {
+          throw new Error(result?.message || 'No se pudo reordenar imágenes.');
+        }
+      }
+
+      async function moverImagen(imagenId, delta) {
+        const list = [...imagenesLocacionState.items];
+        const index = list.findIndex((item) => String(item.id) === String(imagenId));
+        if (index < 0) return;
+        const newIndex = index + delta;
+        if (newIndex < 0 || newIndex >= list.length) return;
+        const [item] = list.splice(index, 1);
+        list.splice(newIndex, 0, item);
+        imagenesLocacionState.items = list;
+        renderListaImagenesLocacion();
+        try {
+          await persistirOrdenImagenes();
+          await init();
+        } catch (error) {
+          alert(error.message);
+        }
+      }
+
+      async function eliminarImagen(imagenId) {
+        if (!confirm('¿Eliminar esta imagen de la locación?')) return;
+        try {
+          const response = await fetch(`/api/v1/portal/admin/locaciones/${imagenesLocacionState.locacionId}/imagenes/${imagenId}/eliminar`, {
+            method: 'POST',
+          });
+          const payload = await response.json();
+          const result = payload?.datos || payload;
+          if (!response.ok || result?.ok === false) {
+            throw new Error(result?.message || 'No se pudo eliminar la imagen.');
+          }
+          const items = await cargarImagenesLocacion(imagenesLocacionState.locacionId);
+          imagenesLocacionState.items = items;
+          modalImagenesTitulo.textContent = `${imagenesLocacionState.locacionNombre} (${items.length}/${MAX_IMAGENES_LOCACION} imágenes)`;
+          renderListaImagenesLocacion();
+          await init();
+        } catch (error) {
+          alert('Error eliminando imagen: ' + error.message);
+        }
+      }
+
+      locImagenes?.addEventListener('change', () => {
+        const total = locImagenes.files?.length || 0;
+        if (total > MAX_IMAGENES_LOCACION) {
+          alert(`Solo puedes subir hasta ${MAX_IMAGENES_LOCACION} imágenes por locación.`);
+          locImagenes.value = '';
+          locImagenesInfo.textContent = '';
+          return;
+        }
+        locImagenesInfo.textContent = total ? `${total} imagen(es) seleccionada(s)` : '';
+      });
 
       locacionForm?.addEventListener('submit', async (event) => {
         event.preventDefault();
@@ -155,12 +306,43 @@
             return;
           }
 
+          const nuevaLocacionId = result?.data?.id;
+          const files = Array.from(locImagenes?.files || []);
+
+          if (files.length > MAX_IMAGENES_LOCACION) {
+            alert(`Solo puedes subir hasta ${MAX_IMAGENES_LOCACION} imágenes por locación.`);
+            return;
+          }
+
+          if (nuevaLocacionId && files.length) {
+            for (const file of files) {
+              const formData = new FormData();
+              formData.append('imagen', file);
+
+              const uploadResponse = await fetch(`/api/v1/portal/admin/locaciones/${nuevaLocacionId}/imagenes`, {
+                method: 'POST',
+                body: formData,
+              });
+
+              const uploadResult = await uploadResponse.json();
+              if (!uploadResponse.ok || uploadResult?.ok === false) {
+                alert(uploadResult?.message || `No se pudo subir la imagen ${file.name}`);
+                return;
+              }
+            }
+          }
+
           locacionForm.reset();
+          if (locImagenesInfo) locImagenesInfo.textContent = '';
           await init();
-          alert('Locación creada correctamente');
+          alert('Locación creada correctamente' + (files.length ? ' con imágenes' : ''));
         } catch (error) {
           alert('Error al crear locación: ' + error.message);
         }
+      });
+
+      cerrarModalImagenes?.addEventListener('click', () => {
+        modalImagenesLocacion.style.display = 'none';
       });
 
       (async () => {

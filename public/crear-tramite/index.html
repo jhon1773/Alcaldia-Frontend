@@ -261,6 +261,7 @@
 
           <div id="error-message" class="error-message" style="display: none;"></div>
           <div id="success-message" class="success-message" style="display: none;"></div>
+          <div id="reserva-locacion-banner" class="success-message" style="display: none; background:#f0fdf4;color:#166534;border-left-color:#16a34a;"></div>
 
           <div class="tramite-steps">
             <div class="tramite-step active completed">
@@ -395,11 +396,22 @@
 
       // Modales
       const equipoModal = document.getElementById('equipoModal');
+      const reservaLocacionBanner = document.getElementById('reserva-locacion-banner');
 
       // Arrays para almacenar datos
       let locaciones = [];
       let locacionesDisponibles = [];
       let equipoTecnico = [];
+      const reservaLocacionPendiente = (() => {
+        const params = new URLSearchParams(window.location.search);
+        const fromQuery = params.get('locacion');
+        if (fromQuery) return fromQuery;
+        try {
+          return JSON.parse(localStorage.getItem('pufab_reserva_locacion') || 'null')?.id_unico || null;
+        } catch {
+          return null;
+        }
+      })();
 
       // Logout
       logoutBtn.addEventListener('click', () => {
@@ -490,6 +502,20 @@
 
         if (!locacionesDisponibles.length) {
           selectLocacionExistente.innerHTML = '<option value="">No hay locaciones registradas</option>';
+        }
+
+        if (reservaLocacionPendiente) {
+          const pendiente = locacionesDisponibles.find((loc) => String(loc.id_unico) === String(reservaLocacionPendiente));
+          if (pendiente && !locaciones.some((loc) => String(loc.id_unico) === String(pendiente.id_unico))) {
+            locaciones.push(pendiente);
+            renderLocaciones();
+            selectLocacionExistente.value = pendiente.id_unico;
+            if (reservaLocacionBanner) {
+              reservaLocacionBanner.textContent = `Locación preseleccionada: ${pendiente.nombre_lugar}. Puedes completar los demás datos y enviar la solicitud.`;
+              reservaLocacionBanner.style.display = 'block';
+            }
+            localStorage.removeItem('pufab_reserva_locacion');
+          }
         }
       }
 

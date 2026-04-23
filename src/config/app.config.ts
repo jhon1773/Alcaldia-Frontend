@@ -19,4 +19,5 @@ export default registerAs('app', () => ({
   smtpUser: process.env.SMTP_USER,
   smtpPass: process.env.SMTP_PASS,
   smtpFrom: process.env.SMTP_FROM,
+  smtpAdminTo: process.env.SMTP_ADMIN_TO,
 }));

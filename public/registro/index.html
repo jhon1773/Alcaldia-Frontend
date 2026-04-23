@@ -66,7 +66,7 @@
           <span class="auth-banner-icon">📝</span>
           <div>
             <strong>Paso 1 de 2</strong>
-            <p>Completa tu información básica</p>
+            <p id="registroRolTexto">Completa tu información básica</p>
           </div>
         </section>
 
@@ -127,6 +127,29 @@
       const errorMsg = document.getElementById('error-message');
       const successMsg = document.getElementById('success-message');
       const submitBtn = document.getElementById('submitBtn');
+      const registroRolTexto = document.getElementById('registroRolTexto');
+
+      const roleLabelMap = {
+        productora: 'Productora',
+        proveedor: 'Proveedor',
+        academico: 'Academia',
+      };
+
+      const roleFromUrl = new URLSearchParams(window.location.search).get('rol');
+      const roleNormalized = String(roleFromUrl || '').toLowerCase();
+      const rolSolicitado = ['productora', 'proveedor', 'academico'].includes(roleNormalized)
+        ? roleNormalized
+        : 'productora';
+
+      if (roleNormalized === 'admin') {
+        errorMsg.textContent = 'El rol administrador no se puede registrar públicamente.';
+        errorMsg.style.display = 'block';
+        submitBtn.disabled = true;
+      }
+
+      if (registroRolTexto) {
+        registroRolTexto.textContent = `Registro para rol: ${roleLabelMap[rolSolicitado]}`;
+      }
 
       // Toggle password visibility
       passwordToggle.addEventListener('click', (e) => {
@@ -178,7 +201,10 @@
           submitBtn.disabled = true;
           submitBtn.textContent = 'Registrando...';
 
-          const result = await API_CLIENT.auth.register(email, password, nombre);
+          const result = await API_CLIENT.auth.register(email, password, nombre, {
+            tipo_persona: 'natural',
+            rolSolicitado,
+          });
 
           successMsg.textContent = '✓ Registro exitoso. Redirigiendo...';
           successMsg.style.display = 'block';

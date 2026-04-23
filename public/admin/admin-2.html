@@ -76,6 +76,7 @@
       const usuariosTable = document.getElementById('usuariosTable');
       const formNuevoUsuario = document.getElementById('formNuevoUsuario');
       const modalNuevoUsuario = document.getElementById('modalNuevoUsuario');
+      let perfilesDisponibles = [];
 
       menuToggle?.addEventListener('click', () => navLinks?.classList.toggle('open'));
 
@@ -163,6 +164,20 @@
         return 'muted';
       }
 
+      function renderRoleOptions(currentRol) {
+        const normalizedCurrent = String(currentRol || '').toLowerCase();
+        if (!perfilesDisponibles.length) {
+          return '<option value="">Sin roles</option>';
+        }
+
+        return perfilesDisponibles
+          .map((perfil) => {
+            const selected = normalizedCurrent === String(perfil.nombre || '').toLowerCase() ? 'selected' : '';
+            return `<option value="${perfil.codigo}" ${selected}>${perfil.nombre}</option>`;
+          })
+          .join('');
+      }
+
       function render(items) {
         if (!items.length) {
           usuariosTable.innerHTML = '<p>No se encontraron usuarios.</p>';
@@ -170,7 +185,7 @@
         }
         usuariosTable.innerHTML = `
           <div class="admin-table-head"><span>Usuario</span><span>Rol</span><span>Estado</span><span>Último acceso</span><span>Acciones</span></div>
-          ${items.map((u) => `<div class="admin-table-row"><span><strong>${u.nombre}</strong><small>${u.email}</small></span><span>${u.rol}</span><span><i class="status-badge ${estadoClass(u.estado)}">${u.estado}</i></span><span>${u.ultimo_acceso}</span><span style="display: flex; gap: 1rem;"><button style="background:none;border:none;color:#2d7e3e;cursor:pointer;text-decoration:underline;" data-toggle-user="${u.id}">${u.estado === 'Activo' ? 'Desactivar' : 'Activar'}</button><button style="background:none;border:none;color:#dc2626;cursor:pointer;text-decoration:underline;" data-eliminar-user="${u.id}" data-user-email="${u.email}">Eliminar</button></span></div>`).join('')}
+          ${items.map((u) => `<div class="admin-table-row"><span><strong>${u.nombre}</strong><small>${u.email}</small></span><span><select data-role-select="${u.id}" style="padding:6px;border:1px solid #ddd;border-radius:6px;min-width:140px;">${renderRoleOptions(u.rol)}</select><button data-guardar-rol="${u.id}" style="margin-left:8px;background:none;border:none;color:#14532d;cursor:pointer;text-decoration:underline;">Guardar rol</button></span><span><i class="status-badge ${estadoClass(u.estado)}">${u.estado}</i></span><span>${u.ultimo_acceso}</span><span style="display: flex; gap: 1rem;"><button style="background:none;border:none;color:#2d7e3e;cursor:pointer;text-decoration:underline;" data-toggle-user="${u.id}">${u.estado === 'Activo' ? 'Desactivar' : 'Activar'}</button><button style="background:none;border:none;color:#dc2626;cursor:pointer;text-decoration:underline;" data-eliminar-user="${u.id}" data-user-email="${u.email}">Eliminar</button></span></div>`).join('')}
         `;
 
         usuariosTable.querySelectorAll('[data-toggle-user]').forEach((btn) => {
@@ -192,6 +207,42 @@
             document.getElementById('btnConfirmarEliminacion').dataset.userId = userId;
           });
         });
+
+        usuariosTable.querySelectorAll('[data-guardar-rol]').forEach((btn) => {
+          btn.addEventListener('click', async (event) => {
+            event.preventDefault();
+            const userId = btn.getAttribute('data-guardar-rol');
+            const select = usuariosTable.querySelector(`[data-role-select="${userId}"]`);
+            const codigo = select?.value;
+            if (!codigo) {
+              alert('Selecciona un rol válido.');
+              return;
+            }
+
+            const response = await fetch(`/api/v1/portal/admin/usuarios/${userId}/rol`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ tipo_perfil_codigo: codigo }),
+            });
+
+            const payload = await response.json();
+            const result = payload?.datos || payload;
+            if (!response.ok || result?.ok === false) {
+              alert(result?.message || 'No se pudo actualizar el rol.');
+              return;
+            }
+
+            alert('Rol actualizado correctamente.');
+            await load();
+          });
+        });
+      }
+
+      async function cargarPerfilesDisponibles() {
+        const response = await fetch('/api/v1/portal/admin/roles');
+        const payload = await response.json();
+        const data = payload?.datos?.data || payload?.data || [];
+        perfilesDisponibles = Array.isArray(data) ? data : [];
       }
 
       async function load() {
@@ -205,7 +256,10 @@
 
       userSearch?.addEventListener('input', load);
       searchBtn?.addEventListener('click', load);
-      load();
+      (async () => {
+        await cargarPerfilesDisponibles();
+        await load();
+      })();
     </script>
     <script src='/nav-session.js'></script>
     <script src='/sidebar-slider.js'></script>
