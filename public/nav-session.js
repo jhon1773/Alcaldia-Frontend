@@ -411,8 +411,10 @@
   if (actions) {
     if (roleConfig) {
       actions.innerHTML = `
-        <button class="btn btn-ghost" type="button" id="logoutBtn">Cerrar sesión</button>
-        <a class="btn btn-primary" href="${roleConfig.path}">${roleConfig.label}</a>
+        <div style="position: relative; display: flex; align-items: center; gap: 1rem;">
+          <button class="btn btn-ghost" type="button" id="logoutBtn">Cerrar sesión</button>
+          <a class="btn btn-primary" href="${roleConfig.path}">${roleConfig.label}</a>
+        </div>
       `;
       wireLogout(actions.querySelector('#logoutBtn'));
     } else {
@@ -434,5 +436,30 @@
       portalUser.parentElement.appendChild(portalLogoutBtn);
     }
     wireLogout(portalLogoutBtn);
+  }
+
+  if (session?.loggedIn && !document.getElementById('pufab-profile-bubble')) {
+    const bubble = document.createElement('button');
+    bubble.id = 'pufab-profile-bubble';
+    bubble.type = 'button';
+    bubble.style.cssText = 'position:fixed;top:18px;right:18px;z-index:1200;display:flex;align-items:center;gap:.75rem;padding:.6rem .85rem;background:rgba(15,23,42,.96);color:#fff;border-radius:999px;box-shadow:0 12px 30px rgba(15,23,42,.22);backdrop-filter:blur(10px);border:0;cursor:pointer;';
+
+    const avatarMarkup = session.avatarUrl
+      ? `<img src="${session.avatarUrl}" alt="Perfil" style="width:36px;height:36px;border-radius:50%;object-fit:cover;border:2px solid rgba(255,255,255,.2);">`
+      : `<span style="width:36px;height:36px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#22c55e,#0f766e);font-weight:700;">${(session.name || 'U').trim().charAt(0).toUpperCase()}</span>`;
+
+    bubble.innerHTML = `
+      ${avatarMarkup}
+      <div style="display:flex;flex-direction:column;line-height:1.1;text-align:left;">
+        <strong style="font-size:.88rem;">${session.name || 'Usuario'}</strong>
+        <span style="font-size:.74rem;opacity:.8;">${roleConfig?.label || 'Mi cuenta'}</span>
+      </div>
+    `;
+
+    bubble.addEventListener('click', () => {
+      window.location.href = '/perfil/';
+    });
+
+    document.body.appendChild(bubble);
   }
 })();

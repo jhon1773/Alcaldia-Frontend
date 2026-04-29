@@ -144,15 +144,7 @@ const API_CLIENT = (function () {
 
     // Auth
     auth: {
-      register: (email, password, nombre, extra = {}) =>
-        request('POST', '/auth/register', {
-          email,
-          password,
-          nombre,
-          tipo_persona: extra.tipo_persona || 'natural',
-          telefono: extra.telefono || undefined,
-          rolSolicitado: extra.rolSolicitado || undefined,
-        }),
+      register: (payload) => request('POST', '/auth/register', payload),
       login: (email, password) =>
         request('POST', '/auth/login', { email, password }),
       me: () => request('GET', '/auth/me'),
@@ -184,8 +176,18 @@ const API_CLIENT = (function () {
       tiposEspacio: () => request('GET', '/catalogos/tipos-espacio'),
       rolesEquipoTecnico: () => request('GET', '/catalogos/roles-equipo-tecnico'),
       tiposIdentificacion: () => request('GET', '/catalogos/tipos-identificacion'),
+      tiposEntidad: () => request('GET', '/catalogos/tipos-entidad'),
+      gruposEtnicos: () => request('GET', '/catalogos/grupos-etnicos'),
+      sexosNacer: () => request('GET', '/catalogos/sexos-nacer'),
       identidadesGenero: () => request('GET', '/catalogos/identidades-genero'),
       nivelesEducativos: () => request('GET', '/catalogos/niveles-educativos'),
+      tiposDiscapacidad: () => request('GET', '/catalogos/tipos-discapacidad'),
+      tiemposDedicacionSector: () => request('GET', '/catalogos/tiempos-dedicacion-sector'),
+      tiposIngresosSector: () => request('GET', '/catalogos/tipos-ingresos-sector'),
+      tiposPropiedadEquipos: () => request('GET', '/catalogos/tipos-propiedad-equipos'),
+      gamasEquipos: () => request('GET', '/catalogos/gamas-equipos'),
+      rangosExperienciaSector: () => request('GET', '/catalogos/rangos-experiencia-sector'),
+      tiposProduccionParticipa: () => request('GET', '/catalogos/tipos-produccion-participa'),
       tiposTramite: () => request('GET', '/catalogos/tipos-tramite'),
       tiposPago: () => request('GET', '/catalogos/tipos-pago'),
       estadosPago: () => request('GET', '/catalogos/estados-pago'),

@@ -1,5 +1,11 @@
-import { IsEmail, IsString, MinLength, IsIn, IsOptional } from 'class-validator';
+import { Type } from 'class-transformer';
+import {
+  IsEmail, IsString, MinLength, IsIn, IsOptional,
+  ValidateNested,
+} from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { CrearPersonaNaturalDto } from '../../usuarios/dto/crear-persona-natural.dto';
+import { CrearPersonaJuridicaDto } from '../../usuarios/dto/crear-persona-juridica.dto';
 
 export class RegistroUsuarioDto {
   @ApiProperty({ example: 'productora@email.com', description: 'Correo electrónico único del usuario' })
@@ -25,6 +31,24 @@ export class RegistroUsuarioDto {
   @IsOptional()
   @IsString()
   telefono?: string;
+
+  @ApiPropertyOptional({
+    description: 'Datos completos de perfil para persona natural',
+    type: () => CrearPersonaNaturalDto,
+  })
+  @IsOptional()
+  @ValidateNested()
+  @Type(() => CrearPersonaNaturalDto)
+  perfilNatural?: CrearPersonaNaturalDto;
+
+  @ApiPropertyOptional({
+    description: 'Datos completos de perfil para persona jurídica',
+    type: () => CrearPersonaJuridicaDto,
+  })
+  @IsOptional()
+  @ValidateNested()
+  @Type(() => CrearPersonaJuridicaDto)
+  perfilJuridica?: CrearPersonaJuridicaDto;
 
   @ApiPropertyOptional({
     enum: ['productora', 'proveedor', 'academico'],

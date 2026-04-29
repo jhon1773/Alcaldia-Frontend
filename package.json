@@ -9,6 +9,7 @@
     "build": "nest build",
     "doctor": "node scripts/doctor.js",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
+    "seed:demo": "node scripts/seed-demo-users.js",
     "start": "nest start",
     "start:dev": "nest start --watch",
     "start:debug": "nest start --debug --watch",

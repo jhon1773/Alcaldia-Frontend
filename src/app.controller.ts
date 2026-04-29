@@ -1364,25 +1364,66 @@ export class AppController {
 
   @Post('portal/admin/usuarios/:id/toggle')
   async togglePortalAdminUsuarioEstado(@Param('id') id: string) {
+    const userId = Number(id);
+
+    // Obtiene el usuario actual
+    const [usuarioActual] = await this.dataSource.query(
+      `SELECT id, activo FROM usuarios WHERE id = $1::int LIMIT 1`,
+      [userId],
+    );
+
+    if (!usuarioActual) {
+      return { ok: false, error: 'Usuario no encontrado' };
+    }
+
+    // Determina el nuevo estado
+    const nuevoActivo = !usuarioActual.activo;
+    let estadoId: number | null = null;
+
+    if (nuevoActivo) {
+      // Al activar, usa el estado 'activo'
+      const [estadoActivo] = await this.dataSource.query(
+        `SELECT id FROM estados_cuenta WHERE codigo = $1 LIMIT 1`,
+        ['activo'],
+      );
+      estadoId = estadoActivo?.id ?? null;
+    } else {
+      // Al desactivar, usa el estado 'pendiente'
+      const [estadoPendiente] = await this.dataSource.query(
+        `SELECT id FROM estados_cuenta WHERE codigo = $1 LIMIT 1`,
+        ['pendiente'],
+      );
+      estadoId = estadoPendiente?.id ?? null;
+    }
+
+    // Actualiza el usuario
+    const fechaAprobacion = nuevoActivo ? new Date().toISOString() : null;
     await this.dataSource.query(
       `
       UPDATE usuarios
-      SET activo = NOT activo,
-          fecha_actualizacion = NOW()
-      WHERE id = $1::int
+      SET activo = $1,
+          estado_cuenta_id = $2,
+          fecha_actualizacion = NOW(),
+          fecha_aprobacion = $3::timestamp
+      WHERE id = $4::int
     `,
-      [id],
+      [
+        nuevoActivo,
+        estadoId,
+        fechaAprobacion,
+        userId,
+      ],
     );
 
-    const [usuario] = await this.dataSource.query(
+    const [usuarioActualizado] = await this.dataSource.query(
       `SELECT id, activo FROM usuarios WHERE id = $1::int LIMIT 1`,
-      [id],
+      [userId],
     );
 
     return {
       ok: true,
-      id: usuario?.id ?? Number(id),
-      estado: usuario?.activo ? 'Activo' : 'Inactivo',
+      id: usuarioActualizado?.id ?? userId,
+      estado: usuarioActualizado?.activo ? 'Activo' : 'Inactivo',
     };
   }
 

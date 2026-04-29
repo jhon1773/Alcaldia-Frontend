@@ -192,8 +192,22 @@
           btn.addEventListener('click', async (event) => {
             event.preventDefault();
             const userId = btn.getAttribute('data-toggle-user');
-            await fetch(`/api/v1/portal/admin/usuarios/${userId}/toggle`, { method: 'POST' });
-            await load();
+            try {
+              const response = await fetch(`/api/v1/portal/admin/usuarios/${userId}/toggle`, { method: 'POST' });
+              const payload = await response.json();
+              const result = payload?.datos || payload;
+              
+              if (!response.ok || result?.ok === false) {
+                alert('❌ Error: ' + (result?.error || result?.message || 'No se pudo cambiar el estado del usuario'));
+                return;
+              }
+              
+              alert(`✓ Usuario ${result?.estado || 'actualizado'} exitosamente`);
+              await load();
+            } catch (error) {
+              alert('❌ Error de conexión: ' + error.message);
+              console.error('Toggle error:', error);
+            }
           });
         });
 
