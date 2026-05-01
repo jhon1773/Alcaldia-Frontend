@@ -1,3 +1,48 @@
+/**
+ * DOCUMENTOS.CONTROLLER.TS — CONTROLADOR DE GESTIÓN DE ARCHIVOS
+ *
+ * RESPONSABILIDADES:
+ * 1. Gestionar subida de archivos con validación de seguridad
+ * 2. Manejar multipart/form-data para archivos
+ * 3. Implementar límites de tamaño y tipos de archivo
+ * 4. Gestionar versionado de documentos
+ *
+ * ENDPOINTS PRINCIPALES:
+ * - POST /documentos/subir: Subir archivo con hash SHA256
+ * - GET /documentos: Listar documentos del usuario
+ * - GET /documentos/:id: Descargar documento específico
+ * - PATCH /documentos/:id: Actualizar metadata
+ *
+ * CONFIGURACIÓN MULTER:
+ * - diskStorage: Guarda archivos en ./uploads/
+ * - filename: Genera nombre único con timestamp
+ * - fileFilter: Solo PDF, JPG, PNG, DOCX
+ * - limits: Máximo 10 MB por archivo
+ *
+ * SEGURIDAD:
+ * - Autenticación requerida (JwtAuthGuard)
+ * - Validación de roles según operación
+ * - Hash SHA256 para integridad de archivos
+ * - Control de acceso por propietario
+ *
+ * PROCESO DE SUBIDA:
+ * 1. Usuario envía archivo multipart
+ * 2. Multer valida y guarda archivo temporalmente
+ * 3. Controller calcula hash SHA256 del buffer
+ * 4. Service registra documento en BD
+ * 5. Archivo se mueve a ubicación final
+ *
+ * VERSIONADO:
+ * - Cada subida incrementa versión por tipo/contexto
+ * - Mantiene historial de versiones
+ * - Solo versión más reciente es activa
+ *
+ * CONTEXTOS DE USO:
+ * - solicitud_registro_id: Documentos para aprobación de cuenta
+ * - tramite_id: Documentos requeridos para trámite PUFAB
+ * - tipo_documento_id: Clasificación del documento
+ */
+
 import {
   Controller, Get, Post, Patch, Param, Body,
   ParseIntPipe, UseGuards, UseInterceptors, UploadedFile,

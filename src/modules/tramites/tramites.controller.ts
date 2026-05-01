@@ -1,3 +1,28 @@
+/**
+ * TRAMITES.CONTROLLER.TS — CONTROLADOR DEL MÓDULO DE TRÁMITES
+ *
+ * RESPONSABILIDADES:
+ * 1. Exponer los endpoints HTTP del módulo de trámites (PUFA)
+ * 2. Validar autenticación JWT y control de acceso por roles antes de procesar solicitudes
+ * 3. Extraer el usuario autenticado y delegar la lógica al servicio correspondiente
+ *
+ * ENDPOINTS:
+ * - GET    /tramites              → Listar trámites paginados con filtro opcional por estado
+ * - GET    /tramites/:id          → Obtener un trámite completo con todas sus relaciones
+ * - POST   /tramites              → Crear un nuevo trámite PUFA con número de radicado automático
+ * - PATCH  /tramites/:id/estado   → Cambiar el estado de un trámite (solo admin y revisor)
+ *
+ * SEGURIDAD:
+ * - Todos los endpoints están protegidos por JwtAuthGuard y RolesGuard
+ * - El endpoint de cambio de estado está restringido a los roles 'admin' y 'revisor'
+ * - El usuario autenticado se inyecta mediante el decorador @CurrentUser
+ * - La autorización por rol (admin/revisor vs solicitante) se resuelve en el servicio
+ *
+ * INTEGRACIÓN:
+ * - Delega toda la lógica de negocio a TramitesService
+ * - Usa CrearTramiteDto para validar el cuerpo de las solicitudes de creación
+ */
+
 import {
   Controller, Get, Post, Patch, Param, Body,
   Query, ParseIntPipe, UseGuards,

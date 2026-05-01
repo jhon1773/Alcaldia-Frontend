@@ -1,3 +1,28 @@
+/**
+ * PROYECTOS.SERVICE.TS — SERVICIO DE NEGOCIO DEL MÓDULO DE PROYECTOS
+ *
+ * RESPONSABILIDADES:
+ * 1. Contener la lógica de negocio relacionada con la gestión de proyectos audiovisuales
+ * 2. Controlar el acceso a los proyectos según el rol del usuario autenticado
+ * 3. Ejecutar las operaciones CRUD sobre la entidad Proyecto en la base de datos
+ *
+ * MÉTODOS:
+ * - listar:        Retorna proyectos paginados; admin ve todos, productora solo los suyos
+ * - obtenerPorId:  Busca un proyecto por ID y verifica que el usuario tenga acceso
+ * - crear:         Registra un nuevo proyecto en estado 'borrador' asociado al usuario
+ * - actualizar:    Aplica cambios parciales a un proyecto verificando pertenencia y permisos
+ *
+ * REGLAS DE NEGOCIO:
+ * - Un usuario con rol 'admin' puede listar y acceder a cualquier proyecto
+ * - Una productora solo puede ver y modificar sus propios proyectos
+ * - Todo proyecto nuevo se crea con estado_proyecto = 'borrador'
+ *
+ * INTEGRACIÓN:
+ * - Consume el repositorio de Proyecto (TypeORM) para todas las operaciones de persistencia
+ * - Es invocado exclusivamente por ProyectosController
+ * - Lanza NotFoundException si el proyecto no existe y ForbiddenException si el usuario no tiene acceso
+ */
+
 import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';

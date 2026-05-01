@@ -1,3 +1,35 @@
+/**
+ * ADMIN.CONTROLLER.TS — CONTROLADOR DE VERIFICACIÓN DE PERFILES (ADMINISTRADOR)
+ *
+ * RESPONSABILIDADES:
+ * 1. Exponer los endpoints de gestión administrativa sobre perfiles de usuarios
+ * 2. Restringir el acceso exclusivamente a usuarios con rol 'admin'
+ * 3. Delegar toda la lógica de verificación y moderación a PerfilesService
+ *
+ * ENDPOINTS EXPUESTOS:
+ * ┌────────────────────────────────────────┬────────┬──────────────────────────────────────────┐
+ * │ Ruta                                   │ Método │ Descripción                              │
+ * ├────────────────────────────────────────┼────────┼──────────────────────────────────────────┤
+ * │ /portal/admin/verificacion             │ GET    │ Lista perfiles pendientes de verificación │
+ * │ /portal/admin/verificacion/:id         │ GET    │ Detalles completos de un perfil           │
+ * │ /portal/admin/verificacion/:id/aprobar │ POST   │ Aprueba y verifica un perfil              │
+ * │ /portal/admin/verificacion/:id/rechazar│ POST   │ Rechaza un perfil con motivo opcional     │
+ * │ /portal/admin/verificacion/:id/eliminar│ POST   │ Elimina permanentemente un perfil         │
+ * └────────────────────────────────────────┴────────┴──────────────────────────────────────────┘
+ *
+ * SEGURIDAD:
+ * - Todos los endpoints requieren token JWT válido (JwtAuthGuard)
+ * - Acceso restringido exclusivamente al rol 'admin' (RolesGuard + @Roles)
+ * - Aplicado a nivel de clase: toda la ruta /portal/admin/verificacion queda protegida
+ *
+ * INTEGRACIÓN:
+ * - PerfilesService.listarPerfilesVerificacion()     → listado de perfiles pendientes
+ * - PerfilesService.obtenerDetallesVerificacion(id)  → detalle de un perfil específico
+ * - PerfilesService.aprobarPerfil(id)                → aprobación y activación del perfil
+ * - PerfilesService.rechazarPerfil(id, motivo)       → rechazo con motivo opcional
+ * - PerfilesService.eliminarPerfil(id)               → eliminación permanente del perfil
+ */
+
 import {
   Controller, Get, Post, Param, Body,
   ParseIntPipe, UseGuards,

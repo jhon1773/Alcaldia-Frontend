@@ -1,3 +1,7 @@
+/**
+ * Descripción: Archivo TypeScript del proyecto NestJS.
+  */
+
 const path = require('path');
 const dotenv = require('dotenv');
 const bcrypt = require('bcrypt');

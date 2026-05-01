@@ -1,3 +1,8 @@
+/**
+ * Descripción: Controlador del módulo registro que expone los endpoints HTTP correspondientes.
+ * Propósito: Recibir requests, validar permisos y delegar al servicio apropiado.
+  */
+
 import {
   Controller, Post, Get, Patch, Param, Body,
   Query, ParseIntPipe, UseGuards,

@@ -1,3 +1,30 @@
+/**
+ * PERSONA-JURIDICA.ENTITY.TS — PERFIL EXTENDIDO DE PERSONA JURÍDICA
+ *
+ * RESPONSABILIDADES:
+ * 1. Almacenar los datos institucionales, legales y organizacionales del usuario tipo persona jurídica
+ * 2. Registrar la información del representante legal y su vigencia de nombramiento
+ * 3. Capturar el contexto sectorial y participación en redes o estímulos públicos
+ *
+ * CAMPOS PRINCIPALES:
+ * - Datos institucionales: razon_social, nit, tipo_entidad_id, fecha_constitucion,
+ *                          objeto_social, municipio_id, direccion_fisica
+ * - Contacto:              telefono_contacto, correo_institucional, pagina_web
+ * - Representante legal:   nombre_representante_legal, tipo_documento_representante_id,
+ *                          numero_documento_representante, fecha_inicio_nombramiento,
+ *                          fecha_fin_nombramiento
+ * - Perfil organizacional: areas_trabajo, proyectos_realizados, proyectos_en_curso,
+ *                          publico_objetivo_beneficiarios
+ * - Registros y membresías: registro_soy_cultura, registro_observatorio_cultural_boyaca,
+ *                            ha_recibido_estimulos_apoyos_publicos, participa_redes_asociaciones,
+ *                            cuales_redes_asociaciones
+ *
+ * INTEGRACIÓN:
+ * - Relacionada en OneToOne con Usuario; cada usuario tipo jurídico tiene exactamente un perfil
+ * - Tiene una relación OneToMany con VigenciaEstimulo para registrar estímulos recibidos
+ * - Referencia los catálogos TipoEntidad, Municipio y TipoIdentificacion
+ */
+
 import {
   Entity, PrimaryGeneratedColumn, Column,
   OneToOne, ManyToOne, JoinColumn,

@@ -1,3 +1,57 @@
+/**
+ * DOCUMENTO.ENTITY.TS — ENTIDAD PARA GESTIÓN DE ARCHIVOS SUBIDOS
+ *
+ * RESPONSABILIDADES:
+ * 1. Almacenar metadata de archivos subidos al sistema
+ * 2. Mantener integridad con hash SHA256
+ * 3. Gestionar versionado de documentos
+ * 4. Relacionar documentos con usuarios y contextos
+ *
+ * CAMPOS PRINCIPALES:
+ * - id: ID único autoincremental
+ * - usuario_id: Propietario del documento
+ * - tramite_id: Trámite PUFAB asociado (opcional)
+ * - solicitud_registro_id: Solicitud de registro asociada (opcional)
+ * - tipo_documento_id: Tipo de documento del catálogo
+ * - version: Número de versión (incremental por tipo/contexto)
+ * - nombre_original: Nombre original del archivo
+ * - nombre_guardado: Nombre único generado en servidor
+ * - ruta_archivo: Path completo al archivo en disco
+ * - mime_type: Tipo MIME del archivo
+ * - tamano_bytes: Tamaño en bytes
+ * - hash_sha256: Hash SHA256 para integridad
+ * - activo: Si la versión está activa
+ *
+ * RELACIONES:
+ * - usuario: Usuario propietario (ManyToOne)
+ * - tipo_documento: Tipo del catálogo (ManyToOne)
+ * - tramite: Trámite asociado (ManyToOne, opcional)
+ *
+ * VERSIONADO:
+ * - Cada subida incrementa versión por combinación:
+ *   usuario_id + tipo_documento_id + tramite_id/solicitud_registro_id
+ * - Solo la versión más alta está activa
+ * - Permite re-subir documentos corregidos
+ * - Mantiene historial completo
+ *
+ * HASH SHA256:
+ * - Calculado del buffer completo del archivo
+ * - 64 caracteres hexadecimales
+ * - Verifica integridad al descargar/verificar
+ * - Detecta modificaciones no autorizadas
+ *
+ * CONTEXTOS DE USO:
+ * - Registro de usuario: solicitud_registro_id presente
+ * - Trámite PUFAB: tramite_id presente
+ * - Documentos generales: tramite_id y solicitud_registro_id null
+ *
+ * SEGURIDAD:
+ * - Control de acceso por usuario_id
+ * - Hash para verificar integridad
+ * - Rutas de archivo no expuestas directamente
+ * - Descargas validadas por permisos
+ */
+
 import {
   Entity, PrimaryGeneratedColumn, Column,
   ManyToOne, JoinColumn, CreateDateColumn,

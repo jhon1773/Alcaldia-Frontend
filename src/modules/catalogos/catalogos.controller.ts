@@ -1,3 +1,45 @@
+/**
+ * CATALOGOS.CONTROLLER.TS — CONTROLADOR DE DATOS DE REFERENCIA
+ *
+ * RESPONSABILIDADES:
+ * 1. Proporcionar endpoints públicos para catálogos del sistema
+ * 2. Exponer datos de referencia sin requerir autenticación
+ * 3. Soportar formularios de registro y creación de proyectos
+ * 4. Alimentar dropdowns y selects en el frontend
+ *
+ * ENDPOINTS PÚBLICOS (@Public()):
+ * - GET /catalogos/municipios: Lista municipios de Boyacá
+ * - GET /catalogos/tipos-produccion: Tipos de producción audiovisual
+ * - GET /catalogos/estados-tramite: Estados posibles de trámites
+ * - GET /catalogos/tipos-espacio: Tipos de espacio para locaciones
+ * - GET /catalogos/roles-equipo-tecnico: Roles del equipo técnico
+ * - GET /catalogos/tipos-identificacion: Tipos de documento
+ * - GET /catalogos/tipos-entidad: Tipos de entidad jurídica
+ *
+ * CARACTERÍSTICAS:
+ * - Todos los endpoints son @Public() (no requieren auth)
+ * - Respuestas incluyen solo registros activos
+ * - Datos ordenados apropiadamente (alfabético, por orden, etc.)
+ * - Optimizados para uso en formularios
+ *
+ * USO EN FRONTEND:
+ * - Formularios de registro: municipios, tipos identificación
+ * - Crear proyecto: tipos producción, tipos espacio
+ * - Crear trámite: roles equipo técnico, tipos entidad
+ * - Filtros y búsquedas: estados trámite
+ *
+ * INTEGRACIÓN CON OTROS MÓDULOS:
+ * - Usuarios: Datos para completar perfiles
+ * - Proyectos: Tipos de producción y espacios
+ * - Tramites: Estados y tipos de entidad
+ * - Documentos: Tipos de identificación
+ *
+ * PERFORMANCE:
+ * - Endpoints simples sin joins complejos
+ * - Datos cacheables en frontend
+ * - Consultas optimizadas con índices
+ */
+
 import { Controller, Get, UseGuards } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { CatalogosService } from './catalogos.service';

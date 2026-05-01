@@ -1,3 +1,42 @@
+/**
+ * APP.CONTROLLER.TS — CONTROLADOR RAÍZ DE LA APLICACIÓN
+ *
+ * RESPONSABILIDADES:
+ * 1. Exponer los endpoints generales que no pertenecen a un módulo de dominio específico
+ * 2. Gestionar las redirecciones a rutas del frontend estático
+ * 3. Proveer los endpoints de los portales: productor, proveedor, admin y académico
+ * 4. Generar reportes PDF administrativos por sección
+ *
+ * GRUPOS DE ENDPOINTS:
+ * - Redirecciones:          GET / y rutas de frontend (directorio, contacto, tramites, etc.)
+ * - Portal productor:       Permisos, proyectos, locaciones y evaluaciones del solicitante
+ * - Portal proveedor:       Panel, portafolio, disponibilidad, solicitudes y mensajes del proveedor
+ * - Portal admin:           Resumen, usuarios, roles, verificación, locaciones, flujo de permisos,
+ *                           comités, finanzas, KPIs, comunicaciones y generación de reportes
+ * - Portal académico:       Panel, observatorio, capacitación, pasantías y recursos
+ *
+ * MÉTODOS PRIVADOS AUXILIARES:
+ * - enviarCorreoSiConfig:              Envía correo vía nodemailer si las variables SMTP están configuradas
+ * - getPrimaryPerfilProveedorId:       Obtiene el ID del primer perfil proveedor visible en directorio
+ * - getPerfilProveedorPorUsuario:      Obtiene el perfil proveedor del usuario autenticado
+ * - ensureProveedorPortalTables:       Crea las tablas de disponibilidad y mensajes de proveedor si no existen
+ * - resolveEstadoTramiteId:            Busca el ID de un estado de trámite por palabras clave
+ * - ensureAdminLocacionesTable:        Crea la tabla de locaciones manuales si no existe
+ * - ensureAdminLocacionesImagenesTable: Crea y migra la tabla de imágenes de locaciones si no existe
+ * - ensureReportesTable:               Crea la tabla de reportes generados si no existe
+ * - ensureAdminComitesTable:           Crea la tabla de comités técnicos si no existe
+ * - formatSummaryLabel:                Formatea claves de resumen para presentación en reportes
+ * - getColumnsForSection:              Retorna la configuración de columnas PDF según la sección del reporte
+ * - buildPdfBuffer:                    Construye el buffer del PDF con cabecera, resumen y tabla de datos
+ * - getReportDataBySeccion:            Obtiene los datos, título y resumen del reporte según la sección solicitada
+ *
+ * INTEGRACIÓN:
+ * - Usa DataSource de TypeORM directamente para consultas SQL nativas
+ * - Usa ConfigService para leer variables de entorno (SMTP, puerto, prefijo)
+ * - Usa PDFKit y svg-to-pdfkit para la generación de reportes PDF
+ * - Los endpoints de proveedor están protegidos por JwtAuthGuard
+ */
+
 import {
   Body,
   Controller,
@@ -21,7 +60,6 @@ import { existsSync, mkdirSync, readFileSync } from 'fs';
 import { writeFile } from 'fs/promises';
 import { extname, join } from 'path';
 import PDFDocument from 'pdfkit';
-// eslint-disable-next-line @typescript-eslint/no-var-requires
 const SVGtoPDF = require('svg-to-pdfkit');
 import { AppService } from './app.service';
 import { JwtAuthGuard } from './modules/auth/guards/jwt-auth.guard';

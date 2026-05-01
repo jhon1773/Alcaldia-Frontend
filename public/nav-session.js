@@ -1,3 +1,7 @@
+/**
+ * Descripción: Archivo TypeScript del proyecto NestJS.
+  */
+
 (function () {
   if (window.__pufabPortalFetchPatched) return;
   window.__pufabPortalFetchPatched = true;

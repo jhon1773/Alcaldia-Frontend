@@ -1,3 +1,36 @@
+/**
+ * AUTH.MODULE.TS — MÓDULO DE AUTENTICACIÓN
+ *
+ * RESPONSABILIDADES:
+ * 1. Agrupar y configurar todos los componentes del dominio de autenticación
+ * 2. Configurar JwtModule con secreto y expiración desde variables de entorno
+ * 3. Registrar las entidades de TypeORM necesarias para el módulo
+ * 4. Exportar AuthService y JwtModule para uso en otros módulos
+ *
+ * PROVIDERS REGISTRADOS:
+ * - AuthService:  Lógica de negocio de autenticación
+ * - JwtStrategy:  Validación de tokens JWT en cada request protegido
+ *
+ * CONFIGURACIÓN JWT:
+ * - Secreto:    Leído de app.jwtSecret (variable JWT_SECRET en .env)
+ * - Expiración: Leída de JWT_EXPIRES_IN o JWT_EXPIRATION (default: '1d')
+ * - La configuración es asíncrona para poder inyectar ConfigService
+ *
+ * ENTIDADES REGISTRADAS:
+ * - Rol, Permiso, UsuarioRol, RolPermiso    → control de acceso RBAC
+ * - Usuario, PersonaNatural, PersonaJuridica → datos del usuario
+ * - EstadoCuenta, TipoPerfil                → catálogos de estado y perfil
+ *
+ * EXPORTS:
+ * - AuthService: disponible para módulos que necesiten verificar autenticación
+ * - JwtModule:   disponible para módulos que necesiten firmar o verificar tokens
+ *
+ * INTEGRACIÓN:
+ * - Importado en AppModule como módulo del dominio auth
+ * - JwtStrategy queda disponible globalmente al registrarse con PassportModule
+ * - Los guards JwtAuthGuard y RolesGuard usan JwtStrategy automáticamente
+ */
+
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { JwtModule } from '@nestjs/jwt';
@@ -19,7 +52,6 @@ import { TipoPerfil } from '../catalogos/entities/tipo-perfil.entity';
 @Module({
   imports: [
     PassportModule,
-    // Configuración de JWT con secreto desde variables de entorno
     JwtModule.registerAsync({
       imports: [ConfigModule],
       useFactory: (configService: ConfigService) => {
@@ -27,7 +59,6 @@ import { TipoPerfil } from '../catalogos/entities/tipo-perfil.entity';
         const expiracion = configService.get<string>('JWT_EXPIRES_IN') ?? configService.get<string>('JWT_EXPIRATION') ?? '1d';
         return {
           secret: configService.get<string>('app.jwtSecret') ?? 'dev-jwt-secret-change-me',
-          // Expiracion configurada desde variable de entorno JWT_EXPIRATION
           signOptions: { expiresIn: expiracion as any },
         };
       },

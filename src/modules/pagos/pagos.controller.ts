@@ -1,3 +1,43 @@
+/**
+ * PAGOS.CONTROLLER.TS — CONTROLADOR DE GESTIÓN DE PAGOS Y ABONOS
+ *
+ * RESPONSABILIDADES:
+ * 1. Gestionar registro de pagos por parte de usuarios
+ * 2. Permitir verificación de pagos por administradores
+ * 3. Controlar flujo de aprobación de pagos
+ * 4. Gestionar abonos a trámites PUFAB
+ *
+ * ENDPOINTS PRINCIPALES:
+ * - POST /pagos: Registrar pago con soporte (usuarios)
+ * - GET /pagos/tramite/:tramiteId: Listar pagos de trámite
+ * - PATCH /pagos/:id/estado: Verificar pago (admin)
+ * - GET /pagos: Listar pagos con filtros (admin)
+ *
+ * FLUJO DE PAGO EN PUFAB:
+ * 1. Trámite requiere abono (default 30% del presupuesto)
+ * 2. Usuario registra pago con soporte (comprobante)
+ * 3. Pago queda en estado 'pendiente'
+ * 4. Admin verifica pago y lo marca como 'verificado'
+ * 5. Trámite puede continuar proceso de aprobación
+ *
+ * VALIDACIONES:
+ * - Solo propietarios del trámite pueden registrar pagos
+ * - Solo admins pueden verificar/cambiar estado de pagos
+ * - Monto debe coincidir con abono requerido
+ * - Soporte de pago obligatorio (documento subido)
+ *
+ * INTEGRACIÓN:
+ * - Documentos: Soporte de pago como archivo adjunto
+ * - Tramites: Pagos asociados a trámites específicos
+ * - Catalogos: Estados y tipos de pago
+ *
+ * ABONOS VS PAGOS:
+ * - Abono: Porcentaje requerido para iniciar trámite (30%)
+ * - Pago: Registro específico de pago realizado
+ * - Un trámite puede tener múltiples pagos
+ * - Solo se requiere un abono verificado para continuar
+ */
+
 import {
   Controller, Get, Post, Patch, Param, Body,
   ParseIntPipe, UseGuards,

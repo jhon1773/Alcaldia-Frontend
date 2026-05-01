@@ -1,3 +1,50 @@
+/**
+ * Servicio de negocio para gestión de perfiles de usuario en el sistema PUFA.
+ *
+ * RESPONSABILIDADES:
+ * - Gestionar perfiles de proveedores, productoras y académicos
+ * - Administrar catálogo jerárquico de especializaciones
+ * - Controlar directorio público de proveedores verificados
+ * - Procesar solicitudes de verificación administrativa
+ *
+ * OPERACIONES PRINCIPALES:
+ * - obtenerCatalogoCategorias(): Retorna jerarquía completa de especializaciones
+ * - guardarPerfilProveedor(): Crea/actualiza perfil con especializaciones
+ * - guardarPerfilProductora(): Gestiona perfil corporativo
+ * - listarDirectorioProveedores(): Directorio público con filtros
+ * - verificarProveedor(): Aprobación administrativa de proveedores
+ * - listarPerfilesVerificacion(): Dashboard administrativo de pendientes
+ * - aprobarPerfil/rechazarPerfil(): Procesamiento de solicitudes
+ *
+ * JERARQUÍA DE ESPECIALIZACIONES:
+ * - Categoría (4 principales: Producción, Postproducción, Sonido, Iluminación)
+ * - Subcategoría (especializaciones dentro de categoría)
+ * - Especialidad (habilidades técnicas específicas)
+ *
+ * PROCESO DE VERIFICACIÓN:
+ * 1. Proveedor crea perfil → estado: 'pendiente'
+ * 2. Administrador revisa en dashboard
+ * 3. Aprueba → estado: 'aprobado', verificado: true
+ * 4. Rechaza → estado: 'rechazado', motivo especificado
+ *
+ * DIRECTORIO PÚBLICO:
+ * - Solo proveedores verificados y visibles
+ * - Filtros por subcategoría disponibles
+ * - Paginación obligatoria
+ * - Información pública: nombre, especialidades, contacto
+ *
+ * REGLAS DE NEGOCIO:
+ * - Proveedores pueden seleccionar múltiples especializaciones
+ * - Productoras tienen perfil corporativo simplificado
+ * - Académicos requieren aval institucional para estímulos
+ * - Verificación es opcional pero recomendada para credibilidad
+ *
+ * DEPENDENCIAS:
+ * - Repositorios TypeORM para todas las entidades de perfil
+ * - Catálogos para validación de especializaciones
+ * - Usuario repository para joins con información básica
+ */
+
 import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, In } from 'typeorm';

@@ -1,3 +1,30 @@
+/**
+ * USUARIOS.CONTROLLER.TS — CONTROLADOR DEL MÓDULO DE USUARIOS
+ *
+ * RESPONSABILIDADES:
+ * 1. Exponer los endpoints HTTP del módulo de usuarios
+ * 2. Restringir el acceso por rol mediante RolesGuard y el decorador @Roles
+ * 3. Delegar toda la lógica de negocio a UsuariosService
+ *
+ * ENDPOINTS:
+ * - GET    /usuarios                    → Listar usuarios paginados (solo admin)
+ * - GET    /usuarios/:id                → Obtener un usuario por ID (solo admin)
+ * - PATCH  /usuarios/perfil/natural     → Registrar o actualizar perfil de persona natural
+ * - PATCH  /usuarios/perfil/juridica    → Registrar o actualizar perfil de persona jurídica
+ * - PATCH  /usuarios/:id/estado         → Cambiar estado de cuenta de un usuario (solo admin)
+ * - POST   /usuarios/:id/roles/:rolId   → Asignar un rol a un usuario (solo admin)
+ *
+ * SEGURIDAD:
+ * - Todos los endpoints están protegidos por JwtAuthGuard y RolesGuard
+ * - Los endpoints de administración están restringidos al rol 'admin'
+ * - Los endpoints de perfil están disponibles para cualquier usuario autenticado
+ * - El usuario autenticado se inyecta mediante el decorador @CurrentUser
+ *
+ * INTEGRACIÓN:
+ * - Delega toda la lógica de negocio a UsuariosService
+ * - Usa CrearPersonaNaturalDto y CrearPersonaJuridicaDto para validar los cuerpos de solicitud
+ */
+
 import {
   Controller, Get, Post, Patch, Param, Body,
   Query, ParseIntPipe, UseGuards,

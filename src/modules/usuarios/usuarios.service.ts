@@ -1,3 +1,37 @@
+/**
+ * USUARIOS.SERVICE.TS — SERVICIO DE NEGOCIO DEL MÓDULO DE USUARIOS
+ *
+ * RESPONSABILIDADES:
+ * 1. Gestionar el ciclo de vida de los usuarios y sus perfiles en el sistema
+ * 2. Controlar el acceso a la información sensible (nunca expone password_hash)
+ * 3. Ejecutar las operaciones CRUD sobre Usuario, PersonaNatural y PersonaJuridica
+ * 4. Administrar la asignación de roles y el cambio de estado de cuentas
+ *
+ * MÉTODOS PÚBLICOS:
+ * - listar:                  Retorna usuarios paginados con sus relaciones de estado y perfil
+ * - obtenerPorId:            Busca un usuario por ID y retorna sus datos sin credenciales
+ * - completarPerfilNatural:  Crea o actualiza el perfil extendido de una persona natural
+ * - completarPerfilJuridica: Crea o actualiza el perfil extendido de una persona jurídica
+ * - cambiarEstado:           Actualiza el estado de cuenta y la fecha de aprobación si aplica
+ * - asignarRol:              Asigna un rol al usuario o reactiva uno previamente desactivado
+ *
+ * MÉTODOS PRIVADOS:
+ * - mapearUsuario: Transforma la entidad Usuario en un objeto de respuesta seguro
+ *
+ * REGLAS DE NEGOCIO:
+ * - Solo se puede completar el perfil natural si usuario.tipo_persona === 'natural'
+ * - Solo se puede completar el perfil jurídico si usuario.tipo_persona === 'juridica'
+ * - Al aprobar un usuario (estado 'activo') se registra automáticamente la fecha_aprobacion
+ * - No se puede asignar un rol que el usuario ya tenga activo; sí se puede reactivar uno inactivo
+ * - El campo password_hash nunca se incluye en las respuestas (filtrado en mapearUsuario)
+ *
+ * INTEGRACIÓN:
+ * - Consume repositorios de Usuario, PersonaNatural, PersonaJuridica,
+ *   EstadoCuenta, UsuarioRol y TipoPerfil
+ * - Es consumido por UsuariosController y exportado para uso en el módulo de autenticación
+ * - Lanza NotFoundException y BadRequestException según el caso
+ */
+
 import {
   Injectable, NotFoundException, ForbiddenException,
   BadRequestException,

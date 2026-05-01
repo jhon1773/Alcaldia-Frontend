@@ -1,3 +1,7 @@
+/**
+ * Descripción: Archivo TypeScript del proyecto NestJS.
+  */
+
 (function () {
   const path = window.location.pathname;
 

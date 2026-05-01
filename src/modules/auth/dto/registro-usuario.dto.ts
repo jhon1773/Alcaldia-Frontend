@@ -1,3 +1,39 @@
+/**
+ * REGISTRO-USUARIO.DTO.TS — DTO PARA REGISTRO PÚBLICO DE USUARIOS
+ *
+ * RESPONSABILIDADES:
+ * 1. Validar los datos de registro de nuevos usuarios en el sistema
+ * 2. Soportar registro de personas naturales y jurídicas con perfiles anidados
+ * 3. Restringir el registro público a roles no administrativos
+ * 4. Exponer la estructura completa del payload en Swagger
+ *
+ * CAMPOS PRINCIPALES:
+ * - email:         Correo único del usuario (requerido)
+ * - password:      Contraseña de acceso, mínimo 8 caracteres (requerido)
+ * - nombre:        Nombre completo del usuario (opcional)
+ * - tipo_persona:  'natural' o 'juridica' — determina qué perfil se crea (opcional)
+ * - telefono:      Número de contacto (opcional)
+ * - rolSolicitado: Rol inicial del usuario (opcional, por defecto asignado por el sistema)
+ *                  Valores permitidos: 'productora' | 'proveedor' | 'academico'
+ *                  Nota: 'admin' NO está permitido en el registro público
+ *
+ * PERFILES ANIDADOS (mutuamente excluyentes según tipo_persona):
+ * - perfilNatural:  Datos de persona natural → CrearPersonaNaturalDto
+ * - perfilJuridica: Datos de persona jurídica → CrearPersonaJuridicaDto
+ *
+ * FLUJO DE REGISTRO:
+ * 1. Cliente envía el DTO con email, password y datos opcionales de perfil
+ * 2. ValidationPipe valida campos y estructuras anidadas con @ValidateNested
+ * 3. AuthService crea el usuario, hashea la contraseña y asigna el rol
+ * 4. Si se provee perfilNatural o perfilJuridica, se crea el perfil asociado
+ * 5. Se retorna el usuario creado sin datos sensibles
+ *
+ * INTEGRACIÓN:
+ * - Usado en AuthController en el endpoint POST /auth/registro
+ * - Ruta marcada como @Public(), no requiere token previo
+ * - @Type() de class-transformer es necesario para validar los DTOs anidados
+ */
+
 import { Type } from 'class-transformer';
 import {
   IsEmail, IsString, MinLength, IsIn, IsOptional,

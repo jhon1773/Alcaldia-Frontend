@@ -1,3 +1,64 @@
+/**
+ * CATALOGOS.MODULE.TS — MÓDULO DE CATÁLOGOS DEL SISTEMA
+ *
+ * RESPONSABILIDADES:
+ * 1. Agrupar y registrar todas las entidades de catálogo del sistema
+ * 2. Exponer CatalogosService y TypeOrmModule para uso en otros módulos
+ * 3. Centralizar la configuración de dependencias del dominio de catálogos
+ *
+ * ENTIDADES REGISTRADAS (29 catálogos):
+ *
+ * Geográficos:
+ * - Municipio                → municipios del departamento de Boyacá
+ *
+ * Estados y flujos:
+ * - EstadoTramite            → estados del ciclo de vida de un trámite
+ * - EstadoPago               → estados del proceso de pago
+ * - EstadoAbono              → estados del proceso de abono
+ * - EstadoCuenta             → estados de la cuenta de usuario
+ * - EstadoRevisionEntidad    → estados de la revisión institucional con semáforo visual
+ *
+ * Tipos de entidad y perfil:
+ * - TipoPerfil               → tipos de perfil de usuario (productora, proveedor, académico)
+ * - TipoEntidad              → clasificación jurídica de entidades
+ * - TipoEntidadRevision      → tipos de entidad que participan en revisiones
+ *
+ * Tipos de proceso:
+ * - TipoTramite              → clasificación de trámites del sistema
+ * - TipoPago                 → formas de pago aceptadas
+ * - TipoConvocatoria         → clasificación de convocatorias
+ * - TipoEspacio              → tipos de espacio físico o virtual
+ * - TipoProduccion           → géneros o formatos de producción audiovisual
+ * - TipoProduccionParticipa  → tipos de producción en los que se ha participado
+ * - TipoDocumento            → tipos de documentos del sistema
+ *
+ * Caracterización de personas:
+ * - TipoIdentificacion       → documentos de identidad válidos
+ * - IdentidadGenero          → identidades de género
+ * - SexoNacer                → sexo biológico registrado al nacer
+ * - GrupoEtnico              → grupos étnicos para autorreconocimiento
+ * - TipoDiscapacidad         → tipos de discapacidad
+ * - NivelEducativo           → niveles de formación académica
+ *
+ * Caracterización sectorial:
+ * - TiempoDedicacionSector   → dedicación al sector audiovisual
+ * - TipoIngresosSector       → fuentes de ingreso dentro del sector
+ * - RangoExperienciaSector   → rangos de experiencia en el sector
+ *
+ * Equipos técnicos:
+ * - RolEquipoTecnico         → roles del equipo técnico en producciones
+ * - GamaEquipos              → gamas o niveles de calidad de equipos
+ * - TipoPropiedadEquipos     → modalidad de tenencia de equipos
+ *
+ * EXPORTS:
+ * - CatalogosService: disponible para módulos que necesiten consultar catálogos
+ * - TypeOrmModule:    expone los repositorios para inyección en otros módulos
+ *
+ * INTEGRACIÓN:
+ * - Importado en AppModule como módulo del dominio de catálogos
+ * - AuthModule, UsuariosModule y TrámitesModule consumen sus entidades exportadas
+ */
+
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { CatalogosController } from './catalogos.controller';

@@ -1,3 +1,8 @@
+/**
+ * Descripción: Servicio de negocio para la funcionalidad del módulo registro.
+ * Propósito: Contener la lógica principal, consultas a la base de datos y reglas de negocio.
+  */
+
 import { Injectable, NotFoundException, BadRequestException, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';

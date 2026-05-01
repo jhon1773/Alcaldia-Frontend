@@ -1,3 +1,52 @@
+/**
+ * DOCUMENTOS.SERVICE.TS — SERVICIO DE GESTIÓN DE ARCHIVOS Y HASH
+ *
+ * RESPONSABILIDADES:
+ * 1. Gestionar subida y almacenamiento de archivos
+ * 2. Calcular hash SHA256 para integridad
+ * 3. Implementar versionado de documentos
+ * 4. Validar permisos de acceso a archivos
+ * 5. Gestionar metadata de documentos
+ *
+ * FUNCIONES PRINCIPALES:
+ * - registrarDocumento(): Procesa archivo subido y calcula hash
+ * - obtenerDocumentos(): Lista documentos con filtros
+ * - obtenerDocumento(): Obtiene documento específico con validación
+ * - actualizarDocumento(): Modifica metadata
+ * - eliminarDocumento(): Soft delete de documento
+ *
+ * PROCESO DE REGISTRO:
+ * 1. Recibe archivo de Multer (ya validado)
+ * 2. Lee buffer del archivo desde disco
+ * 3. Calcula hash SHA256 del contenido
+ * 4. Determina versión (incrementa por tipo/contexto)
+ * 5. Crea registro en BD con toda metadata
+ * 6. Retorna documento registrado
+ *
+ * HASH SHA256:
+ * - crypto.createHash('sha256').update(buffer).digest('hex')
+ * - 64 caracteres hexadecimales
+ * - Verifica integridad del archivo
+ * - Detecta modificaciones no autorizadas
+ *
+ * VERSIONADO:
+ * - version: número incremental por tipo_documento_id + contexto
+ * - activo: solo la versión más reciente está activa
+ * - historial: mantiene todas las versiones
+ * - permite re-subir documentos corregidos
+ *
+ * CONTEXTOS:
+ * - solicitud_registro_id: documentos para aprobación de usuario
+ * - tramite_id: documentos requeridos para trámite PUFAB
+ * - usuario_id: propietario del documento
+ *
+ * VALIDACIONES:
+ * - Usuario solo accede a sus propios documentos
+ * - Admin puede acceder a todos los documentos
+ * - Archivos deben existir físicamente
+ * - Hash debe coincidir para integridad
+ */
+
 import {
   Injectable, NotFoundException, BadRequestException,
 } from '@nestjs/common';

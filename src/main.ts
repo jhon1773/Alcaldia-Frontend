@@ -1,3 +1,32 @@
+/**
+ * MAIN.TS — PUNTO DE ENTRADA DE LA APLICACIÓN
+ *
+ * RESPONSABILIDADES:
+ * 1. Crear e inicializar la instancia de la aplicación NestJS
+ * 2. Configurar archivos estáticos, prefijo global, validación, filtros e interceptores
+ * 3. Generar y publicar la documentación Swagger en /api/docs
+ * 4. Arrancar el servidor HTTP con fallback automático de puerto si el preferido está ocupado
+ *
+ * CONFIGURACIÓN GLOBAL:
+ * - Archivos estáticos: /public (landing) y /uploads (subidas de archivos)
+ * - Prefijo de API:     configurable vía app.prefix (default: 'api/v1')
+ * - Validación:         whitelist, forbidNonWhitelisted y transform habilitados
+ * - Filtro global:      HttpExceptionFilter para formatear errores en español
+ * - Interceptor global: RespuestaInterceptor para envolver respuestas exitosas
+ * - CORS:               habilitado para desarrollo
+ *
+ * SWAGGER:
+ * - Título:       P.U.F.A.B. — API REST
+ * - Ruta:         /api/docs
+ * - Autenticación: Bearer JWT — obtener token en POST /api/v1/auth/login
+ * - Credenciales de prueba: admin@pufa.gov.co / Admin2024!
+ *
+ * FUNCIONES AUXILIARES:
+ * - warnIfNodeVersionIsNotLts: Advierte si la versión de Node no es LTS (20 o 22)
+ * - listenWithFallback:        Intenta iniciar el servidor en el puerto preferido;
+ *                              si está ocupado (EADDRINUSE), prueba los siguientes hasta maxTries
+ */
+
 import { NestFactory } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';

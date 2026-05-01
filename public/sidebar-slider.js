@@ -1,3 +1,7 @@
+/**
+ * Descripción: Archivo TypeScript del proyecto NestJS.
+  */
+
 (function () {
   const viewCache = new Map();
   const inflightPrefetch = new Map();

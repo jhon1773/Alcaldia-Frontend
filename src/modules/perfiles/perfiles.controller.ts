@@ -1,3 +1,39 @@
+/**
+ * PERFILES.CONTROLLER.TS — CONTROLADOR PÚBLICO Y AUTENTICADO DE PERFILES
+ *
+ * RESPONSABILIDADES:
+ * 1. Exponer endpoints públicos para el directorio y catálogo de categorías
+ * 2. Permitir a usuarios autenticados crear y actualizar su perfil de proveedor o productora
+ * 3. Permitir al administrador verificar proveedores para habilitarlos en el directorio
+ * 4. Delegar toda la lógica de negocio a PerfilesService
+ *
+ * ENDPOINTS EXPUESTOS:
+ * ┌──────────────────────────────────┬────────┬────────────┬──────────────────────────────────────────┐
+ * │ Ruta                             │ Método │ Protegido  │ Descripción                              │
+ * ├──────────────────────────────────┼────────┼────────────┼──────────────────────────────────────────┤
+ * │ /perfiles/categorias             │ GET    │ No (public)│ Árbol completo de categorías y           │
+ * │                                  │        │            │ especialidades de proveedores             │
+ * │ /perfiles/proveedores/directorio │ GET    │ No (public)│ Directorio paginado de proveedores        │
+ * │                                  │        │            │ verificados; filtrable por subcategoría   │
+ * │ /perfiles/proveedor              │ PATCH  │ Sí (JWT)   │ Crea o actualiza perfil de proveedor      │
+ * │ /perfiles/productora             │ PATCH  │ Sí (JWT)   │ Crea o actualiza perfil de productora     │
+ * │ /perfiles/proveedores/:id/       │ PATCH  │ Sí (admin) │ Admin verifica un proveedor y lo          │
+ * │ verificar                        │        │            │ habilita en el directorio público         │
+ * └──────────────────────────────────┴────────┴────────────┴──────────────────────────────────────────┘
+ *
+ * SEGURIDAD:
+ * - @Public() en categorias y directorio: accesibles sin token
+ * - @ApiBearerAuth('JWT') en endpoints de escritura: requieren token JWT válido
+ * - @Roles('admin') en verificar: solo administradores pueden aprobar proveedores
+ *
+ * INTEGRACIÓN:
+ * - PerfilesService.obtenerCatalogoCategorias()          → árbol de categorías
+ * - PerfilesService.listarDirectorioProveedores()        → directorio paginado y filtrado
+ * - PerfilesService.guardarPerfilProveedor(id, datos)    → upsert de perfil proveedor
+ * - PerfilesService.guardarPerfilProductora(id, datos)   → upsert de perfil productora
+ * - PerfilesService.verificarProveedor(id)               → verificación por admin
+ */
+
 import {
   Controller, Get, Post, Patch, Param, Body,
   Query, ParseIntPipe, UseGuards,

@@ -1,3 +1,26 @@
+/**
+ * TRAMITES.MODULE.TS — MÓDULO DEL DOMINIO DE TRÁMITES
+ *
+ * RESPONSABILIDADES:
+ * 1. Agrupar y configurar todos los componentes del dominio de trámites
+ * 2. Registrar las entidades TypeORM necesarias para las operaciones del módulo
+ * 3. Exponer TramitesService para que otros módulos puedan consumirlo
+ *
+ * ENTIDADES REGISTRADAS:
+ * - Tramite:              Entidad principal del trámite de permiso de rodaje
+ * - TramiteLocacion:      Locaciones asociadas a cada trámite
+ * - TramiteEquipoTecnico: Miembros del equipo técnico vinculados al trámite
+ * - TramiteEntidad:       Entidades revisoras asignadas al trámite
+ * - HistorialTramite:     Registro cronológico de cambios de estado del trámite
+ * - EstadoTramite:        Catálogo de estados posibles del trámite (importado de catalogos)
+ * - Usuario:              Requerido para notificaciones y trazabilidad del solicitante
+ * - Proyecto:             Proyecto audiovisual al que pertenece el trámite
+ *
+ * INTEGRACIÓN:
+ * - TramitesService se exporta para ser consumido por otros módulos que
+ *   necesiten consultar o referenciar trámites existentes
+ */
+
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { TramitesController } from './tramites.controller';

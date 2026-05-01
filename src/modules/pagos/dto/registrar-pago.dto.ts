@@ -1,3 +1,7 @@
+/**
+ * Descripción: DTO de validación para las solicitudes del endpoint correspondiente.
+  */
+
 import { IsNumber, IsOptional, IsString, IsDateString, IsPositive } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 

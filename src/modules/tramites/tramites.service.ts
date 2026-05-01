@@ -1,3 +1,36 @@
+/**
+ * TRAMITES.SERVICE.TS — SERVICIO DE NEGOCIO DEL MÓDULO DE TRÁMITES
+ *
+ * RESPONSABILIDADES:
+ * 1. Contener la lógica de negocio del proceso de solicitud de permisos de rodaje (PUFA)
+ * 2. Controlar el acceso a los trámites según el rol del usuario autenticado
+ * 3. Ejecutar las operaciones CRUD sobre las entidades del dominio de trámites
+ * 4. Enviar notificaciones por correo al solicitante y al administrador tras la creación
+ *
+ * MÉTODOS PÚBLICOS:
+ * - listar:        Retorna trámites paginados con filtro por estado; admin/revisor ven todos
+ * - obtenerPorId:  Busca un trámite completo con sus relaciones y verifica acceso del usuario
+ * - crear:         Valida compromisos éticos, genera número de radicado y persiste el trámite
+ * - cambiarEstado: Actualiza el estado de un trámite y registra el evento en el historial
+ *
+ * MÉTODOS PRIVADOS:
+ * - enviarNotificacionCreacionTramite: Envía correos al solicitante y al admin vía nodemailer
+ * - generarNumeroRadicado:             Produce un código único con formato PUFA-YYYYMMDD-XXXXXX
+ *
+ * REGLAS DE NEGOCIO:
+ * - Los campos compromiso_etico_aceptado y manejo_residuos_aceptado son obligatorios para crear
+ * - Todo trámite nuevo se registra con el estado inicial 'Recibido'
+ * - El porcentaje de abono se toma de la configuración de la aplicación (default: 30%)
+ * - Admin y revisor pueden ver y cambiar el estado de cualquier trámite
+ * - Un solicitante solo puede ver sus propios trámites
+ *
+ * INTEGRACIÓN:
+ * - Consume repositorios de Tramite, TramiteLocacion, TramiteEquipoTecnico,
+ *   HistorialTramite, EstadoTramite, Usuario y Proyecto
+ * - Usa ConfigService para leer variables SMTP y configuración general
+ * - Lanza NotFoundException, ForbiddenException y BadRequestException según el caso
+ */
+
 import {
   Injectable, NotFoundException, ForbiddenException, BadRequestException, Logger,
 } from '@nestjs/common';

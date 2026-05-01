@@ -1,3 +1,7 @@
+/**
+ * Descripción: Archivo TypeScript del proyecto NestJS.
+  */
+
 const state = {
   page: 1,
   limit: 12,

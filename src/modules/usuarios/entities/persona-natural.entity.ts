@@ -1,3 +1,28 @@
+/**
+ * PERSONA-NATURAL.ENTITY.TS — PERFIL EXTENDIDO DE PERSONA NATURAL
+ *
+ * RESPONSABILIDADES:
+ * 1. Almacenar los datos personales, socioeconómicos y sectoriales del usuario tipo persona natural
+ * 2. Centralizar la información de caracterización requerida para la gestión cultural y audiovisual
+ * 3. Relacionar al usuario con los catálogos de referencia del sistema
+ *
+ * CAMPOS PRINCIPALES:
+ * - Identificación:     primer_nombre, segundo_nombre, primer_apellido, segundo_apellido,
+ *                       tipo_identificacion_id, numero_documento
+ * - Datos personales:   fecha_nacimiento, lugar_nacimiento, municipio_residencia_id, direccion
+ * - Caracterización:    sexo_nacer_id, identidad_genero_id, grupo_etnico_id, tipo_discapacidad_id
+ * - Contexto social:    vive_zona_rural, se_considera_campesino, victima_conflicto_armado,
+ *                       migrante_refugiado
+ * - Perfil sectorial:   nivel_educativo_id, tiempo_dedicacion_sector_id, ingresos_provienen_sector_id,
+ *                       equipos_propios_tipo_id, gama_equipos_id, tiempo_experiencia_sector_id,
+ *                       produccion_participa_id
+ * - Idiomas:            ingles_habla, ingles_lee, ingles_escribe (escala 0–5)
+ *
+ * INTEGRACIÓN:
+ * - Relacionada en OneToOne con Usuario; cada usuario tipo natural tiene exactamente un perfil
+ * - Referencia múltiples catálogos del módulo de catálogos para normalizar los datos de caracterización
+ */
+
 import {
   Entity, PrimaryGeneratedColumn, Column,
   OneToOne, ManyToOne, JoinColumn,

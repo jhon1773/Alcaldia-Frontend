@@ -1,3 +1,8 @@
+/*
+ * Descripción: Hoja de estilos global para el frontend.
+ * Propósito: Definir variables CSS, layout, tipografía y componentes visuales.
+  */
+
 :root {
   --green-900: #004d08;
   --green-700: #009300;

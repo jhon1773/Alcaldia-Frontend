@@ -1,3 +1,5 @@
+# Función: Lista de archivos y carpetas que Git no debe rastrear ni subir al repositorio.
+# Archivo: .gitignore — Lista de archivos y carpetas que Git debe ignorar en este proyecto.
 # Dependencias
 node_modules/
 

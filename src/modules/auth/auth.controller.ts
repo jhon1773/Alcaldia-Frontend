@@ -1,3 +1,37 @@
+/**
+ * AUTH.CONTROLLER.TS — CONTROLADOR DEL MÓDULO DE AUTENTICACIÓN
+ *
+ * RESPONSABILIDADES:
+ * 1. Exponer los endpoints HTTP del flujo de autenticación y gestión de cuenta
+ * 2. Validar permisos de acceso mediante JwtAuthGuard en rutas protegidas
+ * 3. Delegar toda la lógica de negocio a AuthService
+ * 4. Gestionar la subida y almacenamiento de fotos de perfil con Multer
+ *
+ * ENDPOINTS EXPUESTOS:
+ * ┌─────────────────────────────┬────────┬────────────┬────────────────────────────────────────┐
+ * │ Ruta                        │ Método │ Protegido  │ Descripción                            │
+ * ├─────────────────────────────┼────────┼────────────┼────────────────────────────────────────┤
+ * │ /auth/register              │ POST   │ No (public)│ Registra nuevo usuario en estado        │
+ * │                             │        │            │ PENDIENTE hasta aprobación de admin     │
+ * │ /auth/login                 │ POST   │ No (public)│ Valida credenciales y retorna JWT       │
+ * │ /auth/me                    │ GET    │ Sí (JWT)   │ Retorna perfil del usuario autenticado  │
+ * │ /auth/me                    │ PATCH  │ Sí (JWT)   │ Actualiza teléfono y bio del usuario    │
+ * │ /auth/me/foto               │ POST   │ Sí (JWT)   │ Sube imagen de avatar (máx. 2 MB)       │
+ * │ /auth/cambiar-password      │ PATCH  │ Sí (JWT)   │ Cambia la contraseña del usuario        │
+ * └─────────────────────────────┴────────┴────────────┴────────────────────────────────────────┘
+ *
+ * SUBIDA DE ARCHIVOS:
+ * - Las fotos de perfil se guardan en: /uploads/perfiles/<uuid>.<ext>
+ * - Tamaño máximo permitido: 2 MB por archivo
+ * - El directorio se crea automáticamente si no existe
+ * - El nombre del archivo se genera con UUID para evitar colisiones
+ *
+ * INTEGRACIÓN:
+ * - AuthService maneja toda la lógica de autenticación y persistencia
+ * - @CurrentUser('id') extrae el ID del usuario desde el payload del JWT
+ * - Las rutas @Public() son accesibles sin token (manejado por JwtAuthGuard)
+ */
+
 import {
   Controller, Post, Get, Body, UseGuards, Patch, UploadedFile, UseInterceptors, BadRequestException,
 } from '@nestjs/common';

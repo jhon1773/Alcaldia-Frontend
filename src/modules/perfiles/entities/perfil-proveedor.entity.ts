@@ -1,3 +1,51 @@
+/**
+ * Entidad TypeORM que representa el perfil profesional de un proveedor audiovisual en el sistema PUFA.
+ *
+ * RESPONSABILIDADES:
+ * - Almacenar información profesional completa de proveedores independientes
+ * - Gestionar especializaciones técnicas mediante relaciones many-to-many
+ * - Controlar visibilidad y verificación para directorio público
+ * - Mantener estado de aprobación/rechazo por administradores
+ *
+ * FLUJO DE USO:
+ * - Creado por proveedores durante registro o actualización de perfil
+ * - Revisado por administradores para verificación
+ * - Mostrado en directorio público si verificado y visible
+ * - Usado para matching con necesidades de proyectos
+ *
+ * CAMPOS IMPORTANTES:
+ * - id: Identificador único autogenerado
+ * - usuario_id: FK única al usuario (OneToOne)
+ * - descripcion_perfil: Texto descriptivo de servicios y experiencia
+ * - experiencia_sector_id: FK a catálogo de rangos de experiencia
+ * - sitio_web: URL opcional del portafolio o sitio web
+ * - visible_directorio: Control de visibilidad en directorio público
+ * - verificado: Flag de verificación por administrador
+ * - estado: Estado del perfil ('pendiente', 'aprobado', 'rechazado')
+ * - telefono: Contacto adicional
+ * - motivo_rechazo: Razón si fue rechazado
+ * - activo: Flag de activación del perfil
+ *
+ * RELACIONES:
+ * - OneToOne con Usuario: Usuario propietario del perfil
+ * - ManyToOne con RangoExperienciaSector: Nivel de experiencia
+ * - ManyToMany con SubcategoriaProveedor: Especializaciones seleccionadas
+ * - ManyToMany con EspecialidadProveedor: Habilidades técnicas específicas
+ *
+ * REGLAS DE NEGOCIO:
+ * - Un usuario solo puede tener un perfil de proveedor
+ * - Solo perfiles verificados y visibles aparecen en directorio público
+ * - Estado 'pendiente' requiere revisión administrativa
+ * - Relaciones many-to-many permiten múltiples especializaciones
+ * - Campos de auditoría automáticos (fechas creación/actualización)
+ *
+ * PROCESO DE VERIFICACIÓN:
+ * 1. Proveedor crea/actualiza perfil → estado: 'pendiente'
+ * 2. Administrador revisa → estado: 'aprobado' o 'rechazado'
+ * 3. Si aprobado → verificado: true, puede aparecer en directorio
+ * 4. Si rechazado → motivo_rechazo explica la razón
+ */
+
 import {
   Entity, PrimaryGeneratedColumn, Column,
   OneToOne, ManyToOne, JoinColumn,

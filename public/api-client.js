@@ -1,4 +1,8 @@
 /**
+ * Descripción: Archivo TypeScript del proyecto NestJS.
+  */
+
+/**
  * Cliente API centralizado para PUFAB
  * Define la URL base, maneja JWT, y proporciona métodos para todos los endpoints
  */

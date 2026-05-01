@@ -1,3 +1,7 @@
+/**
+ * Descripción: Entidad TypeORM que modela una tabla de la base de datos.
+  */
+
 import {
   Entity, PrimaryGeneratedColumn, Column,
   ManyToOne, JoinColumn,

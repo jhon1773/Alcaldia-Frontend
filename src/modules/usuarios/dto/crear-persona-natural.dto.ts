@@ -1,3 +1,50 @@
+/**
+ * CREAR-PERSONA-NATURAL.DTO.TS — DTO PARA CREACIÓN DE PERSONA NATURAL
+ *
+ * RESPONSABILIDADES:
+ * 1. Validar datos para crear perfil de persona natural
+ * 2. Definir campos requeridos para registro básico
+ * 3. Aplicar validaciones de formato colombiano
+ * 4. Usado en procesos de registro/administración
+ *
+ * CAMPOS PERSONALES:
+ * - primer_nombre: Nombre principal (requerido)
+ * - segundo_nombre: Segundo nombre (opcional)
+ * - primer_apellido: Primer apellido (requerido)
+ * - segundo_apellido: Segundo apellido (opcional)
+ * - tipo_identificacion_id: ID del tipo de documento
+ * - numero_identificacion: Número de documento
+ * - fecha_nacimiento: Fecha de nacimiento
+ * - genero_id: ID del género
+ *
+ * CAMPOS ADICIONALES:
+ * - municipio_id: Municipio de residencia
+ * - telefono: Número de teléfono
+ * - email: Correo electrónico adicional
+ * - nivel_educativo_id: Nivel educativo alcanzado
+ * - experiencia_sector: Años de experiencia
+ * - tiempo_dedicacion_sector_id: Tiempo dedicado al sector
+ * - ingresos_sector_id: Rango de ingresos del sector
+ * - propiedad_equipos_id: Tipo de propiedad de equipos
+ * - gama_equipos_id: Gama de equipos utilizados
+ *
+ * VALIDACIONES:
+ * - Campos requeridos marcados con @IsString/@IsNumber
+ * - Campos opcionales con @IsOptional()
+ * - Validaciones de formato específicas
+ * - Referencias a catálogos válidas
+ *
+ * DIFERENCIA CON CompletarPerfilNaturalDto:
+ * - Este DTO es para creación básica/administrativa
+ * - CompletarPerfilNaturalDto es para completar perfil post-registro
+ * - Campos más detallados y específicos del sector audiovisual
+ *
+ * USO EN SISTEMA:
+ * - Creación de perfiles por administradores
+ * - Importación de datos masivos
+ * - Registro avanzado de usuarios
+ */
+
 import {
   IsString, IsOptional, IsNumber, IsBoolean,
   IsDateString, Min, Max,

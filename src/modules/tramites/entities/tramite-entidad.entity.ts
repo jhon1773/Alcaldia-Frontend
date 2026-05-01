@@ -1,3 +1,63 @@
+/**
+ * TRAMITE-ENTIDAD.ENTITY.TS — ENTIDADES REVISTORAS DE TRÁMITES PUFAB
+ *
+ * RESPONSABILIDADES:
+ * 1. Gestionar entidades externas que revisan trámites
+ * 2. Controlar flujo de revisiones por entidades competentes
+ * 3. Mantener estado de revisiones por cada entidad
+ * 4. Coordinar aprobaciones sectoriales requeridas
+ *
+ * CAMPOS PRINCIPALES:
+ * - id: ID único autoincremental
+ * - tramite_id: Trámite PUFAB asociado
+ * - entidad_id: Entidad revisora asignada
+ * - estado_revision_id: Estado de la revisión por esta entidad
+ * - fecha_envio: Fecha de envío a la entidad
+ * - fecha_respuesta: Fecha de respuesta de la entidad
+ * - observaciones: Comentarios de la entidad revisora
+ * - requiere_concepto: Si la entidad debe emitir concepto
+ *
+ * RELACIONES:
+ * - tramite: Trámite siendo revisado (ManyToOne)
+ * - entidad: Entidad revisora (ManyToOne)
+ * - estado_revision: Estado del proceso de revisión (ManyToOne)
+ * - usuario_asignado: Usuario que asignó la revisión (ManyToOne)
+ *
+ * ENTIDADES REVISTORAS TÍPICAS:
+ * - CAR (Corporación Autónoma Regional): Zonas ambientales
+ * - Alcaldías municipales: Permisos locales
+ * - Policía Nacional: Seguridad y orden público
+ * - Aeronáutica Civil: Espacios aéreos y drones
+ * - Ministerio de Cultura: Aspectos culturales
+ * - Entidades ambientales: Áreas protegidas
+ *
+ * ESTADOS DE REVISIÓN:
+ * - Pendiente: Enviado pero no revisado
+ * - En revisión: Siendo evaluado por la entidad
+ * - Aprobado: Concepto favorable emitido
+ * - Rechazado: Concepto negativo con observaciones
+ * - No aplica: No requiere revisión de esta entidad
+ *
+ * FLUJO DE REVISIÓN:
+ * 1. Trámite asigna entidades según locaciones/actividades
+ * 2. Sistema envía solicitud a cada entidad
+ * 3. Entidades revisan y emiten concepto
+ * 4. Sistema consolida respuestas
+ * 5. Aprobación final depende de todas las entidades
+ *
+ * VALIDACIONES:
+ * - tramite_id y entidad_id requeridos
+ * - estado_revision_id controla el flujo
+ * - fechas de envío/respuesta para trazabilidad
+ * - observaciones documentan conceptos emitidos
+ *
+ * INTEGRACIÓN CON PUFAB:
+ * - Determina si trámite puede aprobarse
+ * - Conceptos técnicos son obligatorios
+ * - Tiempos de respuesta afectan cronograma
+ * - Base para decisiones administrativas
+ */
+
 import {
   Entity, PrimaryGeneratedColumn, Column,
   ManyToOne, JoinColumn, CreateDateColumn, UpdateDateColumn,

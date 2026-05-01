@@ -1,3 +1,59 @@
+/**
+ * CREAR-TRAMITE.DTO.TS — DTO PARA CREACIÓN DE TRÁMITES PUFAB
+ *
+ * RESPONSABILIDADES:
+ * 1. Validar estructura completa para crear trámite PUFAB
+ * 2. Definir locaciones, equipo técnico y entidades involucradas
+ * 3. Aplicar validaciones de negocio para permisos audiovisuales
+ * 4. Estructurar datos complejos con arrays anidados
+ *
+ * CAMPOS PRINCIPALES:
+ * - proyecto_id: ID del proyecto audiovisual base (requerido)
+ * - tipo_tramite_id: Tipo específico de trámite PUFAB
+ * - locaciones: Array de locaciones de rodaje
+ * - equipo_tecnico: Array de miembros del equipo
+ * - entidades: Array de entidades que deben revisar
+ * - compromisos_eticos: Compromisos éticos del proyecto
+ *
+ * ESTRUCTURAS ANIDADAS:
+ *
+ * CrearTramiteLocacionDto:
+ * - municipio_id: Municipio de la locación
+ * - tipo_espacio_id: Tipo de espacio (público, privado, natural)
+ * - nombre_lugar: Nombre específico del lugar
+ * - direccion: Dirección detallada
+ * - requiere_permiso_especial: Si necesita permisos adicionales
+ * - observaciones: Notas especiales
+ *
+ * CrearTramiteEquipoDto:
+ * - rol_equipo_tecnico_id: Rol específico (director, camarógrafo, etc.)
+ * - nombre_completo: Nombre del integrante
+ * - tipo_identificacion_id: Tipo de documento
+ * - numero_identificacion: Número de documento
+ * - telefono: Contacto del integrante
+ * - email: Correo del integrante
+ *
+ * VALIDACIONES:
+ * - proyecto_id requerido y debe pertenecer al usuario
+ * - Arrays validados con @ValidateNested y @Type
+ * - Campos opcionales marcados con @IsOptional
+ * - Referencias a catálogos válidas
+ *
+ * FLUJO DE CREACIÓN:
+ * 1. Usuario proporciona proyecto existente
+ * 2. DTO valida estructura completa
+ * 3. Service genera número de radicado PUFA-YYYYMMDD-XXXXXX
+ * 4. Crea trámite con estado 'borrador'
+ * 5. Registra locaciones, equipo y entidades relacionadas
+ * 6. Crea entrada inicial en historial
+ *
+ * COMPLEJIDAD:
+ * - DTO compuesto con múltiples sub-DTOs
+ * - Validaciones anidadas complejas
+ * - Relaciones múltiples a crear
+ * - Lógica de negocio específica de PUFAB
+ */
+
 import {
   IsNumber, IsOptional, IsBoolean, IsString, IsArray, ValidateNested,
 } from 'class-validator';

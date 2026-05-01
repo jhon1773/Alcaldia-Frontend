@@ -1,3 +1,27 @@
+/**
+ * PROYECTOS.CONTROLLER.TS — CONTROLADOR DEL MÓDULO DE PROYECTOS
+ *
+ * RESPONSABILIDADES:
+ * 1. Exponer los endpoints HTTP del módulo de proyectos
+ * 2. Validar autenticación mediante JWT antes de procesar cualquier solicitud
+ * 3. Extraer el usuario autenticado y delegar la lógica al servicio correspondiente
+ *
+ * ENDPOINTS:
+ * - GET    /proyectos         → Listar proyectos paginados (propios o todos si es admin)
+ * - GET    /proyectos/:id     → Obtener un proyecto por ID
+ * - POST   /proyectos         → Crear un nuevo proyecto en estado borrador
+ * - PATCH  /proyectos/:id     → Actualizar campos de un proyecto existente
+ *
+ * SEGURIDAD:
+ * - Todos los endpoints están protegidos por JwtAuthGuard
+ * - El usuario autenticado se inyecta mediante el decorador @CurrentUser
+ * - La autorización por rol (admin vs productora) se resuelve en el servicio
+ *
+ * INTEGRACIÓN:
+ * - Delega toda la lógica de negocio a ProyectosService
+ * - Usa CrearProyectoDto para validar el cuerpo de las solicitudes de creación y actualización
+ */
+
 import {
   Controller, Get, Post, Patch, Param, Body,
   Query, ParseIntPipe, UseGuards,

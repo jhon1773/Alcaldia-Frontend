@@ -1,3 +1,51 @@
+/**
+ * PAGOS.SERVICE.TS — SERVICIO DE GESTIÓN DE PAGOS Y ABONOS
+ *
+ * RESPONSABILIDADES:
+ * 1. Gestionar registro y verificación de pagos
+ * 2. Controlar flujo de aprobación de abonos
+ * 3. Validar montos y soportes de pago
+ * 4. Gestionar estados de pagos y abonos
+ *
+ * FUNCIONES PRINCIPALES:
+ * - registrarPago(): Registra pago con soporte (estado pendiente)
+ * - verificarPago(): Cambia estado a verificado (solo admin)
+ * - listarPorTramite(): Lista pagos asociados a trámite
+ * - calcularAbonoRequerido(): Determina monto de abono (30% default)
+ *
+ * FLUJO DE REGISTRO DE PAGO:
+ * 1. Usuario proporciona datos del pago
+ * 2. Valida que trámite pertenezca al usuario
+ * 3. Crea registro con estado 'pendiente'
+ * 4. Asocia soporte de pago (documento subido)
+ * 5. Espera verificación por admin
+ *
+ * FLUJO DE VERIFICACIÓN:
+ * 1. Admin revisa soporte de pago
+ * 2. Valida monto y referencia
+ * 3. Cambia estado a 'verificado'
+ * 4. Trámite puede continuar proceso
+ *
+ * ABONOS:
+ * - Porcentaje configurable (default 30%)
+ * - Calculado sobre presupuesto del proyecto
+ * - Obligatorio para continuar trámite
+ * - Verificado antes de aprobación final
+ *
+ * VALIDACIONES:
+ * - Usuario solo registra pagos para sus trámites
+ * - Admin solo verifica pagos existentes
+ * - Monto debe ser positivo y razonable
+ * - Soporte de pago obligatorio
+ * - Referencia de pago única
+ *
+ * INTEGRACIÓN:
+ * - Tramites: Pagos asociados a trámites específicos
+ * - Documentos: Soporte como archivo adjunto
+ * - Catalogos: Estados y tipos de pago
+ * - Proyectos: Presupuesto para calcular abono
+ */
+
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';

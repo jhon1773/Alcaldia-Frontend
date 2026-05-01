@@ -1,3 +1,8 @@
+/**
+ * Descripción: Módulo NestJS del dominio pagos que agrupa controladores, servicios y entidades.
+ * Propósito: Configurar dependencias y exportar providers compartidos.
+  */
+
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { PagosController } from './pagos.controller';

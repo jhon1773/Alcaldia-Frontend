@@ -1,3 +1,7 @@
+/**
+ * Descripción: Archivo TypeScript del proyecto NestJS.
+  */
+
 const fs = require('fs');
 const path = require('path');
 const net = require('net');

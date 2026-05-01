@@ -1,3 +1,48 @@
+/**
+ * AUTH.SERVICE.TS — SERVICIO DE LÓGICA DE AUTENTICACIÓN
+ *
+ * RESPONSABILIDADES:
+ * 1. Gestionar el registro de nuevos usuarios con estado PENDIENTE
+ * 2. Validar credenciales y emitir tokens JWT con roles y permisos embebidos
+ * 3. Exponer y actualizar el perfil del usuario autenticado
+ * 4. Gestionar el cambio de contraseña con verificación previa
+ * 5. Cargar y calcular roles y permisos activos del usuario para el token
+ *
+ * MÉTODOS PÚBLICOS:
+ * - registrar()           → Crea usuario inactivo, pendiente de aprobación por admin
+ * - login()               → Valida credenciales, genera y retorna JWT
+ * - obtenerPerfil()       → Retorna datos completos del usuario autenticado
+ * - actualizarPerfil()    → Actualiza teléfono y bio del usuario
+ * - actualizarFotoPerfil()→ Guarda la URL del nuevo avatar del usuario
+ * - cambiarPassword()     → Verifica contraseña actual y guarda el nuevo hash
+ *
+ * MÉTODOS PRIVADOS:
+ * - construirNombrePerfil()  → Construye el nombre completo según tipo de persona
+ * - cargarPerfilCompleto()   → Carga usuario + perfil natural + perfil jurídico
+ * - obtenerRolesYPermisos()  → Consulta roles activos y sus permisos para el JWT
+ *
+ * FLUJO DE REGISTRO:
+ * 1. Verifica que el correo no esté registrado
+ * 2. Garantiza existencia de estados 'pendiente' y 'activo' en catálogo
+ * 3. Hashea la contraseña con bcrypt (salt: 10)
+ * 4. Crea el usuario en estado inactivo/pendiente
+ * 5. Si se proveen datos de perfil, crea PersonaNatural o PersonaJuridica asociada
+ *
+ * FLUJO DE LOGIN:
+ * 1. Busca el usuario por email con sus relaciones
+ * 2. Compara la contraseña con bcrypt
+ * 3. Verifica que la cuenta esté activa y en estado 'activo'
+ * 4. Valida el rolSolicitado contra el tipo_perfil del usuario (si se envía)
+ * 5. Carga roles y permisos, construye el payload JWT y firma el token
+ * 6. Registra el timestamp de último login
+ *
+ * INTEGRACIÓN:
+ * - Inyecta repositorios de: Usuario, Rol, Permiso, UsuarioRol, RolPermiso,
+ *   EstadoCuenta, TipoPerfil, PersonaNatural, PersonaJuridica
+ * - JwtService firma los tokens con el secreto configurado en app.jwtSecret
+ * - Los permisos se embeben en el JWT para evitar consultas en cada request
+ */
+
 import {
   Injectable, UnauthorizedException, ConflictException,
   NotFoundException,

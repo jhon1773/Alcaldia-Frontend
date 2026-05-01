@@ -1,3 +1,8 @@
+/**
+ * Descripción: Módulo NestJS del dominio registro que agrupa controladores, servicios y entidades.
+ * Propósito: Configurar dependencias y exportar providers compartidos.
+  */
+
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { RegistroController } from './registro.controller';

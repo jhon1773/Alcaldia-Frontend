@@ -1,3 +1,58 @@
+/**
+ * CATALOGOS.SERVICE.TS — SERVICIO DE DATOS DE REFERENCIA
+ *
+ * RESPONSABILIDADES:
+ * 1. Gestionar consultas a tablas de referencia (catálogos)
+ * 2. Proporcionar datos maestros del sistema
+ * 3. Filtrar solo registros activos
+ * 4. Optimizar consultas para uso frecuente
+ *
+ * TABLAS DE REFERENCIA GESTIONADAS:
+ * - Municipios de Boyacá
+ * - Tipos de producción audiovisual
+ * - Estados de trámites PUFAB
+ * - Tipos de espacio para locaciones
+ * - Roles del equipo técnico
+ * - Tipos de identificación/documento
+ * - Identidades de género
+ * - Niveles educativos
+ * - Tipos de trámite
+ * - Tipos y estados de pago
+ * - Tipos de entidad jurídica
+ * - Grupos étnicos
+ * - Sexo de nacimiento
+ * - Tipos de discapacidad
+ * - Tiempos de dedicación al sector
+ * - Tipos de ingresos del sector
+ * - Tipos de propiedad de equipos
+ * - Gamas de equipos
+ * - Rangos de experiencia
+ * - Tipos de producción en que participa
+ *
+ * CARACTERÍSTICAS DE LAS CONSULTAS:
+ * - Siempre filtran activo = true
+ * - Ordenadas apropiadamente (alfabético, por orden, etc.)
+ * - Sin joins complejos (consultas simples)
+ * - Optimizadas para cache en frontend
+ *
+ * USO EN EL SISTEMA:
+ * - Alimentar formularios de registro
+ * - Poblar dropdowns y selects
+ * - Validar valores en DTOs
+ * - Generar reportes con filtros
+ *
+ * PERFORMANCE:
+ * - Consultas simples sin relaciones complejas
+ * - Índices en campos de búsqueda frecuente
+ * - Datos relativamente estáticos (pocos cambios)
+ * - Cache recomendado en capa de aplicación
+ *
+ * MANTENIMIENTO:
+ * - Datos administrados por DBA o admin del sistema
+ * - Cambios afectan formularios existentes
+ * - Versionado recomendado para cambios mayores
+ */
+
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
