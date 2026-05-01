@@ -712,6 +712,199 @@
         }
       }
 
+      /* Stepper Styles */
+      .stepper {
+        display: grid;
+        gap: 14px;
+        margin-bottom: 22px;
+      }
+
+      .stepper-track {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 10px;
+        align-items: center;
+      }
+
+      .step-node {
+        position: relative;
+        display: grid;
+        gap: 10px;
+        text-align: center;
+      }
+
+      .step-node::before {
+        content: '';
+        position: absolute;
+        top: 22px;
+        left: calc(50% + 22px);
+        right: calc(-50% + 22px);
+        height: 2px;
+        background: rgba(255, 255, 255, 0.1);
+      }
+
+      .step-node:last-child::before {
+        display: none;
+      }
+
+      .step-chip {
+        width: 44px;
+        height: 44px;
+        margin: 0 auto;
+        border-radius: 50%;
+        display: grid;
+        place-items: center;
+        font-weight: 800;
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        color: var(--muted);
+      }
+
+      .step-node.active .step-chip,
+      .step-node.done .step-chip {
+        color: #08121f;
+        background: linear-gradient(135deg, var(--accent-2) 0%, var(--accent-3) 100%);
+        border-color: transparent;
+      }
+
+      .step-node.done::before {
+        background: linear-gradient(90deg, var(--accent-2) 0%, var(--accent-3) 100%);
+      }
+
+      .step-node span {
+        font-size: 0.84rem;
+        color: var(--muted);
+      }
+
+      .step-node.active span,
+      .step-node.done span {
+        color: #ecf4ca;
+      }
+
+      .progress-line {
+        height: 10px;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.06);
+        overflow: hidden;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+      }
+
+      .progress-line > div {
+        height: 100%;
+        width: 25%;
+        border-radius: inherit;
+        background: linear-gradient(90deg, var(--accent-2) 0%, var(--accent-3) 100%);
+        transition: width 0.24s ease;
+      }
+
+      .step-panel {
+        display: none;
+        padding: 20px;
+        border-radius: 22px;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        background: var(--panel-2);
+      }
+
+      .step-panel.active {
+        display: block;
+      }
+
+      .step-header {
+        display: flex;
+        justify-content: space-between;
+        gap: 12px;
+        align-items: flex-start;
+        margin-bottom: 16px;
+      }
+
+      .step-header h3 {
+        margin: 0 0 4px;
+        font-size: 1.2rem;
+        color: #eff6aa;
+      }
+
+      .step-badge {
+        flex: 0 0 auto;
+        padding: 10px 14px;
+        border-radius: 999px;
+        background: rgba(74, 224, 193, 0.08);
+        border: 1px solid rgba(74, 224, 193, 0.18);
+        color: #c2efe8;
+        font-weight: 700;
+        font-size: 0.9rem;
+      }
+
+      .step-lead {
+        color: var(--muted);
+        line-height: 1.55;
+      }
+
+      .steps {
+        display: grid;
+        gap: 18px;
+      }
+
+      .actions {
+        margin-top: 18px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 14px;
+        flex-wrap: wrap;
+      }
+
+      .actions .left,
+      .actions .right {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+      }
+
+      .btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        min-height: 44px;
+        padding: 0 18px;
+        border-radius: 999px;
+        border: 1px solid transparent;
+        font-weight: 700;
+        transition: transform 0.18s ease, border-color 0.18s ease, background 0.18s ease;
+        font-size: 0.95rem;
+        cursor: pointer;
+      }
+
+      .btn:hover:not(:disabled) {
+        transform: translateY(-1px);
+      }
+
+      .btn-ghost {
+        border-color: rgba(255, 255, 255, 0.1);
+        color: var(--text);
+        background: rgba(255, 255, 255, 0.03);
+      }
+
+      .btn-primary {
+        color: #08121f;
+        background: linear-gradient(135deg, var(--accent) 0%, #9bcb32 46%, var(--accent-2) 100%);
+        box-shadow: 0 18px 34px rgba(146, 201, 55, 0.2);
+      }
+
+      .btn-primary:disabled {
+        opacity: 0.66;
+        cursor: not-allowed;
+      }
+
+      .profile-summary {
+        padding: 16px;
+        border-radius: 16px;
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        display: grid;
+        gap: 8px;
+      }
+
       @media (max-width: 760px) {
         .registro-shell {
           padding: 16px;
@@ -840,42 +1033,57 @@
             <div class="registro-pill" id="approvalPill">Productora en revisión</div>
           </div>
 
-          <div class="registro-idea">Registro exclusivo para productoras</div>
-
-          <div class="registro-tabs" role="tablist" aria-label="Tipo de persona">
-            <button class="tab-button active" type="button" data-persona="natural">Persona natural</button>
-            <button class="tab-button" type="button" data-persona="juridica">Persona jurídica</button>
+          <div class="stepper">
+            <div class="stepper-track">
+              <div class="step-node active" data-step="0">
+                <div class="step-chip">1</div>
+                <span>Acceso</span>
+              </div>
+              <div class="step-node" data-step="1">
+                <div class="step-chip">2</div>
+                <span>Tipo</span>
+              </div>
+              <div class="step-node" data-step="2">
+                <div class="step-chip">3</div>
+                <span>Detalles</span>
+              </div>
+              <div class="step-node" data-step="3">
+                <div class="step-chip">4</div>
+                <span>Confirmar</span>
+              </div>
+            </div>
+            <div class="progress-line">
+              <div></div>
+            </div>
           </div>
 
-          <section class="registro-banner" id="registroBanner">
-            <div class="registro-banner-icon">⏳</div>
-            <div>
-              <strong id="registroBannerTitle">Registro para productora</strong>
-              <div id="registroBannerText" class="registro-summary">Tu cuenta quedará en revisión y solo podrá ingresar cuando el admin la apruebe.</div>
-            </div>
-          </section>
-
-          <form id="signupForm" class="registro-form">
-            <section class="form-section">
-              <div class="form-section-header">
-                <div>
-                  <h3>Datos de acceso</h3>
-                  <div class="registro-helper">Usa un correo único y una contraseña segura.</div>
-                </div>
-                <div class="step-button btn-secondary" style="padding: 10px 14px; cursor: default;">1. Acceso</div>
+          <form id="signupForm" class="steps" novalidate>
+            <!-- STEPPER VISUAL -->
+            <div class="stepper">
+              <div class="stepper-track" aria-label="Avance del registro productora">
+                <div class="step-node active" data-step-node="0"><div class="step-chip">1</div><span>Acceso</span></div>
+                <div class="step-node" data-step-node="1"><div class="step-chip">2</div><span>Perfil base</span></div>
+                <div class="step-node" data-step-node="2"><div class="step-chip">3</div><span>Detalles</span></div>
+                <div class="step-node" data-step-node="3"><div class="step-chip">4</div><span>Confirmación</span></div>
               </div>
+              <div class="progress-line" aria-hidden="true"><div id="progressBar"></div></div>
+            </div>
 
+            <!-- PASOS -->
+            <section class="step-panel active" data-step="0">
+              <div class="step-header">
+                <h3>Datos de acceso</h3>
+                <div class="step-lead">Empieza con tu correo y contraseña segura.</div>
+              </div>
               <div class="grid-2">
                 <label class="field">
                   <span>Correo electrónico *</span>
                   <input type="email" name="email" placeholder="tu@email.co" required />
                 </label>
-
                 <label class="field">
                   <span>Teléfono</span>
                   <input type="tel" name="telefono" placeholder="3101234567" />
                 </label>
-
                 <label class="field">
                   <span>Contraseña *</span>
                   <div class="auth-password">
@@ -883,7 +1091,6 @@
                     <button type="button" class="auth-password-toggle" id="passwordToggle" aria-label="Mostrar contraseña">◔</button>
                   </div>
                 </label>
-
                 <label class="field">
                   <span>Confirmar contraseña *</span>
                   <input type="password" name="confirmPassword" id="confirmPasswordInput" placeholder="••••••••" required />
@@ -891,85 +1098,92 @@
               </div>
             </section>
 
-            <section class="form-section" id="naturalSection">
-              <div class="persona-section-header">
-                <div>
-                  <h3>Datos de la persona natural</h3>
-                  <p class="registro-helper">Este bloque solo aparece cuando eliges persona natural.</p>
-                </div>
-                <div class="persona-section-tag">Persona natural</div>
+            <section class="step-panel" data-step="1">
+              <div class="step-header">
+                <h3>Perfil base de la productora</h3>
+                <div class="step-lead">Cuéntanos lo esencial sobre tu empresa audiovisual.</div>
+              </div>
+              <div class="grid-2">
+                <label class="field">
+                  <span>Municipio de operación</span>
+                  <select name="municipio_base_id" data-catalog="municipios"></select>
+                </label>
+                <label class="field">
+                  <span>Tiempo operando en el sector</span>
+                  <select name="tiempo_operando_sector_id" data-catalog="tiemposOperandoSector"></select>
+                </label>
+                <label class="field" style="grid-column: 1 / -1;">
+                  <span>Descripción de la productora *</span>
+                  <textarea name="descripcion_productora" placeholder="Resume tu experiencia y especialidades audiovisuales" required></textarea>
+                </label>
+              </div>
+            </section>
+
+            <section class="step-panel" data-step="2">
+              <div class="step-header">
+                <h3>Detalles de la productora</h3>
+                <div class="step-lead">Completa solo el bloque que corresponde a tu tipo de persona.</div>
               </div>
 
-              <div class="grid-3">
+              <div class="register-tabs" role="tablist" aria-label="Tipo de persona">
+                <button class="register-tab active" type="button" data-persona="natural">Persona natural</button>
+                <button class="register-tab" type="button" data-persona="juridica">Persona jurídica</button>
+              </div>
+
+              <!-- PERSONA NATURAL -->
+              <section id="naturalSection" class="grid-3">
                 <label class="field">
                   <span>Tipo de identificación</span>
                   <select name="tipo_identificacion_id" data-catalog="tiposIdentificacion"></select>
                 </label>
-
                 <label class="field">
                   <span>Número de documento *</span>
                   <input type="text" name="numero_documento" placeholder="1012345678" />
                 </label>
-
                 <label class="field">
                   <span>Fecha de nacimiento</span>
                   <input type="date" name="fecha_nacimiento" />
                 </label>
-
                 <label class="field">
                   <span>Primer nombre *</span>
                   <input type="text" name="primer_nombre" placeholder="María" />
                 </label>
-
                 <label class="field">
                   <span>Segundo nombre</span>
                   <input type="text" name="segundo_nombre" placeholder="Fernanda" />
                 </label>
-
-                  <label class="field">
-                    <span>Primer apellido *</span>
-                    <input type="text" name="primer_apellido" placeholder="González" />
-                  </label>
-
-                  <label class="field">
-                    <span>Segundo apellido</span>
-                    <input type="text" name="segundo_apellido" placeholder="Torres" />
-                  </label>
-
-                  <label class="field">
-                    <span>Lugar de nacimiento</span>
-                    <input type="text" name="lugar_nacimiento" placeholder="Tunja" />
-                  </label>
-
-                  <label class="field">
-                    <span>Municipio de residencia</span>
-                    <select name="municipio_residencia_id" data-catalog="municipios"></select>
-                  </label>
-                </div>
-
-              <div class="grid-2" style="margin-top: 14px;">
+                <label class="field">
+                  <span>Primer apellido *</span>
+                  <input type="text" name="primer_apellido" placeholder="Gómez" />
+                </label>
+                <label class="field">
+                  <span>Segundo apellido</span>
+                  <input type="text" name="segundo_apellido" placeholder="Torres" />
+                </label>
+                <label class="field">
+                  <span>Lugar de nacimiento</span>
+                  <select name="lugar_nacimiento_id" data-catalog="municipios"></select>
+                </label>
+                <label class="field">
+                  <span>Municipio de residencia</span>
+                  <select name="municipio_residencia_id" data-catalog="municipios"></select>
+                </label>
                 <label class="field">
                   <span>Dirección</span>
                   <input type="text" name="direccion" placeholder="Calle 10 # 5-30" />
                 </label>
-
                 <label class="field">
                   <span>Sexo al nacer</span>
                   <select name="sexo_nacer_id" data-catalog="sexosNacer"></select>
                 </label>
-
                 <label class="field">
                   <span>Identidad de género</span>
                   <select name="identidad_genero_id" data-catalog="identidadesGenero"></select>
                 </label>
-
                 <label class="field">
                   <span>Grupo étnico</span>
                   <select name="grupo_etnico_id" data-catalog="gruposEtnicos"></select>
                 </label>
-              </div>
-
-              <div class="grid-3" style="margin-top: 14px;">
                 <label class="field">
                   <span>¿Pertenece a grupo étnico?</span>
                   <select name="pertenece_grupo_etnico" data-boolean-select>
@@ -978,7 +1192,6 @@
                     <option value="false">No</option>
                   </select>
                 </label>
-
                 <label class="field">
                   <span>¿Tiene discapacidad?</span>
                   <select name="tiene_discapacidad" data-boolean-select>
@@ -987,12 +1200,10 @@
                     <option value="false">No</option>
                   </select>
                 </label>
-
                 <label class="field">
                   <span>Tipo de discapacidad</span>
                   <select name="tipo_discapacidad_id" data-catalog="tiposDiscapacidad"></select>
                 </label>
-
                 <label class="field">
                   <span>¿Vive en zona rural?</span>
                   <select name="vive_zona_rural" data-boolean-select>
@@ -1001,7 +1212,6 @@
                     <option value="false">No</option>
                   </select>
                 </label>
-
                 <label class="field">
                   <span>¿Se considera campesino?</span>
                   <select name="se_considera_campesino" data-boolean-select>
@@ -1010,7 +1220,6 @@
                     <option value="false">No</option>
                   </select>
                 </label>
-
                 <label class="field">
                   <span>¿Víctima del conflicto armado?</span>
                   <select name="victima_conflicto_armado" data-boolean-select>
@@ -1019,7 +1228,6 @@
                     <option value="false">No</option>
                   </select>
                 </label>
-
                 <label class="field">
                   <span>¿Migrante o refugiado?</span>
                   <select name="migrante_refugiado" data-boolean-select>
@@ -1028,175 +1236,166 @@
                     <option value="false">No</option>
                   </select>
                 </label>
-              </div>
-
-              <div class="grid-3" style="margin-top: 14px;">
                 <label class="field">
                   <span>Nivel educativo</span>
                   <select name="nivel_educativo_id" data-catalog="nivelesEducativos"></select>
                 </label>
-
                 <label class="field">
                   <span>Tiempo de dedicación al sector</span>
                   <select name="tiempo_dedicacion_sector_id" data-catalog="tiemposDedicacionSector"></select>
                 </label>
-
                 <label class="field">
-                  <span>Ingresos provenientes del sector</span>
-                  <select name="ingresos_provienen_sector_id" data-catalog="tiposIngresosSector"></select>
+                  <span>De dónde provienen tus ingresos</span>
+                  <select name="ingresos_provienen_sector_id" data-catalog="ingresosProvienen"></select>
                 </label>
-
                 <label class="field">
-                  <span>Tipo de propiedad de equipos</span>
-                  <select name="equipos_propios_tipo_id" data-catalog="tiposPropiedadEquipos"></select>
+                  <span>Equipos propios (tipo)</span>
+                  <select name="equipos_propios_tipo_id" data-catalog="equiposPropiosTipo"></select>
                 </label>
-
                 <label class="field">
                   <span>Gama de equipos</span>
-                  <select name="gama_equipos_id" data-catalog="gamasEquipos"></select>
+                  <select name="gama_equipos_id" data-catalog="gamaEquipos"></select>
                 </label>
-
                 <label class="field">
                   <span>Rango de experiencia</span>
                   <select name="tiempo_experiencia_sector_id" data-catalog="rangosExperienciaSector"></select>
                 </label>
-
                 <label class="field">
-                  <span>Tipo de producción en la que participa</span>
+                  <span>Producción en la que participa</span>
                   <select name="produccion_participa_id" data-catalog="tiposProduccionParticipa"></select>
                 </label>
-
                 <label class="field">
-                  <span>Inglés hablado</span>
-                  <input type="number" name="ingles_habla" min="0" max="5" step="1" placeholder="0" />
+                  <span>Inglés - Habla (0-5)</span>
+                  <input type="number" name="ingles_habla" min="0" max="5" />
                 </label>
-
                 <label class="field">
-                  <span>Inglés lectura</span>
-                  <input type="number" name="ingles_lee" min="0" max="5" step="1" placeholder="0" />
+                  <span>Inglés - Lee (0-5)</span>
+                  <input type="number" name="ingles_lee" min="0" max="5" />
                 </label>
-
                 <label class="field">
-                  <span>Inglés escritura</span>
-                  <input type="number" name="ingles_escribe" min="0" max="5" step="1" placeholder="0" />
+                  <span>Inglés - Escribe (0-5)</span>
+                  <input type="number" name="ingles_escribe" min="0" max="5" />
                 </label>
-              </div>
-            </section>
+              </section>
 
-            <section class="form-section hidden" id="juridicaSection" data-disabled-section>
-              <div class="persona-section-header">
-                <div>
-                  <h3>Información legal de la entidad</h3>
-                  <p class="registro-helper">Este bloque solo aparece cuando eliges persona jurídica.</p>
-                </div>
-                <div class="persona-section-tag">Persona jurídica</div>
-              </div>
-
-              <div class="grid-3">
+              <!-- PERSONA JURIDICA -->
+              <section id="juridicaSection" class="grid-3 hidden">
                 <label class="field">
                   <span>Razón social *</span>
-                  <input type="text" name="razon_social" placeholder="Fundación Ejemplo" />
+                  <input type="text" name="razon_social" placeholder="Andes Cine SAS" />
                 </label>
-
                 <label class="field">
                   <span>NIT *</span>
                   <input type="text" name="nit" placeholder="900123456-7" />
                 </label>
-
                 <label class="field">
                   <span>Tipo de entidad</span>
                   <select name="tipo_entidad_id" data-catalog="tiposEntidad"></select>
                 </label>
-
                 <label class="field">
                   <span>Fecha de constitución</span>
                   <input type="date" name="fecha_constitucion" />
                 </label>
-
                 <label class="field">
                   <span>Municipio</span>
                   <select name="municipio_id" data-catalog="municipios"></select>
                 </label>
-
                 <label class="field">
                   <span>Dirección física</span>
                   <input type="text" name="direccion_fisica" placeholder="Cra. 7 # 12-34" />
                 </label>
-
                 <label class="field">
                   <span>Teléfono de contacto</span>
                   <input type="tel" name="telefono_contacto" placeholder="3101234567" />
                 </label>
-
                 <label class="field">
                   <span>Correo institucional</span>
                   <input type="email" name="correo_institucional" placeholder="contacto@entidad.co" />
                 </label>
-
                 <label class="field">
-                  <span>Página web</span>
-                  <input type="url" name="pagina_web" placeholder="https://www.tuentidad.co" />
+                  <span>Página web (si aplica)</span>
+                  <input type="url" name="pagina_web" placeholder="https://" />
                 </label>
-
                 <label class="field" style="grid-column: 1 / -1;">
                   <span>Objeto social</span>
                   <textarea name="objeto_social" placeholder="Describe la actividad principal de la entidad"></textarea>
                 </label>
-              </div>
-
-              <div class="grid-3" style="margin-top: 14px;">
                 <label class="field">
                   <span>Nombre del representante legal *</span>
                   <input type="text" name="nombre_representante_legal" placeholder="Laura Gómez" />
                 </label>
-
                 <label class="field">
-                  <span>Tipo de documento del representante</span>
+                  <span>Tipo de documento representante</span>
                   <select name="tipo_documento_representante_id" data-catalog="tiposIdentificacion"></select>
                 </label>
-
                 <label class="field">
                   <span>Número de documento del representante *</span>
                   <input type="text" name="numero_documento_representante" placeholder="1012345678" />
                 </label>
-
                 <label class="field">
-                  <span>Fecha inicio nombramiento</span>
+                  <span>Inicio del nombramiento</span>
                   <input type="date" name="fecha_inicio_nombramiento" />
                 </label>
-
                 <label class="field">
-                  <span>Fecha fin nombramiento</span>
+                  <span>Fin del nombramiento</span>
                   <input type="date" name="fecha_fin_nombramiento" />
                 </label>
-
+                <label class="field" style="grid-column: 1 / -1;">
+                  <span>Áreas de trabajo</span>
+                  <textarea name="areas_trabajo" placeholder="Describe los áreas o líneas de trabajo"></textarea>
+                </label>
+                <label class="field" style="grid-column: 1 / -1;">
+                  <span>Proyectos realizados</span>
+                  <textarea name="proyectos_realizados" placeholder="Enumera o describe proyectos previos"></textarea>
+                </label>
+                <label class="field" style="grid-column: 1 / -1;">
+                  <span>Proyectos en curso</span>
+                  <textarea name="proyectos_en_curso" placeholder="Describe proyectos actualmente en desarrollo"></textarea>
+                </label>
+                <label class="field" style="grid-column: 1 / -1;">
+                  <span>Público objetivo o beneficiarios</span>
+                  <textarea name="publico_objetivo_beneficiarios" placeholder="Explica a quién impacta o beneficia la entidad"></textarea>
+                </label>
                 <label class="field">
-                  <span>¿Registro Soy Cultura?</span>
+                  <span>Certificado de existencia y representación</span>
+                  <input type="file" name="certificado_existencia_representacion" accept=".pdf,.doc,.docx,.jpg,.png" />
+                </label>
+                <label class="field">
+                  <span>Copia del acta de constitución</span>
+                  <input type="file" name="copia_acta_constitucion" accept=".pdf,.doc,.docx,.jpg,.png" />
+                </label>
+                <label class="field">
+                  <span>RUT actualizado</span>
+                  <input type="file" name="rut_actualizado" accept=".pdf,.doc,.docx,.jpg,.png" />
+                </label>
+                <label class="field">
+                  <span>Acta de nombramiento del representante</span>
+                  <input type="file" name="acta_nombramiento_representante" accept=".pdf,.doc,.docx,.jpg,.png" />
+                </label>
+                <label class="field">
+                  <span>¿Cuenta con registro Soy Cultura?</span>
                   <select name="registro_soy_cultura" data-boolean-select>
                     <option value="">Seleccione</option>
                     <option value="true">Sí</option>
                     <option value="false">No</option>
                   </select>
                 </label>
-
                 <label class="field">
-                  <span>¿Observatorio Cultural Boyacá?</span>
+                  <span>¿Cuenta con registro Observatorio Cultural de Boyacá?</span>
                   <select name="registro_observatorio_cultural_boyaca" data-boolean-select>
                     <option value="">Seleccione</option>
                     <option value="true">Sí</option>
                     <option value="false">No</option>
                   </select>
                 </label>
-
                 <label class="field">
                   <span>¿Ha recibido estímulos o apoyos públicos?</span>
-                  <select name="ha_recibido_estimulos_apoyos_publicos" data-boolean-select>
+                  <select name="ha_recibido_estimulos_apoyos" data-boolean-select>
                     <option value="">Seleccione</option>
                     <option value="true">Sí</option>
                     <option value="false">No</option>
                   </select>
                 </label>
-
                 <label class="field">
                   <span>¿Participa en redes o asociaciones?</span>
                   <select name="participa_redes_asociaciones" data-boolean-select>
@@ -1205,67 +1404,44 @@
                     <option value="false">No</option>
                   </select>
                 </label>
-
                 <label class="field" style="grid-column: 1 / -1;">
                   <span>¿Cuáles redes o asociaciones?</span>
                   <textarea name="cuales_redes_asociaciones" placeholder="Indica redes, asociaciones o colectivos"></textarea>
                 </label>
-
-                <label class="field" style="grid-column: 1 / -1;">
-                  <span>Áreas de trabajo</span>
-                  <textarea name="areas_trabajo" placeholder="Describe las líneas o áreas de trabajo"></textarea>
-                </label>
-
-                <label class="field" style="grid-column: 1 / -1;">
-                  <span>Proyectos realizados</span>
-                  <textarea name="proyectos_realizados" placeholder="Enumera proyectos previos o referencias"></textarea>
-                </label>
-
-                <label class="field" style="grid-column: 1 / -1;">
-                  <span>Proyectos en curso</span>
-                  <textarea name="proyectos_en_curso" placeholder="Describe proyectos actualmente activos"></textarea>
-                </label>
-
-                <label class="field" style="grid-column: 1 / -1;">
-                  <span>Público objetivo / beneficiarios</span>
-                  <textarea name="publico_objetivo_beneficiarios" placeholder="Explica a quién impacta o beneficia la entidad"></textarea>
-                </label>
-              </div>
+              </section>
             </section>
 
-            <section class="form-section">
-              <div class="form-section-header">
-                <div>
-                  <h3>Confirmación</h3>
-                  <div class="registro-helper">Revisa los datos y acepta el envío para revisión.</div>
-                </div>
-                <div class="step-button btn-secondary" style="padding: 10px 14px; cursor: default;">3. Revisión</div>
+            <section class="step-panel" data-step="3">
+              <div class="step-header">
+                <h3>Confirmación y envío</h3>
+                <div class="step-lead">Revisa tus datos y acepta los términos para completar tu registro.</div>
               </div>
-
-              <div class="checkbox-grid">
-                <label class="checkbox-row">
+              <div class="confirmation-summary">
+                <p>✓ Correo: <strong id="summaryEmail"></strong></p>
+                <p>✓ Tipo: <strong id="summaryPersona"></strong></p>
+              </div>
+              <div class="grid-1">
+                <label class="field field-checkbox">
                   <input type="checkbox" name="terms" required />
-                  <span>Acepto el tratamiento de datos y confirmo que la información suministrada es veraz.</span>
+                  <span>Acepto los términos y condiciones de PUFAB</span>
                 </label>
-
-                <label class="checkbox-row">
-                  <input type="checkbox" name="authorization" required />
-                  <span>Entiendo que la cuenta quedará en estado pendiente hasta aprobación del administrador.</span>
+                <label class="field field-checkbox">
+                  <input type="checkbox" name="autorizacion" required />
+                  <span>Autorizo el tratamiento de mis datos personales según la política de privacidad</span>
                 </label>
-              </div>
-
-              <div class="helper-row" style="margin-top: 16px;">
-                <div class="helper-chip">La revisión manual evita accesos antes de validar el perfil.</div>
-                <div class="helper-chip">Los campos marcados con * son obligatorios.</div>
               </div>
             </section>
 
-            <div id="error-message" class="message error"></div>
-            <div id="success-message" class="message success"></div>
-
-            <div class="registro-actions">
-              <div class="registro-summary" id="summaryText">Persona natural · Registro productora</div>
-              <button type="submit" class="btn-primary" id="submitBtn">Enviar registro</button>
+            <!-- BOTONES DE NAVEGACIÓN -->
+            <div class="step-controls">
+              <div class="left">
+                <button type="button" class="btn btn-ghost" id="backBtn">Atrás</button>
+              </div>
+              <div class="right">
+                <button type="button" class="btn btn-ghost" id="saveDraftBtn">Guardar idea</button>
+                <button type="button" class="btn btn-primary" id="nextBtn">Continuar</button>
+                <button type="submit" class="btn btn-primary hidden" id="submitBtn">Enviar registro</button>
+              </div>
             </div>
           </form>
 
@@ -1279,38 +1455,34 @@
     <script src="/api-client.js"></script>
     <script>
       const form = document.getElementById('signupForm');
+      const backBtn = document.getElementById('backBtn');
+      const nextBtn = document.getElementById('nextBtn');
       const submitBtn = document.getElementById('submitBtn');
-      const errorMsg = document.getElementById('error-message');
-      const successMsg = document.getElementById('success-message');
-      const passwordInput = document.getElementById('passwordInput');
-      const confirmPasswordInput = document.getElementById('confirmPasswordInput');
-      const passwordToggle = document.getElementById('passwordToggle');
-      const summaryText = document.getElementById('summaryText');
-      const registroBannerTitle = document.getElementById('registroBannerTitle');
-      const registroBannerText = document.getElementById('registroBannerText');
-      const approvalPill = document.getElementById('approvalPill');
+      const saveDraftBtn = document.getElementById('saveDraftBtn');
+      const progressBar = document.getElementById('progressBar');
       const naturalSection = document.getElementById('naturalSection');
       const juridicaSection = document.getElementById('juridicaSection');
+      const summaryEmail = document.getElementById('summaryEmail');
+      const summaryPersona = document.getElementById('summaryPersona');
       const tabs = Array.from(document.querySelectorAll('[data-persona]'));
+      const stepPanels = Array.from(document.querySelectorAll('.step-panel'));
+      const stepNodes = Array.from(document.querySelectorAll('[data-step-node]'));
       const catalogSelects = Array.from(document.querySelectorAll('[data-catalog]'));
-      const selectedRole = 'productora';
+      const role = 'productora';
 
-      const personaLabels = {
-        natural: 'Persona natural',
-        juridica: 'Persona jurídica',
-      };
-
+      let currentStep = 0;
       let selectedPersona = 'natural';
 
-      if (String(new URLSearchParams(window.location.search).get('rol') || '').toLowerCase() === 'admin') {
-        errorMsg.textContent = 'El rol administrador no se registra públicamente.';
-        errorMsg.style.display = 'block';
-        submitBtn.disabled = true;
-      }
-
       function setMessage(element, text) {
-        element.textContent = text || '';
-        element.style.display = text ? 'block' : 'none';
+        const id = element.id || '';
+        let el = element;
+        if (typeof element === 'string') {
+          el = document.getElementById(element);
+        }
+        if (el) {
+          el.textContent = text || '';
+          el.style.display = text ? 'block' : 'none';
+        }
       }
 
       function parseCatalogItem(item) {
@@ -1322,52 +1494,19 @@
 
       function fillSelect(select, items) {
         const current = select.value;
-        const placeholder = select.getAttribute('data-placeholder') || 'Seleccione';
-        const options = [{ value: '', label: placeholder }, ...(items || []).map(parseCatalogItem)];
+        const options = [{ value: '', label: 'Seleccione' }, ...(items || []).map(parseCatalogItem)];
         select.innerHTML = options
           .map((option) => `<option value="${String(option.value)}">${String(option.label)}</option>`)
           .join('');
-        if (current) {
-          select.value = current;
-        }
-      }
-
-      function setSectionState(section, enabled) {
-        section.classList.toggle('hidden', !enabled);
-        section.toggleAttribute('hidden', !enabled);
-        section.style.display = enabled ? '' : 'none';
-        section.querySelectorAll('input, select, textarea, button').forEach((field) => {
-          if (field.closest('.registro-actions')) return;
-          if (field.type === 'button') return;
-          if (field.type === 'checkbox') {
-            field.disabled = !enabled;
-            return;
-          }
-          field.disabled = !enabled;
-        });
-      }
-
-      function updatePersona(persona) {
-        selectedPersona = persona;
-        tabs.forEach((button) => button.classList.toggle('active', button.dataset.persona === persona));
-        setSectionState(naturalSection, persona === 'natural');
-        setSectionState(juridicaSection, persona === 'juridica');
-        naturalSection.setAttribute('aria-hidden', persona !== 'natural');
-        juridicaSection.setAttribute('aria-hidden', persona !== 'juridica');
-        approvalPill.textContent = persona === 'natural' ? 'Persona natural en revisión' : 'Persona jurídica en revisión';
-        summaryText.textContent = `${personaLabels[persona]} · Registro productora`;
-        registroBannerTitle.textContent = 'Registro para productora';
-        registroBannerText.textContent = `Tu cuenta quedará en revisión hasta que el administrador apruebe el acceso de ${personaLabels[persona].toLowerCase()}.`;
+        if (current) select.value = current;
       }
 
       async function loadCatalogs() {
-        const catalogNames = Array.from(new Set(catalogSelects.map((select) => select.dataset.catalog).filter(Boolean)));
+        const names = Array.from(new Set(catalogSelects.map((select) => select.dataset.catalog).filter(Boolean)));
         const loaded = await Promise.all(
-          catalogNames.map(async (name) => {
+          names.map(async (name) => {
             const method = API_CLIENT.catalogos[name];
-            if (typeof method !== 'function') {
-              return [name, []];
-            }
+            if (typeof method !== 'function') return [name, []];
             try {
               return [name, await method()];
             } catch (error) {
@@ -1376,186 +1515,291 @@
             }
           }),
         );
-
         const catalogData = Object.fromEntries(loaded);
-        catalogSelects.forEach((select) => {
-          const items = catalogData[select.dataset.catalog] || [];
-          fillSelect(select, items);
-        });
+        catalogSelects.forEach((select) => fillSelect(select, catalogData[select.dataset.catalog] || []));
       }
 
-      function readField(formElement, name) {
-        const field = formElement.querySelector(`[name="${name}"]`);
-        if (!field || field.disabled) return undefined;
+      function updateStepper() {
+        const progress = ((currentStep + 1) / stepPanels.length) * 100;
+        progressBar.style.width = `${progress}%`;
+        stepPanels.forEach((panel, index) => panel.classList.toggle('active', index === currentStep));
+        stepNodes.forEach((node, index) => {
+          node.classList.toggle('active', index === currentStep);
+          node.classList.toggle('done', index < currentStep);
+        });
+        backBtn.disabled = currentStep === 0;
+        nextBtn.classList.toggle('hidden', currentStep === stepPanels.length - 1);
+        submitBtn.classList.toggle('hidden', currentStep !== stepPanels.length - 1);
+        if (summaryEmail) summaryEmail.textContent = String(readField('email') || '');
+        if (summaryPersona) summaryPersona.textContent = selectedPersona === 'natural' ? 'Persona natural' : 'Persona jurídica';
+      }
 
-        if (field.type === 'checkbox') {
-          return field.checked;
+      function validateStep(step) {
+        if (step === 0) {
+          const email = String(readField('email') || '');
+          const password = String(readField('password') || '');
+          const confirmPassword = String(readField('confirmPassword') || '');
+          if (!email || !password || !confirmPassword) {
+            throw new Error('Completa el correo y la contraseña antes de continuar.');
+          }
+          if (password.length < 8) {
+            throw new Error('La contraseña debe tener al menos 8 caracteres.');
+          }
+          if (password !== confirmPassword) {
+            throw new Error('Las contraseñas no coinciden.');
+          }
         }
 
+        if (step === 1) {
+          const descripcion = String(readField('descripcion_productora') || '');
+          if (!descripcion) {
+            throw new Error('Describe la productora antes de seguir.');
+          }
+        }
+
+        if (step === 2) {
+          if (selectedPersona === 'natural') {
+            if (!readField('numero_documento') || !readField('primer_nombre') || !readField('primer_apellido')) {
+              throw new Error('Completa el documento, nombre y apellido.');
+            }
+          } else {
+            if (!readField('razon_social') || !readField('nit') || !readField('nombre_representante_legal')) {
+              throw new Error('Completa la razón social, el NIT y el representante legal.');
+            }
+          }
+        }
+
+        if (step === 3) {
+          const terms = form.querySelector('[name="terms"]')?.checked;
+          const autorizacion = form.querySelector('[name="autorizacion"]')?.checked;
+          if (!terms || !autorizacion) {
+            throw new Error('Debes aceptar los términos y autorización para enviar el registro.');
+          }
+        }
+      }
+
+      function readField(name) {
+        const field = form.querySelector(`[name="${name}"]`);
+        if (!field || field.disabled) return undefined;
+        if (field.type === 'checkbox') return field.checked;
         const value = String(field.value ?? '').trim();
         if (!value) return undefined;
-
-        if (field.hasAttribute('data-boolean-select')) {
-          return value === 'true';
-        }
-
-        if (field.dataset.cast === 'number' || field.type === 'number') {
+        if (field.hasAttribute('data-boolean-select')) return value === 'true';
+        if (field.type === 'number' || field.dataset.cast === 'number') {
           const num = Number(value);
-          return isNaN(num) ? undefined : num;
+          return Number.isNaN(num) ? undefined : num;
         }
-
-        if (field.tagName === 'SELECT' && field.value && /^[0-9]+$/.test(field.value)) {
-          return Number(value);
-        }
-
+        if (field.tagName === 'SELECT' && /^[0-9]+$/.test(field.value)) return Number(value);
         return value;
       }
 
-      function readSectionValues(formElement, names) {
+      function readSection(names) {
         return names.reduce((result, name) => {
-          const value = readField(formElement, name);
-          if (value !== undefined) {
-            result[name] = value;
-          }
+          const value = readField(name);
+          if (value !== undefined) result[name] = value;
           return result;
         }, {});
       }
 
-      function deriveNombre(personaNatural, personaJuridica) {
-        if (selectedPersona === 'juridica') {
-          return personaJuridica.razon_social || '';
-        }
+      function setPersona(persona) {
+        selectedPersona = persona;
+        tabs.forEach((button) => button.classList.toggle('active', button.dataset.persona === persona));
+        naturalSection.classList.toggle('hidden', persona !== 'natural');
+        juridicaSection.classList.toggle('hidden', persona !== 'juridica');
+      }
 
-        return [personaNatural.primer_nombre, personaNatural.primer_apellido].filter(Boolean).join(' ').trim();
+      function currentPayload() {
+        const email = String(readField('email') || '').trim();
+        const telefono = String(readField('telefono') || '').trim();
+        const password = String(readField('password') || '');
+
+        const perfilNatural = readSection([
+          'tipo_identificacion_id',
+          'numero_documento',
+          'fecha_nacimiento',
+          'primer_nombre',
+          'segundo_nombre',
+          'primer_apellido',
+          'segundo_apellido',
+          'lugar_nacimiento_id',
+          'municipio_residencia_id',
+          'direccion',
+          'sexo_nacer_id',
+          'identidad_genero_id',
+          'grupo_etnico_id',
+          'pertenece_grupo_etnico',
+          'tiene_discapacidad',
+          'tipo_discapacidad_id',
+          'vive_zona_rural',
+          'se_considera_campesino',
+          'victima_conflicto_armado',
+          'migrante_refugiado',
+          'nivel_educativo_id',
+          'tiempo_dedicacion_sector_id',
+          'ingresos_provienen_sector_id',
+          'equipos_propios_tipo_id',
+          'gama_equipos_id',
+          'tiempo_experiencia_sector_id',
+          'produccion_participa_id',
+          'ingles_habla',
+          'ingles_lee',
+          'ingles_escribe',
+        ]);
+
+        const perfilJuridica = readSection([
+          'razon_social',
+          'nit',
+          'tipo_entidad_id',
+          'fecha_constitucion',
+          'municipio_id',
+          'direccion_fisica',
+          'telefono_contacto',
+          'correo_institucional',
+          'pagina_web',
+          'objeto_social',
+          'nombre_representante_legal',
+          'tipo_documento_representante_id',
+          'numero_documento_representante',
+          'fecha_inicio_nombramiento',
+          'fecha_fin_nombramiento',
+          'areas_trabajo',
+          'proyectos_realizados',
+          'proyectos_en_curso',
+          'publico_objetivo_beneficiarios',
+          'certificado_existencia_representacion',
+          'copia_acta_constitucion',
+          'rut_actualizado',
+          'acta_nombramiento_representante',
+          'registro_soy_cultura',
+          'registro_observatorio_cultural_boyaca',
+          'ha_recibido_estimulos_apoyos',
+          'participa_redes_asociaciones',
+          'cuales_redes_asociaciones',
+        ]);
+
+        return {
+          email,
+          password,
+          telefono: telefono || undefined,
+          tipo_persona: selectedPersona,
+          rolSolicitado: role,
+          municipio_base_id: readField('municipio_base_id'),
+          tiempo_operando_sector_id: readField('tiempo_operando_sector_id'),
+          descripcion_productora: readField('descripcion_productora'),
+          perfilNatural: selectedPersona === 'natural' ? perfilNatural : undefined,
+          perfilJuridica: selectedPersona === 'juridica' ? perfilJuridica : undefined,
+          nombre:
+            selectedPersona === 'natural'
+              ? [perfilNatural.primer_nombre, perfilNatural.primer_apellido].filter(Boolean).join(' ').trim() || undefined
+              : perfilJuridica.razon_social || undefined,
+        };
+      }
+
+      function goNext() {
+        try {
+          validateStep(currentStep);
+          if (currentStep < stepPanels.length - 1) {
+            currentStep += 1;
+            updateStepper();
+          }
+        } catch (error) {
+          const errorDiv = document.createElement('div');
+          errorDiv.className = 'message error';
+          errorDiv.textContent = error.message || 'No fue posible avanzar.';
+          errorDiv.style.display = 'block';
+          form.parentElement?.insertBefore(errorDiv, form);
+          setTimeout(() => errorDiv.remove(), 4000);
+        }
+      }
+
+      function goBack() {
+        if (currentStep === 0) return;
+        currentStep -= 1;
+        updateStepper();
       }
 
       tabs.forEach((button) => {
-        button.addEventListener('click', () => updatePersona(button.dataset.persona));
+        button.addEventListener('click', () => setPersona(button.dataset.persona));
       });
 
-      // Listener para deshabilitar tipo_discapacidad cuando tiene_discapacidad es "No"
-      const tienediscapacidadField = form.querySelector('[name="tiene_discapacidad"]');
-      const tipoDiscapacidadField = form.querySelector('[name="tipo_discapacidad_id"]');
-      
-      if (tienediscapacidadField && tipoDiscapacidadField) {
-        tienediscapacidadField.addEventListener('change', (e) => {
-          const isNo = e.target.value === 'false';
-          tipoDiscapacidadField.disabled = isNo;
-          if (isNo) {
-            tipoDiscapacidadField.value = '';
-          }
+      const passwordToggle = document.getElementById('passwordToggle');
+      const passwordInput = document.getElementById('passwordInput');
+      const confirmPasswordInput = document.getElementById('confirmPasswordInput');
+
+      if (passwordToggle) {
+        passwordToggle.addEventListener('click', () => {
+          const isPassword = passwordInput.type === 'password';
+          passwordInput.type = isPassword ? 'text' : 'password';
+          confirmPasswordInput.type = isPassword ? 'text' : 'password';
         });
       }
 
-      passwordToggle.addEventListener('click', () => {
-        const isPassword = passwordInput.type === 'password';
-        passwordInput.type = isPassword ? 'text' : 'password';
-        confirmPasswordInput.type = isPassword ? 'text' : 'password';
-      });
+      backBtn.addEventListener('click', goBack);
+      nextBtn.addEventListener('click', goNext);
 
-      setSectionState(naturalSection, true);
-      setSectionState(juridicaSection, false);
-      updatePersona('natural');
-
-      // Inicializar estado de tipo_discapacidad
-      if (tienediscapacidadField && tipoDiscapacidadField) {
-        const initialValue = tienediscapacidadField.value;
-        tipoDiscapacidadField.disabled = initialValue === 'false' || !initialValue;
-      }
-
-      loadCatalogs().catch((error) => {
-        console.error(error);
-        setMessage(errorMsg, 'No fue posible cargar algunos catálogos. Intenta refrescar la página.');
+      saveDraftBtn.addEventListener('click', () => {
+        localStorage.setItem('pufab_productora_draft', JSON.stringify(currentPayload()));
+        const msg = document.createElement('div');
+        msg.className = 'message success';
+        msg.textContent = 'Borrador guardado en este navegador.';
+        msg.style.display = 'block';
+        form.parentElement?.insertBefore(msg, form);
+        setTimeout(() => msg.remove(), 2000);
       });
 
       form.addEventListener('submit', async (event) => {
         event.preventDefault();
-        setMessage(errorMsg, '');
-        setMessage(successMsg, '');
-
-        const password = String(passwordInput.value || '');
-        const confirmPassword = String(confirmPasswordInput.value || '');
-        const email = String(readField(form, 'email') || '').trim();
-        const telefono = String(readField(form, 'telefono') || '').trim();
-
-        if (!email || !password || !confirmPassword) {
-          setMessage(errorMsg, 'Completa el correo y la contraseña antes de enviar el registro.');
-          return;
-        }
-
-        if (password.length < 8) {
-          setMessage(errorMsg, 'La contraseña debe tener al menos 8 caracteres.');
-          return;
-        }
-
-        if (password !== confirmPassword) {
-          setMessage(errorMsg, 'Las contraseñas no coinciden.');
-          return;
-        }
-
-        const terms = form.querySelector('[name="terms"]')?.checked;
-        const authorization = form.querySelector('[name="authorization"]')?.checked;
-
-        if (!terms || !authorization) {
-          setMessage(errorMsg, 'Debes aceptar las condiciones y la aprobación manual del registro.');
-          return;
-        }
-
-        const naturalFields = [
-          'tipo_identificacion_id', 'numero_documento', 'fecha_nacimiento', 'primer_nombre', 'segundo_nombre',
-          'primer_apellido', 'segundo_apellido', 'lugar_nacimiento', 'municipio_residencia_id', 'direccion',
-          'sexo_nacer_id', 'identidad_genero_id', 'grupo_etnico_id', 'pertenece_grupo_etnico', 'tiene_discapacidad',
-          'tipo_discapacidad_id', 'vive_zona_rural', 'se_considera_campesino', 'victima_conflicto_armado',
-          'migrante_refugiado', 'nivel_educativo_id', 'tiempo_dedicacion_sector_id', 'ingresos_provienen_sector_id',
-          'equipos_propios_tipo_id', 'gama_equipos_id', 'tiempo_experiencia_sector_id', 'produccion_participa_id',
-          'ingles_habla', 'ingles_lee', 'ingles_escribe',
-        ];
-
-        const juridicaFields = [
-          'razon_social', 'nit', 'tipo_entidad_id', 'fecha_constitucion', 'municipio_id', 'direccion_fisica',
-          'telefono_contacto', 'correo_institucional', 'pagina_web', 'objeto_social', 'nombre_representante_legal',
-          'tipo_documento_representante_id', 'numero_documento_representante', 'fecha_inicio_nombramiento',
-          'fecha_fin_nombramiento', 'registro_soy_cultura', 'registro_observatorio_cultural_boyaca',
-          'ha_recibido_estimulos_apoyos_publicos', 'participa_redes_asociaciones', 'cuales_redes_asociaciones',
-          'areas_trabajo', 'proyectos_realizados', 'proyectos_en_curso', 'publico_objetivo_beneficiarios',
-        ];
-
-        const perfilNatural = readSectionValues(form, naturalFields);
-        const perfilJuridica = readSectionValues(form, juridicaFields);
-
-        const nombre = deriveNombre(perfilNatural, perfilJuridica) || email.split('@')[0] || 'Usuario PUFAB';
-
-        const payload = {
-          email,
-          password,
-          nombre,
-          telefono: telefono || undefined,
-          tipo_persona: selectedPersona,
-          rolSolicitado: selectedRole,
-          perfilNatural: selectedPersona === 'natural' ? perfilNatural : undefined,
-          perfilJuridica: selectedPersona === 'juridica' ? perfilJuridica : undefined,
-        };
 
         try {
-          submitBtn.disabled = true;
-          submitBtn.textContent = 'Enviando...';
+          validateStep(0);
+          validateStep(1);
+          validateStep(2);
+          validateStep(3);
 
-          await API_CLIENT.auth.register(payload);
-
-          setMessage(successMsg, 'Registro enviado. Tu cuenta quedó pendiente de aprobación y te llevaremos al inicio de sesión.');
-
-          localStorage.setItem('pufab_new_user_email', email);
-          localStorage.setItem('pufab_new_user_nombre', nombre);
-
-          window.setTimeout(() => {
-            window.location.href = '/iniciar-sesion/?registered=1';
-          }, 2200);
+          const payload = currentPayload();
+          const response = await API_CLIENT.auth.register(payload);
+          if (response?.success || response?.id || response?.usuario_id) {
+            localStorage.removeItem('pufab_productora_draft');
+            const msg = document.createElement('div');
+            msg.className = 'message success';
+            msg.innerHTML = '✓ Registro enviado. Recibirás confirmación por correo cuando sea aprobado.';
+            msg.style.display = 'block';
+            form.parentElement?.insertBefore(msg, form);
+            setTimeout(() => (window.location.href = '/iniciar-sesion/'), 2000);
+          } else {
+            throw new Error(response?.message || 'Error en el registro.');
+          }
         } catch (error) {
-          setMessage(errorMsg, error.message || 'No fue posible completar el registro.');
-          submitBtn.disabled = false;
-          submitBtn.textContent = 'Enviar registro';
+          const errorDiv = document.createElement('div');
+          errorDiv.className = 'message error';
+          errorDiv.textContent = error.message || 'Error al procesar el registro.';
+          errorDiv.style.display = 'block';
+          form.parentElement?.insertBefore(errorDiv, form);
         }
       });
+
+      // CARGAR CATÁLOGOS Y BORRADOR
+      (async () => {
+        await loadCatalogs();
+        const draft = localStorage.getItem('pufab_productora_draft');
+        if (draft) {
+          try {
+            const data = JSON.parse(draft);
+            Object.entries(data).forEach(([key, value]) => {
+              const field = form.querySelector(`[name="${key}"]`);
+              if (field && typeof value === 'boolean') {
+                if (field.type === 'checkbox') field.checked = value;
+                else if (field.hasAttribute('data-boolean-select')) field.value = value ? 'true' : 'false';
+              } else if (field && value !== undefined && value !== null) {
+                field.value = value;
+              }
+            });
+          } catch (e) {
+            console.warn('No se pudo cargar el borrador:', e);
+          }
+        }
+        updateStepper();
+      })();
     </script>
   </body>
 </html>

@@ -25,22 +25,23 @@
 
       .auth-shell {
         padding: 3rem 0 4rem;
+        display: flex;
+        justify-content: center;
+        align-items: center;
       }
 
       .auth-grid {
-        display: grid;
-        grid-template-columns: minmax(0, 1fr) 420px;
-        gap: 1.5rem;
-        align-items: stretch;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        width: 100%;
+        max-width: 420px;
       }
 
-      @media (max-width: 980px) {
-        .auth-grid {
-          grid-template-columns: 1fr;
-        }
+      .auth-info {
+        display: none;
       }
 
-      .auth-info,
       .auth-card {
         min-width: 0;
         background: rgba(255, 255, 255, 0.82);
@@ -48,142 +49,78 @@
         border: 1px solid rgba(148, 163, 184, 0.22);
         box-shadow: 0 20px 60px rgba(15, 23, 42, 0.1);
         border-radius: 28px;
-      }
-
-      .auth-info {
-        padding: 2rem;
-        overflow: hidden;
-        position: relative;
+        width: 100%;
       }
 
       .auth-info::after {
-        content: '';
-        position: absolute;
-        inset: auto -80px -100px auto;
-        width: 240px;
-        height: 240px;
-        border-radius: 50%;
-        background: radial-gradient(circle, rgba(37, 99, 235, 0.18), transparent 68%);
-        pointer-events: none;
+        display: none;
       }
 
       .auth-kicker {
-        display: inline-flex;
-        align-items: center;
-        gap: 0.5rem;
-        padding: 0.45rem 0.8rem;
-        border-radius: 999px;
-        background: #dbeafe;
-        color: #1d4ed8;
-        font-size: 0.82rem;
-        font-weight: 800;
-        letter-spacing: 0.04em;
-        text-transform: uppercase;
+        display: none;
       }
 
       .auth-info h2 {
-        margin: 1rem 0 0.75rem;
-        font-size: clamp(2rem, 4vw, 3.2rem);
-        line-height: 1.05;
-        color: #10212b;
-        max-width: 10ch;
+        display: none;
       }
 
       .auth-info p {
-        margin: 0;
-        color: #5b6472;
-        line-height: 1.65;
-        max-width: 58ch;
+        display: none;
       }
 
       .auth-highlights {
-        display: grid;
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-        gap: 0.9rem;
-        margin-top: 1.5rem;
-      }
-
-      @media (max-width: 640px) {
-        .auth-highlights {
-          grid-template-columns: 1fr;
-        }
+        display: none;
       }
 
       .highlight-card,
       .credential-card {
-        background: rgba(255, 255, 255, 0.78);
-        border: 1px solid rgba(148, 163, 184, 0.2);
-        border-radius: 20px;
-        padding: 1rem 1.05rem;
+        display: none;
       }
 
       .highlight-card strong,
       .credential-card strong {
-        display: block;
-        margin-bottom: 0.35rem;
-        color: #10212b;
+        display: none;
       }
 
       .highlight-card span,
       .credential-card span {
-        color: #5b6472;
-        line-height: 1.5;
-        font-size: 0.95rem;
+        display: none;
       }
 
       .credentials-wrap {
-        margin-top: 1.5rem;
+        display: none;
       }
 
       .credentials-wrap h3 {
-        margin: 0 0 0.35rem;
-        color: #10212b;
+        display: none;
       }
 
       .credentials-wrap p {
-        margin: 0 0 1rem;
-        color: #5b6472;
+        display: none;
       }
 
       .credential-list {
-        display: grid;
-        gap: 0.85rem;
+        display: none;
       }
 
       .credential-meta {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 0.55rem;
-        margin-bottom: 0.55rem;
+        display: none;
       }
 
       .credential-pill {
-        display: inline-flex;
-        align-items: center;
-        padding: 0.35rem 0.65rem;
-        border-radius: 999px;
-        background: #eef4ff;
-        color: #1d4ed8;
-        font-size: 0.78rem;
-        font-weight: 800;
+        display: none;
       }
 
       .credential-pill.green {
-        background: #dcfce7;
-        color: #047857;
+        display: none;
       }
 
       .credential-copy {
-        display: grid;
-        gap: 0.35rem;
-        font-size: 0.95rem;
-        color: #334155;
+        display: none;
       }
 
       .credential-copy code {
-        font: inherit;
-        font-weight: 700;
-        color: #0f172a;
+        display: none;
       }
 
       .auth-card {
@@ -277,12 +214,8 @@
       }
 
       @media (max-width: 980px) {
-        .auth-info {
-          order: 2;
-        }
-
-        .auth-card {
-          order: 1;
+        .auth-shell {
+          padding: 3rem 0 4rem;
         }
       }
     </style>
@@ -347,54 +280,15 @@
           </div>
 
           <div class="credentials-wrap">
-            <h3>Cuentas de prueba</h3>
-            <p>Estas credenciales quedaron cargadas en la base de datos para hacer pruebas reales.</p>
+            <h3>Acceso al sistema</h3>
+            <p>
+              Ingresa con tu correo institucional y tu contraseña. Si tu cuenta sigue en revisión, el sistema te
+              indicará el estado antes de permitir el ingreso.
+            </p>
 
-            <div class="credential-list">
-              <div class="credential-card">
-                <div class="credential-meta">
-                  <span class="credential-pill green">Administrador</span>
-                  <span class="credential-pill">Activo</span>
-                </div>
-                <div class="credential-copy">
-                  <span><code>admin@pufab.gov.co</code></span>
-                  <span><code>Admin2026!</code></span>
-                </div>
-              </div>
-              <div class="credential-card">
-                <div class="credential-meta">
-                  <span class="credential-pill green">Productora</span>
-                  <span class="credential-pill">Activo</span>
-                </div>
-                <div class="credential-copy">
-                  <span><code>valeria.ramirez@luminafilms.co</code></span>
-                  <span><code>Prod2026!</code></span>
-                </div>
-              </div>
-              <div class="credential-card">
-                <div class="credential-meta">
-                  <span class="credential-pill green">Proveedor</span>
-                  <span class="credential-pill">Activo</span>
-                </div>
-                <div class="credential-copy">
-                  <span><code>contacto@andescine.co</code></span>
-                  <span><code>Prov2026!</code></span>
-                </div>
-              </div>
-              <div class="credential-card">
-                <div class="credential-meta">
-                  <span class="credential-pill green">Academia</span>
-                  <span class="credential-pill">Activo</span>
-                </div>
-                <div class="credential-copy">
-                  <span><code>coordinacion@universidadboyaca.edu.co</code></span>
-                  <span><code>Acad2026!</code></span>
-                </div>
-              </div>
-            </div>
             <div class="auth-support">
               <div class="auth-support-note">
-                Consejo: si quieres mostrar el sistema en presentación, entra primero con admin y luego cambia de perfil para demostrar el menú y el perfil personal.
+                El acceso cambia según el rol seleccionado arriba y el estado de aprobación guardado en la base de datos.
               </div>
             </div>
           </div>
@@ -548,8 +442,15 @@
 
         const signupLink = document.getElementById('signupByRoleLink');
         if (signupLink) {
-          signupLink.textContent = 'Regístrate como productora';
-          signupLink.href = '/registro/?rol=productora';
+          const signupConfig = {
+            producer: { text: 'Regístrate como productora', href: '/registro/?rol=productora' },
+            provider: { text: 'Regístrate como proveedor', href: '/proveedor/registro/' },
+            academy: { text: 'Regístrate como academia', href: '/academico/registro/' },
+            admin: { text: 'Solicitar acceso', href: '/contacto/' },
+          };
+          const config = signupConfig[roleKey] || signupConfig.academy;
+          signupLink.textContent = config.text;
+          signupLink.href = config.href;
           signupLink.style.pointerEvents = 'auto';
           signupLink.style.opacity = '1';
         }

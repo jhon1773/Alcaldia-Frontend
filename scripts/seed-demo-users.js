@@ -413,9 +413,304 @@ async function main() {
       console.log(`Se actualizó ${demo.email}`);
     }
 
+    // LIMPIEZA: Eliminar datos dependientes de tramites y proyectos antes de retirar usuarios
+    console.log('\nLimpiando tramites y proyectos antiguos...');
+    await client.query('DELETE FROM tramite_locaciones');
+    await client.query('DELETE FROM tramite_equipo_tecnico');
+    await client.query('DELETE FROM tramite_entidades');
+    await client.query('DELETE FROM historial_tramite');
+    await client.query('DELETE FROM tramites');
+    await client.query('DELETE FROM proyectos');
+    console.log('Tramites y proyectos antiguos eliminados.');
+
+    await client.query('DELETE FROM perfil_proveedor_subcategorias');
+    await client.query('DELETE FROM perfil_proveedor_especialidades');
+    await client.query('DELETE FROM perfiles_proveedor');
+    await client.query('DELETE FROM perfiles_productora');
+    await client.query('DELETE FROM perfiles_academico');
+    await client.query('DELETE FROM persona_natural_convocatorias');
+    await client.query('DELETE FROM documentos');
+    await client.query('DELETE FROM pagos');
+    await client.query('DELETE FROM historial_solicitudes_registro');
+    await client.query('DELETE FROM solicitudes_registro');
+
+    // LIMPIEZA: Eliminar perfiles que NO sean los 4 demo actuales
+    const demoEmails = demoUsers.map((u) => u.email);
+    console.log('\nLimpiando perfiles antiguos (dejando solo los 4 demo actuales)...');
+    const usuariosAntiguos = await client.query(
+      `SELECT id FROM usuarios WHERE email NOT IN (${demoEmails.map((_, i) => `$${i + 1}`).join(',')}) AND estado_cuenta_id = (SELECT id FROM estados_cuenta WHERE codigo = 'activo' LIMIT 1)`,
+      demoEmails,
+    );
+    if (usuariosAntiguos.rows.length > 0) {
+      const antiguosIds = usuariosAntiguos.rows.map((r) => r.id);
+      await client.query('DELETE FROM personas_naturales WHERE usuario_id = ANY($1::int[])', [antiguosIds]);
+      await client.query('DELETE FROM personas_juridicas WHERE usuario_id = ANY($1::int[])', [antiguosIds]);
+      await client.query('DELETE FROM usuario_roles WHERE usuario_id = ANY($1::int[])', [antiguosIds]);
+      await client.query('DELETE FROM usuarios WHERE id = ANY($1::int[])', [antiguosIds]);
+      console.log(`Eliminados ${antiguosIds.length} perfiles antiguos.`);
+    } else {
+      console.log('No hay perfiles antiguos para eliminar.');
+    }
+
+    // MAESTROS: Crear/limpiar locaciones de Boyacá
+    console.log('\nRefrescando locaciones de Boyacá...');
+    await client.query('DELETE FROM admin_locaciones_imagenes');
+    await client.query('DELETE FROM admin_locaciones');
+
+    const municipiosLocaciones = [
+      'Tunja',
+      'Duitama',
+      'Sogamoso',
+      'Villa de Leyva',
+      'Aquitania',
+      'Paipa',
+      'Santa María',
+      'Zipaquirá',
+    ];
+    const municipiosResult = await client.query(
+      'SELECT id, nombre FROM municipios WHERE nombre = ANY($1::text[])',
+      [municipiosLocaciones],
+    );
+    const municipioIdByName = new Map(municipiosResult.rows.map((row) => [String(row.nombre).toLowerCase(), row.id]));
+
+    const tiposEspacioResult = await client.query(
+      'SELECT id, nombre FROM tipos_espacio WHERE activo = true ORDER BY id ASC',
+    );
+    const tipoEspacioIdByName = new Map(tiposEspacioResult.rows.map((row) => [String(row.nombre).toLowerCase(), row.id]));
+    const defaultTipoEspacioId = tiposEspacioResult.rows[0]?.id ?? null;
+    const resolveTipoEspacioId = (candidatos) => {
+      for (const candidato of candidatos) {
+        const tipoId = tipoEspacioIdByName.get(String(candidato).toLowerCase());
+        if (tipoId) {
+          return tipoId;
+        }
+      }
+      return defaultTipoEspacioId;
+    };
+
+    const locacionesBoyaca = [
+      {
+        nombre: 'Centro Histórico de Tunja',
+        observaciones: 'Centro colonial con arquitectura patrimonial y flujo cultural permanente.',
+        municipio: 'Tunja',
+        tipoEspacio: ['patrimonial', 'urbano', 'centro urbano', 'historico'],
+      },
+      {
+        nombre: 'Catedral de Santiago de Tunja',
+        observaciones: 'Monumento histórico y religioso con valor arquitectónico y ceremonial.',
+        municipio: 'Tunja',
+        tipoEspacio: ['patrimonial', 'religioso', 'urbano'],
+      },
+      {
+        nombre: 'Plaza de Bolívar',
+        observaciones: 'Espacio público central ideal para eventos institucionales y culturales.',
+        municipio: 'Tunja',
+        tipoEspacio: ['urbano', 'plaza', 'publico'],
+      },
+      {
+        nombre: 'Zona Industrial de Duitama',
+        observaciones: 'Parque industrial con infraestructura moderna y accesos logísticos amplios.',
+        municipio: 'Duitama',
+        tipoEspacio: ['industrial', 'urbano'],
+      },
+      {
+        nombre: 'Centro Comercial Sogamoso',
+        observaciones: 'Zona de comercio y servicios con alto flujo de visitantes.',
+        municipio: 'Sogamoso',
+        tipoEspacio: ['comercial', 'urbano'],
+      },
+      {
+        nombre: 'Parque La Raya',
+        observaciones: 'Espacio verde con vista panorámica y condiciones para rodajes al aire libre.',
+        municipio: 'Sogamoso',
+        tipoEspacio: ['natural', 'parque', 'urbano'],
+      },
+      {
+        nombre: 'Puente de Sopó',
+        observaciones: 'Puente histórico con valor patrimonial y entorno rural cercano.',
+        municipio: 'Villa de Leyva',
+        tipoEspacio: ['patrimonial', 'historico', 'rural'],
+      },
+      {
+        nombre: 'Laguna de Tota',
+        observaciones: 'Cuerpo de agua altoandino con paisaje natural y valor turístico.',
+        municipio: 'Aquitania',
+        tipoEspacio: ['natural', 'paisaje natural', 'rural'],
+      },
+      {
+        nombre: 'Mina de Sal de Zipaquirá',
+        observaciones: 'Entorno patrimonial de interés regional con alto potencial de locación.',
+        municipio: 'Zipaquirá',
+        tipoEspacio: ['patrimonial', 'historico', 'turistico'],
+      },
+      {
+        nombre: 'Casco Urbano de Villa de Leyva',
+        observaciones: 'Pueblo colonial con valor turístico, patrimonial y cinematográfico.',
+        municipio: 'Villa de Leyva',
+        tipoEspacio: ['patrimonial', 'urbano', 'historico'],
+      },
+      {
+        nombre: 'Peña Blanca',
+        observaciones: 'Formación rocosa con potencial cinematográfico y paisaje natural destacado.',
+        municipio: 'Santa María',
+        tipoEspacio: ['natural', 'paisaje natural', 'rural'],
+      },
+      {
+        nombre: 'Embalse de La Colorada',
+        observaciones: 'Reserva de agua con paisaje natural y atractivo para registros de exterior.',
+        municipio: 'Paipa',
+        tipoEspacio: ['natural', 'hidrico', 'rural'],
+      },
+    ];
+
+    for (const loc of locacionesBoyaca) {
+      const municipioId = municipioIdByName.get(String(loc.municipio).toLowerCase());
+      if (!municipioId) {
+        throw new Error(`No existe el municipio requerido para la locación: ${loc.municipio}`);
+      }
+
+      const tipoEspacioId = resolveTipoEspacioId(loc.tipoEspacio);
+
+      await client.query(
+        `INSERT INTO admin_locaciones (nombre_lugar, municipio_id, tipo_espacio_id, observaciones, activo) VALUES ($1, $2, $3, $4, true)`,
+        [loc.nombre, municipioId, tipoEspacioId, loc.observaciones],
+      );
+    }
+    console.log(`${locacionesBoyaca.length} locaciones de Boyacá creadas.`);
+
+    // MAESTROS: Crear/limpiar comité técnico
+    console.log('\nRefrescando miembros del comité técnico...');
+    await client.query('DELETE FROM admin_comites_tecnicos');
+    const miembrosComite = [
+      { nombre: 'Catalina Morales Rodríguez', cargo: 'Directora', especialidad: 'Gestión Audiovisual Institucional' },
+      { nombre: 'Javier Herrera Castillo', cargo: 'Coordinador', especialidad: 'Producción Audiovisual y Logística' },
+      { nombre: 'María del Carmen Gómez López', cargo: 'Asesora', especialidad: 'Derecho Cultural y Regulación' },
+      { nombre: 'Fernando Ruiz Quintero', cargo: 'Asesor', especialidad: 'Desarrollo de Proyectos Audiovisuales' },
+      { nombre: 'Laura Vanessa Acosta Pérez', cargo: 'Coordinadora', especialidad: 'Registro y Trámites del Sector' },
+      { nombre: 'Roberto Sánchez Vargas', cargo: 'Director', especialidad: 'Incentivos Culturales y Fomento' },
+      { nombre: 'Patricia Jiménez Moreno', cargo: 'Especialista', especialidad: 'Contenidos Audiovisuales y Formación' },
+      { nombre: 'Carlos Alberto López Morales', cargo: 'Asesor', especialidad: 'Rodajes, Producción y Servicios Técnicos' },
+    ];
+    for (const miembro of miembrosComite) {
+      await client.query(
+        `INSERT INTO admin_comites_tecnicos (nombre, cargo, especialidad, activo) VALUES ($1, $2, $3, true)`,
+        [miembro.nombre, miembro.cargo, miembro.especialidad],
+      );
+    }
+    console.log(`${miembrosComite.length} miembros del comité técnico creados.`);
+
+    // MAESTROS: Crear proyectos realistas para pruebas
+    console.log('\nRefrescando proyectos demo...');
+    const tiposProduccionResult = await client.query(
+      'SELECT id, nombre FROM tipos_produccion WHERE nombre = ANY($1::text[])',
+      [['Documental', 'Comercial', 'Cortometraje', 'Serie', 'Institucional']],
+    );
+    const tipoProduccionIdByName = new Map(tiposProduccionResult.rows.map((row) => [String(row.nombre).toLowerCase(), row.id]));
+    const getTipoProduccionId = (nombre) => {
+      const tipoId = tipoProduccionIdByName.get(String(nombre).toLowerCase());
+      if (!tipoId) {
+        throw new Error(`No existe el tipo de producción requerido: ${nombre}`);
+      }
+      return tipoId;
+    };
+
+    const municipiosProyectos = await client.query(
+      'SELECT id, nombre FROM municipios WHERE nombre = ANY($1::text[])',
+      [['Tunja', 'Duitama', 'Sogamoso', 'Villa de Leyva', 'Paipa']],
+    );
+    const municipioIdByProjectName = new Map(municipiosProyectos.rows.map((row) => [String(row.nombre).toLowerCase(), row.id]));
+
+    const productora = await client.query('SELECT id FROM usuarios WHERE email = $1 LIMIT 1', ['valeria.ramirez@luminafilms.co']);
+    const productoraId = productora.rows[0]?.id;
+
+    if (productoraId) {
+      const proyectos = [
+        {
+          nombre_proyecto: 'Documental: Tradiciones de Boyacá',
+          tipo_produccion: 'Documental',
+          estado_proyecto: 'en_produccion',
+          sinopsis: 'Documental sobre tradiciones culturales, oficios y memoria viva del departamento.',
+          municipio: 'Tunja',
+          presupuesto_total: 50000000,
+          fecha_inicio_prevista: '2026-05-15',
+          fecha_fin_prevista: '2026-07-30',
+        },
+        {
+          nombre_proyecto: 'Comercial: Boyacá es Cultura',
+          tipo_produccion: 'Comercial',
+          estado_proyecto: 'completado',
+          sinopsis: 'Campaña promocional del turismo cultural con enfoque institucional y regional.',
+          municipio: 'Villa de Leyva',
+          presupuesto_total: 35000000,
+          fecha_inicio_prevista: '2026-04-01',
+          fecha_fin_prevista: '2026-04-20',
+        },
+        {
+          nombre_proyecto: 'Cortometraje: El Sueño de Sofía',
+          tipo_produccion: 'Cortometraje',
+          estado_proyecto: 'preproduccion',
+          sinopsis: 'Ficción sobre una productora joven que busca rodar su primer proyecto en Boyacá.',
+          municipio: 'Duitama',
+          presupuesto_total: 25000000,
+          fecha_inicio_prevista: '2026-06-10',
+          fecha_fin_prevista: '2026-08-15',
+        },
+        {
+          nombre_proyecto: 'Serie Digital: Historias de Tunja',
+          tipo_produccion: 'Serie',
+          estado_proyecto: 'preproduccion',
+          sinopsis: 'Serie web de ocho episodios sobre relatos urbanos, patrimonio y personajes locales.',
+          municipio: 'Tunja',
+          presupuesto_total: 120000000,
+          fecha_inicio_prevista: '2026-07-01',
+          fecha_fin_prevista: '2026-10-15',
+        },
+        {
+          nombre_proyecto: 'Producción de Servicios: Cobertura Evento MINCA',
+          tipo_produccion: 'Institucional',
+          estado_proyecto: 'completado',
+          sinopsis: 'Grabación y edición de un evento cultural con entregables institucionales para difusión.',
+          municipio: 'Paipa',
+          presupuesto_total: 18000000,
+          fecha_inicio_prevista: '2026-05-05',
+          fecha_fin_prevista: '2026-05-12',
+        },
+      ];
+
+      for (const proy of proyectos) {
+        const municipioId = municipioIdByProjectName.get(String(proy.municipio).toLowerCase());
+        if (!municipioId) {
+          throw new Error(`No existe el municipio requerido para el proyecto: ${proy.municipio}`);
+        }
+
+        await client.query(
+          `INSERT INTO proyectos (usuario_id, tipo_produccion_id, nombre_proyecto, sinopsis, municipio_principal_id, fecha_inicio_prevista, fecha_fin_prevista, presupuesto_total, estado_proyecto) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
+          [
+            productoraId,
+            getTipoProduccionId(proy.tipo_produccion),
+            proy.nombre_proyecto,
+            proy.sinopsis,
+            municipioId,
+            proy.fecha_inicio_prevista,
+            proy.fecha_fin_prevista,
+            proy.presupuesto_total,
+            proy.estado_proyecto,
+          ],
+        );
+      }
+      console.log(`${proyectos.length} proyectos demo creados para la productora.`);
+    } else {
+      console.log('No se encontró la productora demo para crear proyectos.');
+    }
+
     await client.query('COMMIT');
-    console.log('\nCuentas demo sembradas correctamente.');
-    console.log('Credenciales de prueba:');
+    console.log('\n✅ Base de datos sembrada correctamente con datos profesionales.');
+    console.log('\n📊 RESUMEN DE DATOS:');
+    console.log('- 4 cuentas demo activas (admin, productora, proveedor, academia)');
+    console.log('- 12 locaciones de Boyacá registradas');
+    console.log('- 8 miembros del comité técnico');
+    console.log('- 5 proyectos demo para pruebas');
+    console.log('\n🔐 Credenciales de prueba:');
     console.log('- admin@pufab.gov.co / Admin2026!');
     console.log('- valeria.ramirez@luminafilms.co / Prod2026!');
     console.log('- contacto@andescine.co / Prov2026!');
