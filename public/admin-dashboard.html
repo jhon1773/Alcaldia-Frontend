@@ -620,6 +620,20 @@
       </div>
     </div>
 
+      <!-- MODAL: PREVISUALIZAR RECIBO DE PAGO -->
+      <div id="modalReciboPago" class="modal">
+        <div class="modal-content" style="max-width:900px; width:95%;">
+          <h3>Previsualizar Recibo de Pago (Demo)</h3>
+          <div style="margin-bottom:1rem; display:flex; gap:0.5rem;">
+            <button class="btn-small" onclick="downloadRecibo(currentReciboId)">Descargar PDF</button>
+            <button class="btn-cancel" onclick="cerrarModal('modalReciboPago')">Cerrar</button>
+          </div>
+          <div style="height:680px;">
+            <iframe id="reciboIframe" src="about:blank" style="width:100%; height:100%; border: none;"></iframe>
+          </div>
+        </div>
+      </div>
+
     <script src="/api-client.js"></script>
     <script>
       // ========== SETUP ==========
@@ -942,7 +956,7 @@
               <td><span class="badge badge-${(p.estado || 'pending').toLowerCase()}">${p.estado || 'Pendiente'}</span></td>
               <td>
                 <div class="btn-group">
-                  <button class="btn-small btn-view" onclick="alert('Gestionar pago #${p.id}')">Gestionar</button>
+                  <button class="btn-small btn-view" onclick="openReciboModal(${p.id})">Ver recibo</button>
                 </div>
               </td>
             </tr>
@@ -951,6 +965,32 @@
             .join('');
         } catch (error) {
           tbody.innerHTML = `<tr><td colspan="6" style="color: red;">Error: ${error.message}</td></tr>`;
+        }
+      }
+
+      let currentReciboId = null;
+      function openReciboModal(pagoId) {
+        currentReciboId = pagoId;
+        const iframe = document.getElementById('reciboIframe');
+        if (iframe) iframe.src = `/pagos/${pagoId}/recibo-demo`;
+        document.getElementById('modalReciboPago').classList.add('active');
+      }
+
+      async function downloadRecibo(pagoId) {
+        try {
+          const resp = await fetch(`/pagos/${pagoId}/recibo-demo`);
+          if (!resp.ok) throw new Error('No se pudo descargar el recibo');
+          const blob = await resp.blob();
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = `recibo-${pagoId}.pdf`;
+          document.body.appendChild(a);
+          a.click();
+          a.remove();
+          URL.revokeObjectURL(url);
+        } catch (err) {
+          alert('Error descargando PDF: ' + err.message);
         }
       }
 

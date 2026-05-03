@@ -5,6 +5,8 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import * as crypto from 'crypto';
 import * as fs from 'fs';
+import { Response } from 'express';
+import { createReadStream } from 'fs';
 import { Documento } from './entities/documento.entity';
 
 @Injectable()
@@ -81,5 +83,22 @@ export class DocumentosService {
     });
 
     return { mensaje: `Documento ${estadoValidacion} exitosamente` };
+  }
+
+  // Descarga un documento
+  async descargarDocumento(documentoId: number, res: Response) {
+    const documento = await this.documentosRepo.findOne({ where: { id: documentoId, activo: true } });
+    if (!documento) throw new NotFoundException('Documento no encontrado');
+
+    const filePath = documento.ruta_archivo;
+    if (!fs.existsSync(filePath)) {
+      throw new NotFoundException('Archivo no encontrado en servidor');
+    }
+
+    res.setHeader('Content-Type', documento.mime_type || 'application/octet-stream');
+    res.setHeader('Content-Disposition', `attachment; filename="${documento.nombre_original}"`);
+
+    const stream = createReadStream(filePath);
+    stream.pipe(res);
   }
 }

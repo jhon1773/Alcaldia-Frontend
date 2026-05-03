@@ -464,8 +464,10 @@ async function main() {
       'Villa de Leyva',
       'Aquitania',
       'Paipa',
-      'Santa María',
-      'Zipaquirá',
+      'Ráquira',
+      'Monguí',
+      'Chiquinquirá',
+      'Nobsa',
     ];
     const municipiosResult = await client.query(
       'SELECT id, nombre FROM municipios WHERE nombre = ANY($1::text[])',
@@ -496,40 +498,40 @@ async function main() {
         tipoEspacio: ['patrimonial', 'urbano', 'centro urbano', 'historico'],
       },
       {
-        nombre: 'Catedral de Santiago de Tunja',
-        observaciones: 'Monumento histórico y religioso con valor arquitectónico y ceremonial.',
+        nombre: 'Pozo de Donato',
+        observaciones: 'Sitio patrimonial urbano, reconocido por su valor histórico y turístico en Tunja.',
+        municipio: 'Tunja',
+        tipoEspacio: ['patrimonial', 'historico', 'urbano'],
+      },
+      {
+        nombre: 'Catedral Basílica Metropolitana Santiago de Tunja',
+        observaciones: 'Monumento histórico y religioso de gran valor arquitectónico y ceremonial.',
         municipio: 'Tunja',
         tipoEspacio: ['patrimonial', 'religioso', 'urbano'],
       },
       {
-        nombre: 'Plaza de Bolívar',
-        observaciones: 'Espacio público central ideal para eventos institucionales y culturales.',
-        municipio: 'Tunja',
-        tipoEspacio: ['urbano', 'plaza', 'publico'],
-      },
-      {
-        nombre: 'Zona Industrial de Duitama',
-        observaciones: 'Parque industrial con infraestructura moderna y accesos logísticos amplios.',
+        nombre: 'Pueblito Boyacense',
+        observaciones: 'Conjunto arquitectónico representativo de municipios de Boyacá, ideal para escenas costumbristas.',
         municipio: 'Duitama',
-        tipoEspacio: ['industrial', 'urbano'],
+        tipoEspacio: ['patrimonial', 'urbano', 'turistico'],
       },
       {
-        nombre: 'Centro Comercial Sogamoso',
-        observaciones: 'Zona de comercio y servicios con alto flujo de visitantes.',
-        municipio: 'Sogamoso',
-        tipoEspacio: ['comercial', 'urbano'],
+        nombre: 'Lago Sochagota',
+        observaciones: 'Cuerpo de agua con entorno paisajístico y oferta turística consolidada.',
+        municipio: 'Paipa',
+        tipoEspacio: ['natural', 'hidrico', 'turistico'],
       },
       {
-        nombre: 'Parque La Raya',
-        observaciones: 'Espacio verde con vista panorámica y condiciones para rodajes al aire libre.',
-        municipio: 'Sogamoso',
-        tipoEspacio: ['natural', 'parque', 'urbano'],
-      },
-      {
-        nombre: 'Puente de Sopó',
-        observaciones: 'Puente histórico con valor patrimonial y entorno rural cercano.',
-        municipio: 'Villa de Leyva',
+        nombre: 'Pantano de Vargas',
+        observaciones: 'Sitio histórico nacional con monumento y amplios paisajes para rodaje exterior.',
+        municipio: 'Paipa',
         tipoEspacio: ['patrimonial', 'historico', 'rural'],
+      },
+      {
+        nombre: 'Plaza Mayor de Villa de Leyva',
+        observaciones: 'Plaza colonial emblemática, referencia visual del patrimonio boyacense.',
+        municipio: 'Villa de Leyva',
+        tipoEspacio: ['patrimonial', 'urbano', 'historico'],
       },
       {
         nombre: 'Laguna de Tota',
@@ -538,35 +540,43 @@ async function main() {
         tipoEspacio: ['natural', 'paisaje natural', 'rural'],
       },
       {
-        nombre: 'Mina de Sal de Zipaquirá',
-        observaciones: 'Entorno patrimonial de interés regional con alto potencial de locación.',
-        municipio: 'Zipaquirá',
-        tipoEspacio: ['patrimonial', 'historico', 'turistico'],
+        nombre: 'Monasterio de La Candelaria',
+        observaciones: 'Conjunto histórico-religioso en entorno rural, de alto valor escénico.',
+        municipio: 'Ráquira',
+        tipoEspacio: ['patrimonial', 'religioso', 'rural'],
       },
       {
-        nombre: 'Casco Urbano de Villa de Leyva',
-        observaciones: 'Pueblo colonial con valor turístico, patrimonial y cinematográfico.',
-        municipio: 'Villa de Leyva',
+        nombre: 'Basílica de Nuestra Señora del Rosario',
+        observaciones: 'Templo patrimonial de referencia regional para escenas religiosas y urbanas.',
+        municipio: 'Chiquinquirá',
+        tipoEspacio: ['patrimonial', 'religioso', 'urbano'],
+      },
+      {
+        nombre: 'Centro Histórico de Monguí',
+        observaciones: 'Pueblo patrimonial con arquitectura colonial y espacios públicos tradicionales.',
+        municipio: 'Monguí',
         tipoEspacio: ['patrimonial', 'urbano', 'historico'],
       },
       {
-        nombre: 'Peña Blanca',
-        observaciones: 'Formación rocosa con potencial cinematográfico y paisaje natural destacado.',
-        municipio: 'Santa María',
-        tipoEspacio: ['natural', 'paisaje natural', 'rural'],
+        nombre: 'Parque Principal de Nobsa',
+        observaciones: 'Entorno urbano tradicional con actividad artesanal y cultural permanente.',
+        municipio: 'Nobsa',
+        tipoEspacio: ['urbano', 'publico', 'turistico'],
       },
       {
-        nombre: 'Embalse de La Colorada',
-        observaciones: 'Reserva de agua con paisaje natural y atractivo para registros de exterior.',
-        municipio: 'Paipa',
-        tipoEspacio: ['natural', 'hidrico', 'rural'],
+        nombre: 'Plaza 6 de Septiembre',
+        observaciones: 'Espacio céntrico de Sogamoso con dinámica institucional y comercial.',
+        municipio: 'Sogamoso',
+        tipoEspacio: ['urbano', 'plaza', 'publico'],
       },
     ];
 
+    let locacionesCreadas = 0;
     for (const loc of locacionesBoyaca) {
       const municipioId = municipioIdByName.get(String(loc.municipio).toLowerCase());
       if (!municipioId) {
-        throw new Error(`No existe el municipio requerido para la locación: ${loc.municipio}`);
+        console.warn(`No existe el municipio requerido para la locación y se omitirá: ${loc.municipio}`);
+        continue;
       }
 
       const tipoEspacioId = resolveTipoEspacioId(loc.tipoEspacio);
@@ -575,8 +585,9 @@ async function main() {
         `INSERT INTO admin_locaciones (nombre_lugar, municipio_id, tipo_espacio_id, observaciones, activo) VALUES ($1, $2, $3, $4, true)`,
         [loc.nombre, municipioId, tipoEspacioId, loc.observaciones],
       );
+      locacionesCreadas += 1;
     }
-    console.log(`${locacionesBoyaca.length} locaciones de Boyacá creadas.`);
+    console.log(`${locacionesCreadas} locaciones de Boyacá creadas.`);
 
     // MAESTROS: Crear/limpiar comité técnico
     console.log('\nRefrescando miembros del comité técnico...');
@@ -602,14 +613,25 @@ async function main() {
     // MAESTROS: Crear proyectos realistas para pruebas
     console.log('\nRefrescando proyectos demo...');
     const tiposProduccionResult = await client.query(
-      'SELECT id, nombre FROM tipos_produccion WHERE nombre = ANY($1::text[])',
-      [['Documental', 'Comercial', 'Cortometraje', 'Serie', 'Institucional']],
+      'SELECT id, nombre FROM tipos_produccion',
     );
     const tipoProduccionIdByName = new Map(tiposProduccionResult.rows.map((row) => [String(row.nombre).toLowerCase(), row.id]));
+    const defaultTipoProduccionId = tiposProduccionResult.rows[0]?.id ?? null;
     const getTipoProduccionId = (nombre) => {
-      const tipoId = tipoProduccionIdByName.get(String(nombre).toLowerCase());
+      const key = String(nombre).toLowerCase();
+      const tipoId =
+        tipoProduccionIdByName.get(key) ||
+        tipoProduccionIdByName.get('comercial') ||
+        tipoProduccionIdByName.get('publicidad') ||
+        tipoProduccionIdByName.get('serie') ||
+        tipoProduccionIdByName.get('serie digital') ||
+        tipoProduccionIdByName.get('institucional') ||
+        defaultTipoProduccionId;
       if (!tipoId) {
-        throw new Error(`No existe el tipo de producción requerido: ${nombre}`);
+        throw new Error('No existen tipos de producción en catálogo para sembrar proyectos demo.');
+      }
+      if (!tipoProduccionIdByName.get(key)) {
+        console.warn(`No existe el tipo de producción "${nombre}"; se usará un tipo disponible por defecto.`);
       }
       return tipoId;
     };

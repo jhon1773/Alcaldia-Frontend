@@ -61,7 +61,10 @@ export class TramitesService {
       where: { id },
       relations: [
         'estado_tramite', 'tipo_tramite', 'proyecto',
-        'locaciones', 'equipo_tecnico', 'historial',
+        'usuario_solicitante',
+        'locaciones', 'locaciones.tipo_espacio', 'locaciones.municipio',
+        'equipo_tecnico', 'equipo_tecnico.rol_equipo_tecnico',
+        'historial', 'historial.estado_anterior', 'historial.estado_nuevo', 'historial.usuario_actor',
       ],
     });
     if (!tramite) throw new NotFoundException(`Trámite #${id} no encontrado`);

@@ -2336,6 +2336,27 @@ export class AppController {
     return { ok: true, id: Number(id) };
   }
 
+  @Post('portal/admin/comites/:id/eliminar')
+  async eliminarPortalAdminComite(@Param('id') id: string) {
+    await this.ensureAdminComitesTable();
+
+    const [existing] = await this.dataSource.query(
+      `SELECT id FROM admin_comites_tecnicos WHERE id = $1::int LIMIT 1`,
+      [id],
+    );
+
+    if (!existing?.id) {
+      return { ok: false, message: 'No se encontró el miembro del comité.' };
+    }
+
+    await this.dataSource.query(
+      `DELETE FROM admin_comites_tecnicos WHERE id = $1::int`,
+      [id],
+    );
+
+    return { ok: true, id: Number(id) };
+  }
+
   @Get('portal/admin/finanzas')
   async getPortalAdminFinanzas() {
     const [metrics] = await this.dataSource.query(`

@@ -75,4 +75,16 @@ export class AdminController {
   async eliminarPerfil(@Param('id', ParseIntPipe) id: number) {
     return this.perfilesService.eliminarPerfil(id);
   }
+
+  @Post('perfiles')
+  @ApiOperation({
+    summary: 'Crear un perfil de proveedor para un usuario existente',
+    description: 'Admin crea un perfil de proveedor para un usuario existente que se verá en el sistema.',
+  })
+  @ApiResponse({ status: 201, description: 'Perfil creado exitosamente.' })
+  async crearPerfilProveedor(
+    @Body() data: { email: string; telefono?: string; sitio_web?: string; descripcion?: string },
+  ) {
+    return this.perfilesService.crearPerfilProveedorAdmin(data);
+  }
 }

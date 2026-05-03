@@ -839,6 +839,33 @@
         line-height: 1.55;
       }
 
+      .register-tabs {
+        display: inline-grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 8px;
+        padding: 6px;
+        margin-bottom: 16px;
+        border-radius: 18px;
+        background: rgba(255, 255, 255, 0.04);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+      }
+
+      .register-tab {
+        border: 0;
+        cursor: pointer;
+        padding: 11px 16px;
+        border-radius: 14px;
+        background: transparent;
+        color: var(--muted);
+        font: inherit;
+        font-weight: 700;
+      }
+
+      .register-tab.active {
+        background: rgba(146, 201, 55, 0.12);
+        color: #e9f39d;
+      }
+
       .steps {
         display: grid;
         gap: 18px;
@@ -1033,30 +1060,6 @@
             <div class="registro-pill" id="approvalPill">Productora en revisión</div>
           </div>
 
-          <div class="stepper">
-            <div class="stepper-track">
-              <div class="step-node active" data-step="0">
-                <div class="step-chip">1</div>
-                <span>Acceso</span>
-              </div>
-              <div class="step-node" data-step="1">
-                <div class="step-chip">2</div>
-                <span>Tipo</span>
-              </div>
-              <div class="step-node" data-step="2">
-                <div class="step-chip">3</div>
-                <span>Detalles</span>
-              </div>
-              <div class="step-node" data-step="3">
-                <div class="step-chip">4</div>
-                <span>Confirmar</span>
-              </div>
-            </div>
-            <div class="progress-line">
-              <div></div>
-            </div>
-          </div>
-
           <form id="signupForm" class="steps" novalidate>
             <!-- STEPPER VISUAL -->
             <div class="stepper">
@@ -1110,7 +1113,7 @@
                 </label>
                 <label class="field">
                   <span>Tiempo operando en el sector</span>
-                  <select name="tiempo_operando_sector_id" data-catalog="tiemposOperandoSector"></select>
+                  <select name="tiempo_operando_sector_id" data-catalog="rangosExperienciaSector"></select>
                 </label>
                 <label class="field" style="grid-column: 1 / -1;">
                   <span>Descripción de la productora *</span>
@@ -1246,15 +1249,15 @@
                 </label>
                 <label class="field">
                   <span>De dónde provienen tus ingresos</span>
-                  <select name="ingresos_provienen_sector_id" data-catalog="ingresosProvienen"></select>
+                  <select name="ingresos_provienen_sector_id" data-catalog="tiposIngresosSector"></select>
                 </label>
                 <label class="field">
                   <span>Equipos propios (tipo)</span>
-                  <select name="equipos_propios_tipo_id" data-catalog="equiposPropiosTipo"></select>
+                  <select name="equipos_propios_tipo_id" data-catalog="tiposPropiedadEquipos"></select>
                 </label>
                 <label class="field">
                   <span>Gama de equipos</span>
-                  <select name="gama_equipos_id" data-catalog="gamaEquipos"></select>
+                  <select name="gama_equipos_id" data-catalog="gamasEquipos"></select>
                 </label>
                 <label class="field">
                   <span>Rango de experiencia</span>
@@ -1433,7 +1436,7 @@
             </section>
 
             <!-- BOTONES DE NAVEGACIÓN -->
-            <div class="step-controls">
+            <div class="actions">
               <div class="left">
                 <button type="button" class="btn btn-ghost" id="backBtn">Atrás</button>
               </div>

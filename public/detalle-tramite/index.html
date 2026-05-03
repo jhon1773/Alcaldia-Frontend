@@ -381,14 +381,6 @@
           } catch (e) {
             console.log('Sin documentos');
           }
-
-          // Cargar pagos
-          try {
-            const pagos = await API_CLIENT.pagos.listarPorTramite(tramiteId);
-            renderPagos(pagos.data || pagos);
-          } catch (e) {
-            console.log('Sin pagos');
-          }
         } catch (error) {
           errorContainer.innerHTML = `<div class="error">❌ Error: ${error.message}</div>`;
           contentContainer.style.display = 'none';
@@ -413,7 +405,7 @@
                 <div class="info-grid">
                   <div class="info-item">
                     <strong>Solicitante</strong>
-                    <span>${tramite.usuario?.email || 'N/A'}</span>
+                    <span>${tramite.usuario_solicitante?.email || 'N/A'}</span>
                   </div>
                   <div class="info-item">
                     <strong>Proyecto</strong>
@@ -433,9 +425,9 @@
               <div class="detail-card">
                 <div class="tabs">
                   <button class="tab-btn active" data-tab="locaciones">📍 Locaciones (${(tramite.locaciones || []).length})</button>
-                  <button class="tab-btn" data-tab="equipo">🎥 Equipo Técnico (${(tramite.equipos_tecnicos || []).length})</button>
+                  <button class="tab-btn" data-tab="equipo">🎥 Equipo Técnico (${(tramite.equipo_tecnico || []).length})</button>
                   <button class="tab-btn" data-tab="documentos">📄 Documentos</button>
-                  <button class="tab-btn" data-tab="pagos">💳 Pagos</button>
+                  <button class="tab-btn" data-tab="validacion">🧾 Validación y Recibo</button>
                   <button class="tab-btn" data-tab="compromisos">✓ Compromisos</button>
                 </div>
 
@@ -449,7 +441,7 @@
                         <strong>${loc.tipo_espacio?.nombre || 'Locación'}</strong>
                         <p style="margin: 0.5rem 0 0; font-size: 13px;">
                           ${loc.direccion}<br>
-                          <small style="color: #768794;">${loc.municipio?.nombre || 'N/A'} • ${loc.departamento?.nombre || 'N/A'}</small>
+                          <small style="color: #768794;">${loc.municipio?.nombre || 'N/A'} • ${loc.municipio?.departamento || 'N/A'}</small>
                         </p>
                       </div>
                     `
@@ -461,14 +453,14 @@
                 <!-- TAB: EQUIPO TÉCNICO -->
                 <div class="tab-pane" id="tab-equipo">
                   <div class="equipment-list">
-                    ${(tramite.equipos_tecnicos || [])
+                    ${(tramite.equipo_tecnico || [])
                       .map(
                         (eq) => `
                       <div class="equipment-item">
-                        <strong>${eq.rol?.nombre || 'Rol'}</strong>
+                        <strong>${eq.rol_equipo_tecnico?.nombre || 'Rol'}</strong>
                         <p style="margin: 0.5rem 0 0; font-size: 13px;">
-                          ${eq.nombre_profesional}<br>
-                          <small style="color: #768794;">${eq.cedula || 'N/A'} • ${eq.especialidad?.nombre || 'N/A'}</small>
+                          ${eq.nombre_completo}<br>
+                          <small style="color: #768794;">${eq.identificacion || 'N/A'}</small>
                         </p>
                       </div>
                     `
@@ -482,9 +474,26 @@
                   <div id="documentosContainer" class="loading">Cargando documentos...</div>
                 </div>
 
-                <!-- TAB: PAGOS -->
-                <div class="tab-pane" id="tab-pagos">
-                  <div id="pagosContainer" class="loading">Cargando pagos...</div>
+                <!-- TAB: VALIDACIÓN Y RECIBO -->
+                <div class="tab-pane" id="tab-validacion">
+                  <div class="sidebar-card" style="margin-bottom: 1rem;">
+                    <h3 style="margin-bottom: 0.75rem;">Validación previa al pago</h3>
+                    <ul>
+                      <li>Revisa que la información del trámite sea correcta.</li>
+                      <li>Descarga el recibo para pagar en banco.</li>
+                      <li>Por ahora no se registran pagos dentro del aplicativo.</li>
+                    </ul>
+                  </div>
+
+                  <div class="sidebar-card">
+                    <h3 style="margin-bottom: 0.75rem;">Recibo bancario</h3>
+                    <p style="margin-top: 0; color: #4b5563; font-size: 13px;">
+                      Genera un PDF con los datos del trámite y el valor de referencia para pago.
+                    </p>
+                    <div class="action-buttons">
+                      <button class="btn-small btn-primary" onclick="downloadReciboTramite(${tramite.id})">📄 Descargar PDF</button>
+                    </div>
+                  </div>
                 </div>
 
                 <!-- TAB: COMPROMISOS -->
@@ -527,9 +536,9 @@
               <div class="sidebar-card">
                 <h3>Solicitante</h3>
                 <ul>
-                  <li>${tramite.usuario?.email || 'N/A'}</li>
-                  <li>Teléfono: ${tramite.usuario?.telefono || 'N/A'}</li>
-                  <li>Rol: ${tramite.usuario?.rol || 'productor'}</li>
+                  <li>${tramite.usuario_solicitante?.email || 'N/A'}</li>
+                  <li>Teléfono: ${tramite.usuario_solicitante?.telefono || 'N/A'}</li>
+                  <li>Rol: ${tramite.usuario_solicitante?.roles?.[0]?.nombre || 'productor'}</li>
                 </ul>
               </div>
 
@@ -573,36 +582,64 @@
                 Estado: <strong>${d.estado || 'Pendiente'}</strong> • ${new Date(d.fecha_creacion).toLocaleDateString('es-CO')}
               </div>
             </div>
-            <span class="status-badge status-${(d.estado || 'pendiente').toLowerCase()}">${d.estado || 'Pendiente'}</span>
+            <div style="display: flex; gap: 0.5rem;">
+              <span class="status-badge status-${(d.estado || 'pendiente').toLowerCase()}">${d.estado || 'Pendiente'}</span>
+              <button onclick="downloadDocumento(${d.id})" style="padding: 0.5rem 1rem; background: #0b3d91; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px; font-weight: 600;">📥 Descargar</button>
+            </div>
           </div>
         `
           )
           .join('');
       }
 
-      function renderPagos(pagos) {
-        const container = document.getElementById('pagosContainer');
-        if (!pagos || pagos.length === 0) {
-          container.innerHTML = '<p style="text-align: center; color: #768794;">Sin pagos registrados</p>';
-          return;
+      async function downloadReciboTramite(tramiteIdValue) {
+        try {
+          const token = localStorage.getItem('pufab_token');
+          const resp = await fetch(`/api/v1/tramites/${tramiteIdValue}/recibo-banco`, {
+            headers: token ? { Authorization: `Bearer ${token}` } : {},
+          });
+          if (!resp.ok) throw new Error('No se pudo descargar el recibo');
+          const blob = await resp.blob();
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = `recibo-tramite-${tramiteIdValue}.pdf`;
+          document.body.appendChild(a);
+          a.click();
+          a.remove();
+          URL.revokeObjectURL(url);
+        } catch (err) {
+          alert('Error descargando PDF: ' + err.message);
         }
+      }
 
-        container.innerHTML = pagos
-          .map(
-            (p) => `
-          <div class="payment-item">
-            <div>
-              <div>Pago ${p.tipo_pago || 'N/A'}</div>
-              <small style="color: #768794;">${new Date(p.fecha_creacion).toLocaleDateString('es-CO')}</small>
-            </div>
-            <div style="text-align: right;">
-              <div class="payment-amount">$${(p.monto || 0).toLocaleString('es-CO')}</div>
-              <small class="status-badge status-${(p.estado || 'pendiente').toLowerCase()}">${p.estado || 'Pendiente'}</small>
-            </div>
-          </div>
-        `
-          )
-          .join('');
+      async function downloadDocumento(docId) {
+        try {
+          const resp = await fetch(`/api/v1/documentos/${docId}/descargar`);
+          if (!resp.ok) throw new Error('No se pudo descargar el documento');
+          const blob = await resp.blob();
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = `documento-${docId}` + getExtensionFromContentType(resp.headers.get('content-type'));
+          document.body.appendChild(a);
+          a.click();
+          a.remove();
+          URL.revokeObjectURL(url);
+        } catch (err) {
+          alert('Error descargando documento: ' + err.message);
+        }
+      }
+
+      function getExtensionFromContentType(contentType) {
+        const types = {
+          'application/pdf': '.pdf',
+          'application/msword': '.doc',
+          'application/vnd.openxmlformats-officedocument.wordprocessingml.document': '.docx',
+          'image/jpeg': '.jpg',
+          'image/png': '.png',
+        };
+        return types[contentType] || '.bin';
       }
     </script>
   </body>

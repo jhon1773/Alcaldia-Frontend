@@ -233,4 +233,51 @@ export class PerfilesService {
       mensaje: 'Perfil eliminado correctamente',
     };
   }
+
+  // Crea un perfil de proveedor para un usuario existente (desde admin)
+  async crearPerfilProveedorAdmin(data: {
+    email: string;
+    telefono?: string;
+    sitio_web?: string;
+    descripcion?: string;
+  }) {
+    const usuario = await this.usuariosRepo.findOne({
+      where: { email: data.email },
+    });
+
+    if (!usuario) {
+      throw new NotFoundException(`Usuario con email ${data.email} no encontrado`);
+    }
+
+    // Verifica si el usuario ya tiene perfil
+    const perfilExistente = await this.perfilesProveedorRepo.findOne({
+      where: { usuario_id: usuario.id },
+    });
+
+    if (perfilExistente) {
+      throw new BadRequestException(`El usuario ${data.email} ya tiene un perfil creado`);
+    }
+
+    // Crea el nuevo perfil
+    const perfil = this.perfilesProveedorRepo.create();
+    perfil.usuario_id = usuario.id;
+    perfil.telefono = data.telefono || '';
+    perfil.sitio_web = data.sitio_web || '';
+    perfil.descripcion_perfil = data.descripcion || '';
+    perfil.estado = 'pendiente';
+    perfil.verificado = false;
+    perfil.activo = true;
+
+    await this.perfilesProveedorRepo.save(perfil);
+
+    return {
+      ok: true,
+      data: {
+        id: perfil.id,
+        email: usuario.email,
+        estado: perfil.estado,
+        mensaje: `Perfil creado exitosamente para ${usuario.email}`,
+      },
+    };
+  }
 }

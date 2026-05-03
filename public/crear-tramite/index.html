@@ -278,6 +278,10 @@
             </div>
             <div class="tramite-step">
               <div class="tramite-step-circle">4</div>
+              <div class="tramite-step-label">Documentos</div>
+            </div>
+            <div class="tramite-step">
+              <div class="tramite-step-circle">5</div>
               <div class="tramite-step-label">Compromisos</div>
             </div>
           </div>
@@ -320,6 +324,20 @@
               <div id="equipo-list" class="item-list"></div>
 
               <button type="button" class="add-btn" id="addEquipo">+ Agregar Rol Técnico</button>
+            </div>
+
+            <!-- DOCUMENTOS -->
+            <div class="tramite-section">
+              <h3>📁 Documentos Soporte</h3>
+              <p style="color: var(--muted); font-size: 13px; margin-bottom: 1rem;">Adjunta los documentos necesarios para tu solicitud (guión técnico, permisos, etc.)</p>
+
+              <div class="form-group" style="margin-bottom: 1rem;">
+                <label for="documentoInput">Selecciona archivos (PDF, DOC, DOCX, Images)</label>
+                <input type="file" id="documentoInput" multiple accept=".pdf,.doc,.docx,.jpg,.png,.jpeg" style="padding: 1rem; border: 2px dashed var(--green-700); cursor: pointer;" />
+              </div>
+
+              <button type="button" class="add-btn" id="addDocumento" style="margin-top: 0.5rem;">+ Agregar Documento</button>
+              <div id="documentos-list" class="item-list" style="margin-top: 1rem;"></div>
             </div>
 
             <!-- COMPROMISOS ÉTICOS -->
@@ -402,6 +420,7 @@
       let locaciones = [];
       let locacionesDisponibles = [];
       let equipoTecnico = [];
+      let documentos = [];
       const reservaLocacionPendiente = (() => {
         const params = new URLSearchParams(window.location.search);
         const fromQuery = params.get('locacion');
@@ -623,6 +642,53 @@
         renderEquipo();
       };
 
+      // Manejo de documentos
+      document.getElementById('addDocumento').addEventListener('click', (e) => {
+        e.preventDefault();
+        const input = document.getElementById('documentoInput');
+        if (input.files.length === 0) {
+          alert('Por favor selecciona al menos un archivo');
+          return;
+        }
+
+        for (let file of input.files) {
+          if (documentos.some((d) => d.name === file.name)) {
+            alert(`Archivo "${file.name}" ya fue agregado`);
+            continue;
+          }
+          documentos.push(file);
+        }
+
+        input.value = '';
+        renderDocumentos();
+      });
+
+      function renderDocumentos() {
+        const container = document.getElementById('documentos-list');
+        if (documentos.length === 0) {
+          container.innerHTML = '';
+          return;
+        }
+        container.innerHTML = documentos
+          .map(
+            (doc, idx) => `
+          <div class="item-card">
+            <div>
+              <strong>📄 ${doc.name}</strong>
+              <p style="margin: 0.25rem 0 0; font-size: 12px; color: var(--muted);">${(doc.size / 1024).toFixed(2)} KB</p>
+            </div>
+            <button type="button" onclick="removeDocumento(${idx})">Eliminar</button>
+          </div>
+        `
+          )
+          .join('');
+      }
+
+      window.removeDocumento = (idx) => {
+        documentos.splice(idx, 1);
+        renderDocumentos();
+      };
+
       // Enviar formulario
       form.addEventListener('submit', async (e) => {
         e.preventDefault();
@@ -685,7 +751,29 @@
             observaciones_generales: 'Solicitud creada desde formulario web.',
           };
 
+          // Crear trámite primero
           const result = await API_CLIENT.tramites.crear(data);
+
+          // Luego cargar documentos si existen
+          if (documentos.length > 0 && result?.id) {
+            const formData = new FormData();
+            documentos.forEach((doc) => {
+              formData.append('archivos', doc);
+            });
+
+            try {
+              const token = localStorage.getItem('pufab_token');
+              await fetch(`/api/v1/tramites/${result.id}/documentos`, {
+                method: 'POST',
+                headers: {
+                  'Authorization': `Bearer ${token}`,
+                },
+                body: formData,
+              });
+            } catch (docError) {
+              console.log('Aviso: documentos no cargados automáticamente', docError);
+            }
+          }
           const tramiteId = result?.id;
           const radicado = result?.numero_radicado || 'N/A';
 

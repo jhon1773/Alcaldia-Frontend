@@ -1,10 +1,12 @@
 import {
   Controller, Get, Post, Patch, Param, Body,
-  ParseIntPipe, UseGuards, UseInterceptors, UploadedFile,
+  ParseIntPipe, UseGuards, UseInterceptors, UploadedFile, Res,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
 import { extname } from 'path';
+import type { Response } from 'express';
+import { createReadStream } from 'fs';
 import {
   ApiTags, ApiOperation, ApiResponse, ApiBearerAuth,
   ApiParam, ApiConsumes, ApiBody,
@@ -94,5 +96,17 @@ export class DocumentosController {
     @Body('observaciones') observaciones?: string,
   ) {
     return this.documentosService.validarDocumento(id, adminId, estado, observaciones);
+  }
+
+  @Get(':id/descargar')
+  @ApiOperation({ summary: 'Descargar documento', description: 'Descarga el archivo del documento por su ID.' })
+  @ApiParam({ name: 'id', description: 'ID del documento' })
+  @ApiResponse({ status: 200, description: 'Archivo del documento descargado.' })
+  @ApiResponse({ status: 404, description: 'Documento no encontrado.' })
+  async descargar(
+    @Param('id', ParseIntPipe) id: number,
+    @Res() res: Response,
+  ) {
+    return this.documentosService.descargarDocumento(id, res);
   }
 }
