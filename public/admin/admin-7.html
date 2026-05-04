@@ -1,8 +1,22 @@
-<!doctype html>
 <!--
-  Descripción: Página HTML del frontend del proyecto.
--->
+  ADMIN-7.HTML — PANEL ADMINISTRATIVO: FINANZAS Y RESERVAS
 
+  RESPONSABILIDADES:
+  1. Mostrar las métricas financieras del período: ingresos del mes, pendientes,
+     reembolsos y cantidad de trámites activos
+  2. Listar los proyectos recientes con radicado, productora, locación, monto y estado
+
+  FUNCIONALIDADES:
+  - Formateo de valores monetarios en COP con Intl.NumberFormat
+  - Manejo de error con mensaje y botón de reintento si el endpoint falla
+  - Clasificación visual del estado de cada reserva (Pagado, Reembolsado, Pendiente)
+
+  INTEGRACIÓN:
+  - GET /api/v1/portal/admin/finanzas → Métricas financieras y listado de reservas recientes
+  - route-guard.js protege el acceso a la página por rol admin
+  - nav-session.js y sidebar-slider.js gestionan sesión y sidebar en móvil
+-->
+<!doctype html>
 <html lang="es">
   <head>
     <script src='/route-guard.js'></script><meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" /><title>PUFAB - Admin | Finanzas y Reservas</title><link rel="stylesheet" href="/styles.css" /></head>

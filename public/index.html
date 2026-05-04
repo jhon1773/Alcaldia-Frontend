@@ -1,8 +1,34 @@
-<!doctype html>
 <!--
-  Descripción: Página HTML del frontend del proyecto.
+  INDEX.HTML — PÁGINA DE INICIO P.U.F.A.B.
+  RESPONSABILIDADES:
+  1. Presentar la propuesta de valor de la Comisión Fílmica de Boyacá al visitante
+  2. Mostrar los servicios ofrecidos, locaciones destacadas y noticias recientes
+  3. Proveer información de contacto con mapa interactivo de Google Maps
+  4. Ofrecer acceso directo al directorio, trámites y ventanilla única
+  SECCIONES:
+  - gov-header:   Barra institucional con logo GOV.CO y enlaces a entidades
+  - site-nav:     Navegación principal con anclas internas y botones de acción
+  - #inicio:      Hero con imagen de fondo, headline, llamadas a acción y estadísticas clave
+                  (50+ locaciones, 120+ producciones, 15 municipios, 48h respuesta)
+  - .services:    Grilla de 8 tarjetas de servicios: scouting, trámites, talento, equipamiento,
+                  logística, locaciones privadas, asesoría legal y consultoría
+  - #conocenos:   Sección "Quiénes somos" con imagen, descripción institucional y lista de ventajas
+  - #locaciones:  Grilla de locaciones destacadas con enlace al directorio completo
+  - #noticias:    Noticia principal destacada y lista de 3 noticias secundarias
+  - #contacto:    Datos de contacto (teléfono, correo, dirección, horario) y mapa de Google Maps
+  - site-footer:  Pie de página con navegación, servicios, contacto y redes sociales
+  MAPA:
+  - Inicializado con Google Maps API apuntando a la Gobernación de Boyacá (lat 5.5262, lng -72.3014)
+  - Marcador personalizado con el logo de PUFAB
+  - Se inicializa en DOMContentLoaded o inmediatamente si el DOM ya está listo
+  INTEGRACIÓN:
+  - Google Maps API → https://maps.googleapis.com/maps/api/js (cargada en el head)
+  SCRIPTS:
+  - /api-client.js  → Cliente HTTP centralizado (disponible para extensiones futuras)
+  - /nav-session.js → Manejo de sesión y estado del menú de navegación
+  - Inline          → Inicialización del mapa de Google Maps en la sección de contacto
 -->
-
+<!doctype html>
 <html lang="es">
   <head>
     <meta charset="UTF-8" />

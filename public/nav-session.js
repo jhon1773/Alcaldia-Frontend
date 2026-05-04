@@ -1,7 +1,41 @@
 /**
- * Descripción: Archivo TypeScript del proyecto NestJS.
-  */
-
+ * NAV-SESSION.JS — GESTIÓN DE SESIÓN Y NAVEGACIÓN GLOBAL P.U.F.A.B.
+ * RESPONSABILIDADES:
+ * 1. Parchear window.fetch para redirigir peticiones /api/ a localhost:3000 en desarrollo
+ * 2. Activar el modo demo mediante query param (?demo=1) o localStorage, e interceptar
+ *    peticiones GET a /api/v1/portal/* devolviendo datos de muestra cuando la API falla o retorna vacío
+ * 3. Reemplazar imágenes de Figma por assets locales mediante un mapa de IDs conocidos
+ * 4. Renderizar los enlaces de navegación según el estado de sesión y rol del usuario
+ * 5. Mostrar u ocultar los botones de "Cerrar sesión" / "Ventanilla Única" según el rol activo
+ * 6. Inyectar una burbuja de perfil fija (posición fixed) con avatar, nombre y rol del usuario
+ * MÓDULO 1 — FETCH PATCH Y MODO DEMO:
+ * - fetchWithApiFallback: reintenta peticiones /api/ contra localhost:3000 si reciben 404 o fallan
+ * - resolveDemoMode(): lee ?demo= de la URL o localStorage['pufab_demo_mode'] para activar el modo
+ * - demoByPath: objeto con payloads de muestra indexados por ruta de API para los portales de
+ *   productor, proveedor, académico y administrador
+ * - Intercepta solo GET a /api/v1/portal/*; los métodos POST/PATCH/etc. pasan al fetch real
+ * - Usa el dato demo solo si la API falla, retorna error o devuelve un payload vacío
+ * MÓDULO 2 — FALLBACK DE IMÁGENES FIGMA:
+ * - figmaAssetMap: mapeo de IDs de asset de Figma a rutas de assets locales
+ * - fallbackFigmaImage(): reemplaza el src de imágenes Figma por el asset local correspondiente
+ *   al cargarse o al disparar el evento error
+ * MÓDULO 3 — NAVEGACIÓN Y SESIÓN:
+ * - Lee localStorage['pufab_session'] para determinar si el usuario está autenticado y su rol
+ * - roleMap: mapea cada rol (producer, provider, academy, admin) a su label y ruta de portal
+ * - Reconstruye los enlaces de #navLinks adaptando el enlace final según sesión activa o no
+ * - Marca el enlace activo comparando pathname y hash actuales con la ruta de cada enlace
+ * - Actualiza .portal-user con el nombre del usuario o "Invitado"
+ * - En .nav-cta inyecta "Cerrar sesión" + enlace al portal si hay sesión,
+ *   o "Ingresar" + "Ventanilla Única" si no la hay
+ * - Agrega botón de cerrar sesión junto a .portal-user en vistas de portal
+ * BURBUJA DE PERFIL:
+ * - Se inyecta como botón fixed en la esquina superior derecha si el usuario está autenticado
+ * - Muestra avatar (img o inicial con gradiente), nombre y label del rol
+ * - Al hacer clic redirige a /perfil/
+ * SESIÓN:
+ * - localStorage['pufab_session'] → loggedIn, role, name, avatarUrl y demás datos de sesión
+ * - localStorage['pufab_demo_mode'] → '1' activa el modo demo; '0' lo desactiva explícitamente
+ */
 (function () {
   if (window.__pufabPortalFetchPatched) return;
   window.__pufabPortalFetchPatched = true;

@@ -1,8 +1,26 @@
-<!doctype html>
 <!--
-  Descripción: Página HTML del frontend del proyecto.
+  PROVEEDOR-2.HTML — PORTAFOLIO DEL PROVEEDOR P.U.F.A.B.
+  RESPONSABILIDADES:
+  1. Mostrar los servicios publicados del proveedor con nombre y precio en COP
+  2. Presentar la galería de trabajos previos con imágenes y títulos
+  3. Ofrecer acceso directo a la creación de nuevos proyectos
+  SECCIONES:
+  - portal-sidebar:      Navegación lateral del portal de proveedor (activo: Portafolio)
+  - portafolioContent:   Contenedor dinámico con encabezado, servicios y galería de imágenes
+  FLUJO:
+  1. route-guard.js verifica sesión activa
+  2. init() llama a API_CLIENT.portal.proveedor.portafolio() y renderiza el contenido
+  3. En caso de error se muestra mensaje con enlace a crear proyecto
+  INTEGRACIÓN:
+  - API_CLIENT.portal.proveedor.portafolio()  → nombre, rol, descripcion, servicios[], galeria[]
+  SCRIPTS:
+  - /route-guard.js    → Protección de ruta
+  - /api-client.js     → Cliente HTTP con métodos del portal de proveedor
+  - /nav-session.js    → Manejo de sesión y menú de navegación
+  - /sidebar-slider.js → Comportamiento responsive del sidebar lateral
+  - Inline             → Lógica de render y manejo de errores
 -->
-
+<!doctype html>
 <html lang="es">
   <head>
     <script src='/route-guard.js'></script>

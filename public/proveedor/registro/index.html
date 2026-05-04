@@ -1,3 +1,50 @@
+<!--
+  REGISTRO-PROVEEDOR.HTML — VISTA DE REGISTRO DE PROVEEDOR P.U.F.A.B.
+  RESPONSABILIDADES:
+  1. Guiar al proveedor a través de un flujo de registro en 4 pasos con validación por paso
+  2. Soportar dos tipos de persona (natural y jurídica) con secciones de campos independientes
+  3. Cargar catálogos del backend para poblar los selectores del formulario
+  4. Permitir guardar un borrador en localStorage y recuperarlo al reabrir la página
+  5. Enviar el registro a la API y redirigir al login con aviso de cuenta pendiente
+  SECCIONES:
+  - gov-header:       Barra institucional con logo GOV.CO y enlaces a entidades
+  - site-nav:         Navegación principal con menú responsive
+  - register-rail:    Panel lateral fijo con descripción del flujo y características clave
+  - register-card:    Tarjeta principal con stepper, tabs de tipo de persona y pasos del formulario
+  - site-footer:      No presente; página de registro sin footer
+  PASOS DEL FORMULARIO:
+  - Paso 1 (Acceso):      Correo, teléfono, contraseña y confirmación de contraseña
+  - Paso 2 (Perfil base): Municipio, nivel educativo, dedicación, experiencia y descripción del servicio
+  - Paso 3 (Detalles):    Datos específicos según tipo de persona (natural o jurídica)
+  - Paso 4 (Confirmación): Resumen del registro, checkboxes de términos y envío final
+  SECCIÓN PERSONA NATURAL (Paso 3):
+  - Identificación, nombre completo, fecha de nacimiento, municipio, dirección,
+    sexo al nacer, identidad de género y tipo de producción en la que participa
+  SECCIÓN PERSONA JURÍDICA (Paso 3):
+  - Razón social, NIT, tipo de entidad, representante legal (datos completos),
+    municipio, correo institucional, objeto social, áreas de trabajo, proyectos,
+    público objetivo, registros culturales, redes y documentos adjuntos (PDF/imagen)
+  FLUJO:
+  1. loadCatalogs() carga todos los selectores con datos reales del backend vía API_CLIENT.catalogos
+  2. El usuario selecciona el tipo de persona; se muestra la sección correspondiente en el paso 3
+  3. nextBtn valida el paso actual antes de avanzar; backBtn retrocede sin validar
+  4. saveDraftBtn serializa el estado actual del formulario en localStorage['pufab_provider_draft']
+  5. Al iniciar la página se restaura el borrador si existe en localStorage
+  6. Al enviar se llama a API_CLIENT.auth.register(payload) con todos los datos del formulario
+  7. Tras registro exitoso se redirige a /iniciar-sesion/?registered=1
+  BORRADOR:
+  - localStorage['pufab_provider_draft']    → Objeto con los valores del formulario para restaurar
+  - localStorage['pufab_new_user_email']    → Correo del usuario recién registrado
+  - localStorage['pufab_new_user_nombre']   → Nombre o razón social del usuario recién registrado
+  INTEGRACIÓN:
+  - API_CLIENT.catalogos.*                  → Municipios, niveles educativos, tipos de identificación,
+                                              sexos, géneros, tipos de entidad y demás catálogos
+  - API_CLIENT.auth.register(payload)       → POST de registro con tipo_persona, rolSolicitado y
+                                              perfilNatural o perfilJuridica según corresponda
+  SCRIPTS:
+  - /api-client.js  → Cliente HTTP con métodos de autenticación y catálogos
+  - Inline          → Lógica completa de stepper, tabs, catálogos, validación, borrador y envío
+-->
 <!doctype html>
 <html lang="es">
   <head>

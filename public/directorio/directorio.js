@@ -1,7 +1,32 @@
 /**
- * Descripción: Archivo TypeScript del proyecto NestJS.
-  */
-
+ * DIRECTORIO.JS — LÓGICA DEL DIRECTORIO PÚBLICO DE PROVEEDORES P.U.F.A.B.
+ * RESPONSABILIDADES:
+ * 1. Mantener el estado global de la página (página actual, filtros, ítems cargados)
+ * 2. Consumir la API para cargar categorías y proveedores del directorio
+ * 3. Renderizar chips de filtro rápido, selector de subcategorías y tarjetas de proveedor
+ * 4. Aplicar búsqueda textual en cliente sobre los ítems ya cargados en pantalla
+ * 5. Gestionar la paginación y actualizar el resumen de resultados
+ * ESTADO (state):
+ * - page, limit        → Página actual y cantidad de ítems por página
+ * - subcategoria       → ID de subcategoría activa como filtro
+ * - search             → Texto de búsqueda aplicado en cliente
+ * - items              → Proveedores cargados en la página actual
+ * - total, lastPage    → Totales devueltos por la API para la paginación
+ * - categories         → Árbol de categorías/subcategorías para los filtros
+ * FUNCIONES PRINCIPALES:
+ * - bootstrap()        → Inicializa eventos y lanza la carga de categorías y directorio
+ * - loadCategories()   → GET /api/v1/perfiles/categorias → puebla selector y chips
+ * - loadDirectory()    → GET /api/v1/perfiles/proveedores/directorio → puebla la grilla
+ * - renderCards()      → Genera el HTML de cada tarjeta aplicando el filtro de búsqueda
+ * - renderCategories() → Puebla el <select> de subcategorías con las opciones de la API
+ * - renderQuickFilters()→ Genera los chips de filtro rápido (máx. 5 subcategorías)
+ * - updateSummary()    → Actualiza contadores de resultados, páginas y filtros activos
+ * - matchesSearch()    → Filtra un ítem contra el texto de búsqueda en cliente
+ * - bindEvents()       → Registra todos los listeners de UI (búsqueda, paginación, filtros)
+ * INTEGRACIÓN:
+ * - GET /api/v1/perfiles/categorias                                        → Árbol de categorías
+ * - GET /api/v1/perfiles/proveedores/directorio?page=&limit=&subcategoria= → Listado paginado
+ */
 const state = {
   page: 1,
   limit: 12,

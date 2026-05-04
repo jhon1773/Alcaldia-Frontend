@@ -1,8 +1,24 @@
-<!doctype html>
 <!--
-  Descripción: Página HTML del frontend del proyecto.
--->
+  ACADEMICO-INDEX.HTML — PORTAL ACADÉMICO: MI PANEL
 
+  RESPONSABILIDADES:
+  1. Mostrar el panel principal de bienvenida del usuario académico
+  2. Presentar métricas clave: producciones, tutoriales, pasantías y documentos
+  3. Proveer accesos rápidos a las secciones del portal según la acción solicitada
+
+  SECCIONES:
+  - Hero:             Mensaje de bienvenida institucional
+  - Métricas:         Producciones 2024, tutoriales, pasantías activas y documentos legales
+  - Acciones rápidas: Links a Observatorio, Capacitación y Pasantías
+  - Mis aplicaciones: Estado de las solicitudes de pasantía del usuario
+
+  INTEGRACIÓN:
+  - Consume API_CLIENT.portal.academico.panel() del cliente API compartido
+  - Las acciones rápidas se resuelven en el mapa quickActionRoutes dentro del script
+  - route-guard.js protege el acceso a la página por rol
+  - nav-session.js y sidebar-slider.js gestionan sesión y sidebar en móvil
+-->
+<!doctype html>
 <html lang="es">
   <head>
     <script src='/route-guard.js'></script>

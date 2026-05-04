@@ -1,8 +1,35 @@
-<!doctype html>
 <!--
-  Descripción: Página HTML del frontend del proyecto.
--->
+  DASHBOARD.HTML — DASHBOARD PERSONAL DEL USUARIO (PRODUCTOR)
 
+  RESPONSABILIDADES:
+  1. Proveer una vista centralizada de proyectos, trámites, documentos y pagos del usuario
+  2. Permitir navegar entre las cuatro vistas mediante el menú lateral con carga diferida
+  3. Mostrar estadísticas rápidas de proyectos (total, borradores, en trámite, finalizados)
+  4. Ofrecer accesos directos a la creación de proyectos, trámites, documentos y pagos
+
+  VISTAS:
+  - Proyectos:   Grilla de tarjetas con título, estado, tipo de producción, presupuesto
+                 y acciones de Ver/Editar
+  - Trámites:    Tarjetas con radicado, estado, proyecto asociado, municipio y fecha
+  - Documentos:  Listado de documentos agrupados por trámite con nombre, tipo y hash
+  - Pagos:       Listado de pagos por trámite con monto, tipo y fecha
+
+  COMPORTAMIENTO:
+  - La vista de proyectos se carga automáticamente al iniciar la página
+  - Las demás vistas se cargan de forma diferida al hacer clic en el botón del menú
+  - Documentos y pagos se obtienen iterando sobre los trámites del usuario y
+    consultando el endpoint correspondiente por cada uno
+
+  INTEGRACIÓN:
+  - API_CLIENT.proyectos.listar(1, 50)                   → Vista de proyectos
+  - API_CLIENT.tramites.listar(1, 50)                    → Vista de trámites y base para
+                                                            documentos y pagos
+  - API_CLIENT.documentos.listarPorTramite(tramiteId)    → Vista de documentos
+  - API_CLIENT.pagos.listarPorTramite(tramiteId)         → Vista de pagos
+  - API_CLIENT.clearSession()                            → Cierre de sesión desde el nav
+  - route-guard.js protege el acceso a la página por rol
+-->
+<!doctype html>
 <html lang="es">
   <head>
     <meta charset="UTF-8" />

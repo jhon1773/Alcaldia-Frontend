@@ -1,8 +1,42 @@
-<!doctype html>
 <!--
-  Descripción: Página HTML del frontend del proyecto.
+  MI-PERFIL.HTML — VISTA DE PERFIL DE USUARIO AUTENTICADO P.U.F.A.B.
+  RESPONSABILIDADES:
+  1. Mostrar y permitir editar la información básica del usuario autenticado
+  2. Gestionar la carga y actualización de la foto de perfil
+  3. Presentar la ficha de datos según el tipo de persona (natural o jurídica)
+  4. Permitir cerrar sesión y limpiar los datos de la sesión en localStorage
+  SECCIONES:
+  - gov-header:     Barra institucional con logo GOV.CO y enlaces a entidades
+  - site-nav:       Navegación principal con menú responsive
+  - profileRoot:    Contenedor dinámico donde se inyecta toda la UI del perfil
+  - site-footer:    Pie de página con enlaces y datos de contacto
+  LAYOUT DEL PERFIL (generado dinámicamente en profileRoot):
+  - hero-card:      Título y descripción de la sección
+  - side-card:      Avatar, nombre, chips de rol/estado, uploader de foto y botón de cierre de sesión
+  - panel-card:     Datos de cuenta (correo, teléfono, tipo de persona, último acceso),
+                    biografía, formulario de edición y ficha de perfil (natural o jurídica)
+  FICHA POR TIPO DE PERSONA:
+  - Natural:        Documento, municipio, nivel educativo, discapacidad, inglés hablado/escrito
+  - Jurídica:       Razón social, NIT, representante legal, tipo de entidad, municipio, correo institucional
+  FLUJO:
+  1. route-guard.js verifica que exista sesión activa; si no, redirige a /iniciar-sesion/
+  2. cargarPerfil() llama a GET /api/v1/auth/me con el token y renderiza la UI completa
+  3. El formulario de edición llama a PATCH /api/v1/auth/me para actualizar teléfono y biografía
+  4. El uploader de foto llama a POST /api/v1/auth/me/foto con multipart/form-data
+  5. Tras cada actualización exitosa se recarga el perfil y se sincroniza localStorage
+  SESIÓN:
+  - localStorage['pufab_token']   → Token Bearer usado en todas las peticiones autenticadas
+  - localStorage['pufab_session'] → Objeto de sesión; se actualiza al guardar foto o datos del perfil
+  INTEGRACIÓN:
+  - GET   /api/v1/auth/me          → Datos completos del usuario autenticado
+  - PATCH /api/v1/auth/me          → Actualiza teléfono y biografía del usuario
+  - POST  /api/v1/auth/me/foto     → Sube nueva foto de perfil (multipart/form-data, campo: foto)
+  SCRIPTS:
+  - /route-guard.js  → Protección de ruta; redirige si no hay sesión válida
+  - /nav-session.js  → Manejo de sesión y estado del menú de navegación
+  - Inline           → Lógica completa de carga, render, edición, foto y cierre de sesión
 -->
-
+<!doctype html>
 <html lang="es">
   <head>
     <script src="/route-guard.js"></script>

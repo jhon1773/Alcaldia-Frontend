@@ -1,8 +1,44 @@
-<!doctype html>
 <!--
-  Descripción: Página HTML del frontend del proyecto.
+  TEST-OPERATIONS.HTML — CENTRO DE PRUEBAS DE ENDPOINTS P.U.F.A.B.
+  RESPONSABILIDADES:
+  1. Proveer una interfaz interactiva para probar todos los endpoints del backend por módulo
+  2. Renderizar dinámicamente los casos de prueba según el módulo seleccionado en el sidebar
+  3. Ejecutar peticiones a la API mostrando el resultado (éxito o error) en formato JSON
+  4. Permitir limpiar resultados individuales y alternar la visibilidad de cada caso de prueba
+  SECCIONES:
+  - gov-header:    Barra institucional con logo GOV.CO y enlaces a entidades
+  - site-nav:      Navegación con botón de cierre de sesión
+  - test-sidebar:  Menú lateral con 8 módulos: Usuarios, Proyectos, Trámites, Documentos,
+                   Pagos, Catálogos, Entidades y Registro
+  - test-main:     Área dinámica donde se renderizan las tarjetas de prueba del módulo activo
+  MÓDULOS Y ENDPOINTS DEFINIDOS:
+  - Usuarios:    GET listar, GET mi perfil
+  - Proyectos:   GET listar, POST crear (título, descripción)
+  - Trámites:    GET listar, POST crear (proyecto_id, descripción)
+  - Documentos:  GET listar por trámite (tramite_id), PATCH validar (doc_id, estado)
+  - Pagos:       GET listar por trámite (tramite_id), POST registrar (tramite_id, monto, tipo)
+  - Catálogos:   GET listar, GET obtener por tipo
+  - Entidades:   GET listar, POST crear (nombre, sigla)
+  - Registro:    GET listar solicitudes, PATCH revisar solicitud (solicitud_id, estado, observaciones)
+  FLUJO:
+  1. Al seleccionar un módulo en el sidebar se llama a renderTests() que genera las tarjetas
+  2. Cada tarjeta muestra el nombre del endpoint, badge de método HTTP e indicador de estado
+  3. Al hacer clic en la cabecera de la tarjeta se expande/colapsa el panel de prueba
+  4. Si el endpoint requiere parámetros (needsForm: true) se renderizan inputs por cada campo
+  5. El botón "Ejecutar" llama a runTest() que invoca el método correspondiente de API_CLIENT
+  6. El resultado se muestra coloreado: azul (cargando), verde (éxito), rojo (error)
+  NOTA:
+  - Esta página es una herramienta exclusiva de desarrollo; no está enlazada desde el flujo
+    de usuario final
+  INTEGRACIÓN:
+  - API_CLIENT.*  → Todos los módulos: usuarios, proyectos, tramites, documentos,
+                    pagos, catalogos, entidades, registro
+  - API_CLIENT.clearSession() → Cierre de sesión desde el nav
+  SCRIPTS:
+  - /api-client.js → Cliente HTTP centralizado
+  - Inline         → Lógica de menú, render de tests, ejecución y manejo de resultados
 -->
-
+<!doctype html>
 <html lang="es">
   <head>
     <meta charset="UTF-8" />

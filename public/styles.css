@@ -1,8 +1,68 @@
 /*
- * Descripción: Hoja de estilos global para el frontend.
- * Propósito: Definir variables CSS, layout, tipografía y componentes visuales.
-  */
-
+ * STYLES.CSS — HOJA DE ESTILOS GLOBAL P.U.F.A.B.
+ * RESPONSABILIDADES:
+ * 1. Definir las variables CSS globales de color, tipografía, radio y sombra del sistema
+ * 2. Establecer el reset base y los estilos tipográficos de html, body y enlaces
+ * 3. Proveer los estilos compartidos por todas las vistas del proyecto
+ * VARIABLES (:root):
+ * - --green-900, --green-700  → Colores primarios institucionales
+ * - --yellow                  → Color de acento (bandera)
+ * - --text, --muted           → Tonos de texto principal y secundario
+ * - --bg-soft, --white        → Fondos de sección
+ * - --radius, --shadow        → Radio de borde y sombra estándar
+ * COMPONENTES GLOBALES:
+ * - .gov-header / .flag-strip → Barra institucional con franja de la bandera colombiana
+ * - .site-nav                 → Navegación principal sticky con backdrop blur
+ * - .brand / .btn             → Marca y botones (primary, ghost, glass, light)
+ * - .pill                     → Etiqueta de categoría o sección
+ * - .container                → Wrapper centrado de ancho máximo 1280px
+ * SECCIONES DE LA HOME:
+ * - .hero                     → Hero a pantalla completa con imagen de fondo, overlay y fade
+ * - .stats-grid               → Grilla de 4 estadísticas en el hero
+ * - .service-grid / .card     → Grilla de 8 servicios con tarjetas hover
+ * - .about-grid               → Layout de 2 columnas con imagen inclinada y panel de texto
+ * - .location-grid            → Grilla de locaciones con tarjeta grande (col-span 2)
+ * - .news-grid                → Noticia destacada + lista de 3 noticias secundarias
+ * - .contact-grid             → Información de contacto + mapa
+ * - .site-footer              → Pie de página en 4 columnas con redes sociales
+ * DIRECTORIO:
+ * - .directory-hero-grid      → Layout de 2 columnas: copy + panel de filtros
+ * - .directory-layout         → Sidebar de filtros + área de resultados
+ * - .directory-grid           → Grilla de 3 columnas de tarjetas de proveedores
+ * - .directory-item           → Tarjeta con media placeholder, badge, nombre y footer
+ * - .filter-chip              → Chip de filtro rápido con estado activo
+ * AUTENTICACIÓN:
+ * - .auth-card                → Tarjeta centrada de login/registro
+ * - .auth-tabs                → Selector de rol con indicador deslizante animado (CSS var --tab-index)
+ * - .auth-banner              → Banner informativo del rol seleccionado
+ * - .auth-form                → Formulario con inputs, toggle de contraseña y meta row
+ * PORTAL (sidebar + contenido):
+ * - .portal-shell             → Layout de 2 columnas: sidebar 240px + contenido
+ * - .portal-sidebar           → Sidebar con indicador deslizante animado (CSS vars --slider-y, --slider-height)
+ *                               Variantes: .admin-sidebar (azul) y .academico-sidebar (cyan)
+ * - .portal-content           → Área principal de contenido del portal
+ * - .portal-metrics           → Grilla de 4 tarjetas de métricas
+ * - .portal-card              → Tarjeta genérica de sección del portal
+ * - .portal-permit            → Fila de permiso con badge de estado y barra de progreso
+ * - .status-badge             → Badge de estado (warning, success, danger)
+ * - .timeline                 → Barra de progreso en 4 pasos
+ * PORTAL PROVEEDOR:
+ * - .provider-header / .services-list / .provider-gallery
+ * - .provider-table / .provider-messages / .providers-grid / .provider-card / .provider-tags
+ * PORTAL ACADÉMICO:
+ * - .academico-sidebar / .academico-metrics / .academico-courses / .academico-resource-grid
+ * - .academico-bars / .academico-trend / .academico-list / .academico-vacante
+ * PORTAL ADMINISTRADOR:
+ * - .admin-metrics / .admin-actions / .admin-table / .admin-bars / .admin-kpis
+ * - .admin-notif-list / .admin-stack / .switch (toggle booleano)
+ * CATÁLOGO Y DIRECTORIO DE PORTAL:
+ * - .catalog-toolbar / .catalog-grid / .catalog-card
+ * - .providers-grid / .portal-tabs / .portal-counter / .portal-stack
+ * RESPONSIVE (max-width: 1080px):
+ * - Colapsa todas las grillas de 2-4 columnas a 1 columna
+ * - Oculta .gov-links y .nav-cta; muestra .menu-toggle con menú desplegable
+ * - Adapta hero, about, news, contact, footer y todos los portales a móvil
+ */
 :root {
   --green-900: #004d08;
   --green-700: #009300;

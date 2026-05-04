@@ -1,8 +1,18 @@
-<!doctype html>
 <!--
-  Descripción: Página HTML del frontend del proyecto.
+  PRODUCTOR-1.HTML — REDIRECCIÓN AUTOMÁTICA A LA VENTANILLA ÚNICA P.U.F.A.B.
+  RESPONSABILIDADES:
+  1. Redirigir inmediatamente al usuario hacia /tramites/ mediante meta refresh
+  2. Proveer un enlace de respaldo visible en caso de que la redirección automática falle
+  FLUJO:
+  1. route-guard.js verifica sesión activa antes de ejecutar la redirección
+  2. El meta http-equiv="refresh" redirige a /tramites/ con un retraso de 0 segundos
+  3. El enlace canónico apunta a /tramites/ para evitar contenido duplicado en buscadores
+  SCRIPTS:
+  - /route-guard.js    → Protección de ruta
+  - /nav-session.js    → Manejo de sesión
+  - /sidebar-slider.js → Incluido por consistencia con el resto del portal
 -->
-
+<!doctype html>
 <html lang="es">
   <head>
     <script src='/route-guard.js'></script>

@@ -1,8 +1,25 @@
-<!doctype html>
 <!--
-  Descripción: Página HTML del frontend del proyecto.
--->
+  ACADEMICO-5.HTML — PORTAL ACADÉMICO: RECURSOS Y BIBLIOTECA
 
+  RESPONSABILIDADES:
+  1. Mostrar las tres categorías de recursos disponibles para el usuario académico:
+     documentos legales, tutoriales en video y estadísticas del sector
+  2. Consumir el endpoint GET /portal/academico/recursos para obtener totales y descripciones
+  3. Ofrecer accesos directos a las secciones del portal relacionadas con cada categoría
+
+  SECCIONES:
+  - Documentos Legales → redirige al Observatorio (academico-2.html)
+  - Tutoriales en Video → redirige a Capacitación (academico-3.html)
+  - Estadísticas        → redirige al Observatorio (academico-2.html)
+
+  INTEGRACIÓN:
+  - Consume API_CLIENT.portal.academico.recursos() del cliente API compartido
+  - Usa /styles.css para los estilos del portal institucional
+  - route-guard.js protege el acceso a la página por rol
+  - nav-session.js actualiza la sesión del usuario en la barra de navegación
+  - sidebar-slider.js gestiona el comportamiento del sidebar en móvil
+-->
+<!doctype html>
 <html lang="es">
   <head>
     <script src='/route-guard.js'></script>

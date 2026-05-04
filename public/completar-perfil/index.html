@@ -1,8 +1,34 @@
-<!doctype html>
 <!--
-  Descripción: Página HTML del frontend del proyecto.
--->
+ — FORMULARIO DE COMPLETACIÓN DE PERFIL (PASO 2 DE 2)
 
+  RESPONSABILIDADES:
+  1. Permitir al usuario recién registrado completar su perfil como persona natural o jurídica
+  2. Cargar los catálogos dinámicos necesarios para poblar los selectores del formulario
+  3. Enviar los datos del perfil al backend y crear la solicitud de registro para aprobación
+
+  PESTAÑAS:
+  - Persona Natural:  Tipo y número de identificación, teléfono, género, nivel educativo,
+                      municipio de residencia y dirección
+  - Persona Jurídica: Razón social, NIT, tipo de organización, contacto principal, teléfono,
+                      municipio de operación, dirección y descripción de la empresa
+
+  FLUJO:
+  1. El usuario selecciona el tipo de perfil mediante las pestañas
+  2. Completa el formulario correspondiente y lo envía
+  3. Se llama a completarPerfilNatural o completarPerfilJuridica según el tipo activo
+  4. Tras completar el perfil se crea automáticamente la solicitud de registro
+  5. El usuario es redirigido a /iniciar-sesion/ con estado pendiente de aprobación
+
+  INTEGRACIÓN:
+  - API_CLIENT.catalogos.tiposIdentificacion()  → Selector de tipo de documento
+  - API_CLIENT.catalogos.identidadesGenero()    → Selector de identidad de género
+  - API_CLIENT.catalogos.nivelesEducativos()    → Selector de nivel educativo
+  - API_CLIENT.catalogos.municipios()           → Selector de municipio (ambos formularios)
+  - API_CLIENT.usuarios.completarPerfilNatural() → Envío del perfil natural
+  - API_CLIENT.usuarios.completarPerfilJuridica() → Envío del perfil jurídico
+  - API_CLIENT.registro.crearSolicitud()        → Genera la solicitud de aprobación administrativa
+-->
+<!doctype html>
 <html lang="es">
   <head>
     <meta charset="UTF-8" />

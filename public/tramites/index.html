@@ -1,8 +1,34 @@
-<!doctype html>
 <!--
-  Descripción: Página HTML del frontend del proyecto.
+  TRAMITES-INDEX.HTML — PANEL PRINCIPAL DE LA VENTANILLA ÚNICA P.U.F.A.B.
+  RESPONSABILIDADES:
+  1. Mostrar métricas globales del productor: permisos activos, pendientes, en subsanación y total
+  2. Listar los 3 permisos más recientes con radicado, proyecto, locación y barra de progreso
+  3. Mostrar correcciones pendientes o aviso de flujo al día en la sección de próximos vencimientos
+  4. Ofrecer accesos rápidos a crear un nuevo permiso, explorar locaciones y buscar proveedores
+  SECCIONES:
+  - portal-sidebar:           Navegación lateral de la Ventanilla Única (activo: Mi panel)
+  - portal-metrics:           Tarjetas con contadores de permisos activos, pendientes,
+                              en subsanación y total de trámites
+  - panelPermisosRecientes:   Últimos 3 permisos con radicado, proyecto, locación,
+                              porcentaje de progreso y badge de estado
+  - Acciones Rápidas:         Botones directos a /crear-tramite/, catálogo de locaciones
+                              y directorio público de proveedores
+  - panelVencimientos:        Primeras 2 correcciones pendientes por trámite,
+                              o aviso de flujo al día si no hay ninguna
+  FLUJO:
+  1. route-guard.js verifica sesión activa; si no existe redirige a /iniciar-sesion/
+  2. cargarPanelProductora() llama a GET /api/v1/portal/productor/permisos
+  3. Se calculan las métricas contando permisos por estado sobre el array completo
+  4. Se renderizan los 3 permisos más recientes y las correcciones pendientes
+  INTEGRACIÓN:
+  - GET /api/v1/portal/productor/permisos  → Listado completo de permisos del productor
+  SCRIPTS:
+  - /route-guard.js    → Protección de ruta
+  - /nav-session.js    → Manejo de sesión y menú de navegación
+  - /sidebar-slider.js → Comportamiento responsive del sidebar lateral
+  - Inline             → Lógica de carga, cálculo de métricas, render de permisos y correcciones
 -->
-
+<!doctype html>
 <html lang="es">
   <head>
     <script src='/route-guard.js'></script>

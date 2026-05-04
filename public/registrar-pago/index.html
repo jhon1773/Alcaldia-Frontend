@@ -1,8 +1,41 @@
-<!doctype html>
 <!--
-  Descripción: Página HTML del frontend del proyecto.
+  REGISTRAR-PAGO.HTML — VISTA DE REGISTRO DE PAGO P.U.F.A.B.
+  RESPONSABILIDADES:
+  1. Permitir al usuario seleccionar un trámite y registrar un pago asociado a él
+  2. Soportar dos métodos de pago (transferencia y consignación) con campos específicos para cada uno
+  3. Gestionar la carga del comprobante de pago mediante clic o arrastrar y soltar
+  4. Validar todos los campos requeridos antes de enviar y mostrar alertas contextuales
+  5. Redirigir al detalle del trámite tras un registro exitoso
+  SECCIONES:
+  - gov-header:        Barra institucional con logo GOV.CO y enlaces a entidades
+  - site-nav:          Navegación con botón de cierre de sesión
+  - payment-card (1):  Encabezado con título, contenedor de alertas e info del trámite seleccionado
+  - payment-card (2):  Formulario completo de registro de pago
+  FORMULARIO:
+  - Selector de trámite     → Carga dinámica desde la API; muestra info del trámite y monto sugerido
+  - Monto a pagar           → Número en COP; se precompletado si el trámite tiene monto_derechos
+  - Tipo de pago            → Derechos de trámite, afianzamiento, abono a cuenta u otro
+  - Método de pago          → Transferencia (banco origen, cuenta, referencia, fecha)
+                               o Consignación (banco destino, cuenta destino, comprobante, fecha)
+  - Comprobante             → Archivo PDF/JPG/PNG máx. 5 MB; admite drag-and-drop y clic
+  - Notas                   → Campo opcional de texto libre
+  FLUJO:
+  1. cargarTramites() llama a API_CLIENT.tramites.listar() y puebla el selector
+  2. Al seleccionar un trámite se muestra su info (título, radicado, solicitante) y monto sugerido
+  3. El usuario elige método de pago; se muestran/ocultan los campos correspondientes
+  4. Al subir el comprobante se valida el tamaño (máx. 5 MB) y se muestra la vista previa del archivo
+  5. Al enviar se validan todos los campos, se llama a API_CLIENT.pagos.crear() y se redirige
+  6. El botón "Cerrar Sesión" llama a API_CLIENT.clearSession() y redirige al login
+  INTEGRACIÓN:
+  - API_CLIENT.tramites.listar(1, 100)          → Lista de trámites para el selector
+  - API_CLIENT.pagos.crear(tramiteId, payload)  → Registra el pago con todos los datos del formulario
+  - API_CLIENT.clearSession()                   → Cierre de sesión desde el nav
+  - Tras registro exitoso redirige a /detalle-tramite/?id={tramiteId}
+  SCRIPTS:
+  - /api-client.js → Cliente HTTP con métodos de trámites y pagos
+  - Inline         → Lógica de carga de trámites, upload, validación, envío y alertas
 -->
-
+<!doctype html>
 <html lang="es">
   <head>
     <meta charset="UTF-8" />

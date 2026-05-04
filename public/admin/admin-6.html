@@ -1,8 +1,25 @@
-<!doctype html>
 <!--
-  Descripción: Página HTML del frontend del proyecto.
--->
+  ADMIN-6.HTML — PANEL ADMINISTRATIVO: COMITÉS TÉCNICOS
 
+  RESPONSABILIDADES:
+  1. Listar los miembros del comité técnico con nombre, cargo, especialidad y estado
+  2. Agregar nuevos miembros desde un modal con validación de campos obligatorios
+  3. Activar o desactivar miembros con toggle inmediato en la tabla
+
+  MODAL:
+  - modalAgregarMiembro: Formulario con nombre, cargo, especialidad y estado inicial
+
+  FUNCIONALIDADES:
+  - Modal controlado por eventos click (abrir/cerrar) y tecla Escape
+  - Cierre del modal al hacer clic fuera del contenido (overlay click)
+  - Toggle de estado sin recarga completa de la página
+
+  INTEGRACIÓN:
+  - GET  /api/v1/portal/admin/comites             → Listado de miembros del comité
+  - POST /api/v1/portal/admin/comites             → Crear nuevo miembro
+  - POST /api/v1/portal/admin/comites/:id/toggle  → Activar o desactivar miembro
+-->
+<!doctype html>
 <html lang="es">
   <head>
     <script src='/route-guard.js'></script><meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" /><title>PUFAB - Admin | Comités Técnicos</title><link rel="stylesheet" href="/styles.css" /></head>

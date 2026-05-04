@@ -1,8 +1,34 @@
-<!doctype html>
 <!--
-  Descripción: Página HTML del frontend del proyecto.
--->
+  DETALLE-PROYECTO.HTML — VISTA DE DETALLE DE UN PROYECTO AUDIOVISUAL
 
+  RESPONSABILIDADES:
+  1. Mostrar la información completa de un proyecto audiovisual a partir del ?id= en la URL
+  2. Listar los trámites asociados al proyecto filtrados desde el listado general del usuario
+  3. Proveer acciones rápidas: crear un nuevo trámite vinculado y editar el proyecto
+
+  SECCIONES:
+  - Encabezado:         Título del proyecto e ID
+  - Información básica: Director, tipo de producción, municipio, presupuesto, fechas y duración
+  - Descripción:        Sinopsis o descripción libre del proyecto
+  - Equipo técnico:     Tamaño del equipo si está disponible
+  - Contacto:           Nombre y teléfono del contacto principal
+  - Trámites asociados: Lista de trámites del usuario filtrados por proyecto_id
+  - Sidebar:            Fechas de creación/actualización, datos del director y acciones
+
+  FLUJO:
+  1. Se lee el query param ?id= de la URL
+  2. Se llama a API_CLIENT.proyectos.obtener(id) para cargar el proyecto
+  3. Se llama a API_CLIENT.tramites.listar() y se filtran los trámites del proyecto
+  4. Se renderizan ambas secciones en el contenedor principal
+
+  INTEGRACIÓN:
+  - API_CLIENT.proyectos.obtener(proyectoId)  → Datos del proyecto
+  - API_CLIENT.tramites.listar(1, 100)        → Listado de trámites para filtrar por proyecto_id
+  - API_CLIENT.clearSession()                 → Cierre de sesión desde el nav
+  - El botón "Crear Trámite" redirige a /crear-tramite/?proyecto-id=<id>
+  - El botón "Volver" usa history.back() para regresar a la página anterior
+-->
+<!doctype html>
 <html lang="es">
   <head>
     <meta charset="UTF-8" />

@@ -1,8 +1,32 @@
-<!doctype html>
 <!--
-  Descripción: Página HTML del frontend del proyecto.
--->
+  DETALLE-TRAMITE.HTML — VISTA DE DETALLE DE UN TRÁMITE P.U.F.A.B.
 
+  RESPONSABILIDADES:
+  1. Mostrar la información completa de un trámite a partir del ?id= en la URL
+  2. Presentar locaciones, equipo técnico, documentos, pagos y compromisos en pestañas
+  3. Mostrar en el sidebar el estado actual, datos del solicitante y datos del proyecto
+
+  PESTAÑAS:
+  - Locaciones:     Lista de locaciones con tipo de espacio, dirección y municipio
+  - Equipo técnico: Roles técnicos con nombre del profesional, cédula y especialidad
+  - Documentos:     Archivos cargados con nombre, estado y fecha (cargados asincrónicamente)
+  - Pagos:          Pagos registrados con monto, tipo, fecha y estado (cargados asincrónicamente)
+  - Compromisos:    Lista fija de los 5 compromisos éticos aceptados al crear el trámite
+
+  FLUJO:
+  1. Se lee el query param ?id= de la URL
+  2. Se llama a API_CLIENT.tramites.obtener(id) para cargar el trámite completo
+  3. Se renderizan las pestañas con los datos del trámite
+  4. En paralelo se cargan documentos y pagos por tramiteId para poblar sus pestañas
+
+  INTEGRACIÓN:
+  - API_CLIENT.tramites.obtener(tramiteId)              → Datos completos del trámite
+  - API_CLIENT.documentos.listarPorTramite(tramiteId)   → Pestaña de documentos
+  - API_CLIENT.pagos.listarPorTramite(tramiteId)        → Pestaña de pagos
+  - API_CLIENT.clearSession()                           → Cierre de sesión desde el nav
+  - El botón "Volver" usa history.back() para regresar a la página anterior
+-->
+<!doctype html>
 <html lang="es">
   <head>
     <meta charset="UTF-8" />

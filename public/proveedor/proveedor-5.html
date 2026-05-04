@@ -1,8 +1,32 @@
-<!doctype html>
 <!--
-  Descripción: Página HTML del frontend del proyecto.
+  PROVEEDOR-5.HTML — MENSAJES DEL PROVEEDOR P.U.F.A.B.
+  RESPONSABILIDADES:
+  1. Mostrar la bandeja de mensajes del proveedor con título, fecha y texto de cada conversación
+  2. Permitir redactar y enviar un nuevo mensaje mediante prompts del navegador
+  3. Ofrecer enlace de respuesta por correo electrónico para cada mensaje recibido
+  SECCIONES:
+  - portal-sidebar:    Navegación lateral del portal de proveedor (activo: Mensajes)
+  - mensajesContent:   Contenedor dinámico con encabezado, conteo y listado de mensajes
+  NUEVO MENSAJE:
+  - El botón "Nuevo Mensaje" solicita título y texto vía prompt
+  - Llama a API_CLIENT.portal.proveedor.enviarMensaje() y recarga la bandeja al completar
+  RESPUESTA POR CORREO:
+  - Cada mensaje incluye un enlace mailto: que abre el cliente de correo con el asunto precompletado
+  FLUJO:
+  1. route-guard.js verifica sesión activa
+  2. init() llama a API_CLIENT.portal.proveedor.mensajes() y renderiza la bandeja
+  3. El botón "Nuevo Mensaje" llama a abrirNuevoMensaje() que usa prompts para capturar los datos
+  INTEGRACIÓN:
+  - API_CLIENT.portal.proveedor.mensajes()              → mensajes[] con titulo, fecha, texto
+  - API_CLIENT.portal.proveedor.enviarMensaje(titulo, texto) → Envía un nuevo mensaje
+  SCRIPTS:
+  - /route-guard.js    → Protección de ruta
+  - /api-client.js     → Cliente HTTP con métodos del portal de proveedor
+  - /nav-session.js    → Manejo de sesión y menú de navegación
+  - /sidebar-slider.js → Comportamiento responsive del sidebar lateral
+  - Inline             → Lógica de render, nuevo mensaje y manejo de errores
 -->
-
+<!doctype html>
 <html lang="es">
   <head>
     <script src='/route-guard.js'></script>

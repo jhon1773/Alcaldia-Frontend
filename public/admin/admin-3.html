@@ -1,8 +1,31 @@
-<!doctype html>
 <!--
-  Descripción: Página HTML del frontend del proyecto.
--->
+  ADMIN-3.HTML — PANEL ADMINISTRATIVO: VERIFICACIÓN DE PERFILES
 
+  RESPONSABILIDADES:
+  1. Listar los perfiles de proveedor pendientes de verificación
+  2. Aprobar, rechazar o eliminar perfiles desde la lista
+  3. Permitir crear un nuevo perfil de proveedor vinculado a un usuario existente por email
+  4. Mostrar el detalle completo de un perfil en un modal antes de tomar una decisión
+
+  MODALES:
+  - modalCrearPerfil:            Formulario con email, teléfono, sitio web y descripción
+  - modalDetallesVerificacion:   Vista detallada del perfil con todos sus campos y estado actual
+
+  FUNCIONALIDADES:
+  - Creación de perfil con validación de email existente en el sistema
+  - Modal de detalles construido dinámicamente si no existe en el DOM (ensureDetailsModal)
+  - Aprobación y rechazo con actualización inmediata del badge de estado
+  - Eliminación con confirmación window.confirm antes de proceder
+
+  INTEGRACIÓN:
+  - GET  /api/v1/portal/admin/verificacion            → Listado de perfiles
+  - GET  /api/v1/portal/admin/verificacion/:id        → Detalle de un perfil
+  - POST /api/v1/portal/admin/verificacion/perfiles   → Crear perfil de proveedor
+  - POST /api/v1/portal/admin/verificacion/:id/aprobar  → Aprobar perfil
+  - POST /api/v1/portal/admin/verificacion/:id/rechazar → Rechazar perfil
+  - POST /api/v1/portal/admin/verificacion/:id/eliminar → Eliminar perfil
+-->
+<!doctype html>
 <html lang="es">
   <head>
     <script src='/route-guard.js'></script><meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" /><title>PUFAB - Admin | Verificación</title><link rel="stylesheet" href="/styles.css" /></head>

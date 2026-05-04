@@ -1,8 +1,33 @@
-<!doctype html>
 <!--
-  Descripción: Página HTML del frontend del proyecto.
+  PRODUCTOR-4.HTML — DIRECTORIO DE PROVEEDORES DEL PRODUCTOR P.U.F.A.B.
+  RESPONSABILIDADES:
+  1. Mostrar el directorio de proveedores verificados con búsqueda y filtro por subcategoría
+  2. Presentar por cada proveedor: nombre, descripción, subcategorías, especialidades y botones de contacto
+  3. Permitir contactar al proveedor por correo electrónico o WhatsApp directamente desde la tarjeta
+  SECCIONES:
+  - portal-sidebar:     Navegación lateral del portal del productor (activo: Directorio de Proveedores)
+  - catalog-toolbar:    Buscador de texto, selector de subcategoría y contador de resultados
+  - providersGrid:      Grilla dinámica de tarjetas de proveedores con datos de contacto
+  FILTRADO EN CLIENTE:
+  - La búsqueda y el filtro por subcategoría operan sobre el array allProviders ya cargado en memoria
+  - applyFilters() combina ambos criterios y actualiza el contador de resultados
+  CONTACTO:
+  - Correo: enlace mailto con asunto y cuerpo precompletados
+  - WhatsApp: enlace wa.me con el mensaje precompletado; fallback a correo si no hay teléfono
+  FLUJO:
+  1. route-guard.js verifica sesión activa
+  2. bootstrap() carga categorías para el selector y luego los proveedores del directorio (máx. 50)
+  3. Cambios en el buscador o el selector disparan applyFilters() sobre los datos en memoria
+  INTEGRACIÓN:
+  - GET /api/v1/perfiles/categorias                                        → Árbol de categorías para el selector
+  - GET /api/v1/perfiles/proveedores/directorio?limit=50&page=1            → Listado de proveedores
+  SCRIPTS:
+  - /route-guard.js    → Protección de ruta
+  - /nav-session.js    → Manejo de sesión y menú de navegación
+  - /sidebar-slider.js → Comportamiento responsive del sidebar lateral
+  - Inline             → Lógica de carga, filtrado en cliente, render y enlaces de contacto
 -->
-
+<!doctype html>
 <html lang="es">
   <head>
     <script src='/route-guard.js'></script>

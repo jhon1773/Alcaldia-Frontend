@@ -1,8 +1,30 @@
-<!doctype html>
 <!--
-  Descripción: Página HTML del frontend del proyecto.
+  PRODUCTOR-3.HTML — CATÁLOGO DE LOCACIONES DEL PRODUCTOR P.U.F.A.B.
+  RESPONSABILIDADES:
+  1. Mostrar el catálogo de locaciones disponibles con imagen, tipo, provincia y precio por día
+  2. Permitir buscar locaciones por texto y filtrar por tipo y provincia
+  3. Iniciar la reserva de una locación redirigiendo al formulario de creación de trámite
+  SECCIONES:
+  - portal-sidebar:   Navegación lateral del portal del productor (activo: Catálogo de Locaciones)
+  - catalog-toolbar:  Buscador de texto, selector de tipo y selector de provincia
+  - catalogGrid:      Grilla dinámica de tarjetas de locación con imagen, datos y botón de reserva
+  RESERVA DE LOCACIÓN:
+  - Al hacer clic en "Reservar" se guarda el objeto de la locación en localStorage['pufab_reserva_locacion']
+  - Redirige a /crear-tramite/ con query params ?locacion= y ?nombre= precompletados
+  FLUJO:
+  1. route-guard.js verifica sesión activa
+  2. cargarLocaciones() llama a GET /api/v1/portal/productor/locaciones con los filtros activos
+  3. Cualquier cambio en el buscador o selectores dispara una nueva carga de locaciones
+  INTEGRACIÓN:
+  - GET /api/v1/portal/productor/locaciones?buscar=&tipo=&provincia=  → Locaciones filtradas
+  - localStorage['pufab_reserva_locacion']  → Datos de la locación seleccionada para el trámite
+  SCRIPTS:
+  - /route-guard.js    → Protección de ruta
+  - /nav-session.js    → Manejo de sesión y menú de navegación
+  - /sidebar-slider.js → Comportamiento responsive del sidebar lateral
+  - Inline             → Lógica de carga, filtros, render y reserva de locación
 -->
-
+<!doctype html>
 <html lang="es">
   <head>
     <script src='/route-guard.js'></script>

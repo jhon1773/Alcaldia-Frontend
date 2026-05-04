@@ -1,8 +1,25 @@
-<!doctype html>
 <!--
-  Descripción: Página HTML del frontend del proyecto.
--->
+  ADMIN-8.HTML — PANEL ADMINISTRATIVO: ESTADÍSTICAS Y KPIs
 
+  RESPONSABILIDADES:
+  1. Visualizar la trazabilidad diaria de registros y trámites en un calendario heatmap interactivo
+  2. Mostrar barras de permisos procesados e ingresos mensuales por mes
+  3. Listar costos y abonos recientes, estados de trámite y actividad por usuario
+  4. Presentar los indicadores clave: tiempo de respuesta, satisfacción, aprobados y cancelaciones
+
+  FUNCIONALIDADES:
+  - Selector de rango (7, 30, 90 días) que recarga los datos del endpoint
+  - Calendario heatmap con niveles de color según volumen de actividad diaria
+  - Hover sobre días del calendario que actualiza el pill de fecha seleccionada
+  - Tooltip enriquecido en cada celda con registros, trámites, costo y abono del día
+  - Helpers: buildCalendar, heatLevel, bars, dailyBars, tableRows, normalizeDayMap
+
+  INTEGRACIÓN:
+  - GET /api/v1/portal/admin/kpis?dias=N → Trazabilidad, costos, estados, actividad e indicadores
+  - route-guard.js protege el acceso a la página por rol admin
+  - nav-session.js y sidebar-slider.js gestionan sesión y sidebar en móvil
+-->
+<!doctype html>
 <html lang="es">
   <head>
     <script src='/route-guard.js'></script><meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" /><title>PUFAB - Admin | Estadísticas y KPIs</title><link rel="stylesheet" href="/styles.css" /></head>

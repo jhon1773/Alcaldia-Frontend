@@ -1,7 +1,42 @@
 /**
- * Descripción: Archivo TypeScript del proyecto NestJS.
-  */
-
+ * SCRIPTS/SEED-DEMO.JS — SEMBRADO DE DATOS DE DEMOSTRACIÓN P.U.F.A.B.
+ * RESPONSABILIDADES:
+ * 1. Crear o actualizar las 4 cuentas demo del sistema (admin, productora, proveedor, académico)
+ * 2. Limpiar y recrear locaciones, miembros del comité técnico y proyectos de prueba
+ * 3. Eliminar datos dependientes y perfiles que no correspondan a las cuentas demo activas
+ * 4. Ejecutar todo dentro de una transacción PostgreSQL con ROLLBACK en caso de error
+ * USO:
+ * - Ejecutar desde la raíz del proyecto: node scripts/seed-demo.js
+ * VARIABLES DE ENTORNO REQUERIDAS (.env):
+ * - DB_HOST, DB_PORT, DB_USERNAME, DB_PASSWORD, DB_DATABASE
+ * CUENTAS DEMO CREADAS (upsert por email):
+ * - admin@pufab.gov.co / Admin2026!              → Rol: admin       | Persona natural
+ * - valeria.ramirez@luminafilms.co / Prod2026!  → Rol: solicitante  | Persona natural
+ * - contacto@andescine.co / Prov2026!           → Rol: proveedor    | Persona jurídica
+ * - coordinacion@universidadboyaca.edu.co / Acad2026! → Rol: académico | Persona natural
+ * DATOS MAESTROS RECREADOS:
+ * - 12 locaciones de Boyacá en municipios de Tunja, Villa de Leyva, Duitama, Sogamoso,
+ *   Aquitania, Paipa, Santa María y Zipaquirá con tipo de espacio resuelto desde catálogo
+ * - 8 miembros del comité técnico con nombre, cargo y especialidad
+ * - 5 proyectos demo asignados a la productora: documental, comercial, cortometraje,
+ *   serie digital e institucional; con municipio, presupuesto y fechas de rodaje
+ * LIMPIEZA PREVIA (en orden de dependencias):
+ * - tramite_locaciones, tramite_equipo_tecnico, tramite_entidades, historial_tramite,
+ *   tramites, proyectos, perfiles de proveedor/productora/académico, documentos, pagos,
+ *   solicitudes_registro y usuarios no demo con estado activo
+ * FLUJO:
+ * 1. Carga .env y conecta a PostgreSQL
+ * 2. Inicia transacción BEGIN
+ * 3. Resuelve IDs de estados de cuenta, tipos de perfil y roles desde catálogos
+ * 4. Hace upsert de cada usuario demo con hash bcrypt (10 rondas) y asigna su rol
+ * 5. Inserta o actualiza personas_naturales o personas_juridicas según tipo_persona
+ * 6. Limpia datos dependientes y perfiles no demo
+ * 7. Recrea locaciones, comité técnico y proyectos demo
+ * 8. COMMIT si todo es exitoso; ROLLBACK si ocurre cualquier error
+ * SALIDA:
+ * - process.exitCode = 0 → Sembrado exitoso
+ * - process.exitCode = 1 → Error con mensaje en consola
+ */
 const path = require('path');
 const dotenv = require('dotenv');
 const bcrypt = require('bcrypt');

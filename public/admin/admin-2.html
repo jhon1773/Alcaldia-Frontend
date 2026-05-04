@@ -1,8 +1,31 @@
-<!doctype html>
 <!--
-  Descripción: Página HTML del frontend del proyecto.
--->
+  ADMIN-2.HTML — PANEL ADMINISTRATIVO: GESTIÓN DE USUARIOS Y ACCESOS
 
+  RESPONSABILIDADES:
+  1. Listar todos los usuarios del sistema con búsqueda en tiempo real por email
+  2. Permitir crear nuevos usuarios desde un modal con validación de campos
+  3. Activar, desactivar o eliminar usuarios con confirmación previa
+  4. Asignar o cambiar el rol de un usuario desde un selector dinámico
+
+  MODALES:
+  - modalNuevoUsuario:          Formulario de creación con email, nombre y contraseña
+  - modalConfirmarEliminacion:  Confirmación de eliminación irreversible con email del usuario
+
+  FUNCIONALIDADES:
+  - Búsqueda reactiva en input y al pulsar el botón Buscar
+  - Toggle de estado (Activar/Desactivar) con actualización optimista de la tabla
+  - Cambio de rol mediante POST /api/v1/portal/admin/usuarios/:id/rol
+  - Eliminación con lógica de desactivación si el usuario tiene actividad operativa
+
+  INTEGRACIÓN:
+  - GET  /api/v1/portal/admin/usuarios       → Listado con filtro por email
+  - GET  /api/v1/portal/admin/roles          → Catálogo de roles para el selector
+  - POST /api/v1/auth/register               → Creación de nuevo usuario
+  - POST /api/v1/portal/admin/usuarios/:id/toggle   → Activar o desactivar usuario
+  - POST /api/v1/portal/admin/usuarios/:id/rol      → Asignar rol
+  - POST /api/v1/portal/admin/usuarios/:id/eliminar → Eliminar o desactivar usuario
+-->
+<!doctype html>
 <html lang="es">
   <head>
     <script src='/route-guard.js'></script><meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" /><title>PUFAB - Admin | Usuarios y Accesos</title><link rel="stylesheet" href="/styles.css" /></head>

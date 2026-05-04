@@ -1,8 +1,22 @@
-<!doctype html>
 <!--
-  Descripción: Página HTML del frontend del proyecto.
+  DIRECTORIO.HTML — DIRECTORIO PÚBLICO DE PROVEEDORES P.U.F.A.B.
+  RESPONSABILIDADES:
+  1. Renderizar la estructura HTML del directorio público de proveedores
+  2. Proveer los puntos de montaje (IDs) que directorio.js usa para inyectar contenido dinámico
+  3. Incluir el panel de filtros, la grilla de tarjetas y los controles de paginación
+  4. Cargar las fuentes, estilos y scripts necesarios para el funcionamiento de la página
+  SECCIONES:
+  - gov-header:          Barra institucional con logo GOV.CO y enlaces a entidades
+  - site-nav:            Navegación principal con menú responsive y botones de acción
+  - directory-hero:      Encabezado con resumen de resultados (#summaryCards) y búsqueda/chips (#quickFilters)
+  - directory-sidebar:   Selector de subcategoría (#subcategorySelect) y botón limpiar filtros
+  - directory-results:   Barra de paginación, estados de carga/vacío y grilla (#directoryGrid)
+  - site-footer:         Pie de página con enlaces, contacto y redes sociales
+  SCRIPTS:
+  - /nav-session.js           → Manejo de sesión y estado del menú de navegación
+  - /directorio/directorio.js → Lógica completa del directorio
 -->
-
+<!doctype html>
 <html lang="es">
   <head>
     <meta charset="UTF-8" />

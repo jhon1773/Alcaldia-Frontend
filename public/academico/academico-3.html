@@ -1,8 +1,22 @@
-<!doctype html>
 <!--
-  Descripción: Página HTML del frontend del proyecto.
--->
+  ACADEMICO-3.HTML — PORTAL ACADÉMICO: CAPACITACIÓN Y TUTORIALES
 
+  RESPONSABILIDADES:
+  1. Listar los tutoriales y cursos disponibles para el usuario académico
+  2. Permitir búsqueda en tiempo real por título del tutorial
+  3. Renderizar cada curso con imagen, nivel, duración y calificación
+
+  SECCIONES:
+  - Barra de búsqueda:  Filtra tutoriales por nombre al escribir o al hacer clic en Buscar
+  - Grilla de cursos:   Tarjetas con imagen, nivel, duración y rating de cada tutorial
+
+  INTEGRACIÓN:
+  - Consume API_CLIENT.portal.academico.capacitacion(q) del cliente API compartido
+  - La búsqueda se dispara tanto en el evento input como al pulsar el botón Buscar
+  - route-guard.js protege el acceso a la página por rol
+  - nav-session.js y sidebar-slider.js gestionan sesión y sidebar en móvil
+-->
+<!doctype html>
 <html lang="es">
   <head>
     <script src='/route-guard.js'></script>

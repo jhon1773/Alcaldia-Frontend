@@ -1,8 +1,36 @@
-<!doctype html>
 <!--
-  Descripción: Página HTML del frontend del proyecto.
+  PROVEEDOR-3.HTML — DISPONIBILIDAD DEL PROVEEDOR P.U.F.A.B.
+  RESPONSABILIDADES:
+  1. Mostrar y permitir editar la agenda semanal del proveedor (Lunes a Domingo)
+  2. Registrar bloqueos de fechas específicas con motivo y persistirlos en localStorage
+  3. Mostrar los bloqueos recientes registrados en el navegador
+  SECCIONES:
+  - portal-sidebar:          Navegación lateral del portal de proveedor (activo: Disponibilidad)
+  - disponibilidadContent:   Contenedor dinámico con encabezado, tabla semanal y bloqueos recientes
+  AGENDA SEMANAL:
+  - Columnas: día, estado (Disponible/Reservado/Bloqueado), horario y botón "Editar"
+  - Al editar un día se solicita estado y horario vía prompt y se guarda en la API
+  BLOQUEOS DE FECHAS:
+  - El botón "Bloquear Fecha" solicita fecha (YYYY-MM-DD) y motivo vía prompt
+  - Los bloqueos se persisten en localStorage['pufab_provider_bloqueos'] (máx. 12 entradas)
+  - Se renderizan debajo de la agenda al cargar la página
+  FLUJO:
+  1. route-guard.js verifica sesión activa
+  2. init() llama a API_CLIENT.portal.proveedor.disponibilidad() y renderiza la agenda semanal
+  3. Los bloqueos locales se leen de localStorage y se añaden al contenido tras la agenda
+  4. editarDia() llama a API_CLIENT.portal.proveedor.guardarDisponibilidad() y recarga la vista
+  INTEGRACIÓN:
+  - API_CLIENT.portal.proveedor.disponibilidad()                    → nombre, semana[]
+  - API_CLIENT.portal.proveedor.guardarDisponibilidad(dia, estado, horas) → Guarda cambios del día
+  - localStorage['pufab_provider_bloqueos']                         → Bloqueos de fechas locales
+  SCRIPTS:
+  - /route-guard.js    → Protección de ruta
+  - /api-client.js     → Cliente HTTP con métodos del portal de proveedor
+  - /nav-session.js    → Manejo de sesión y menú de navegación
+  - /sidebar-slider.js → Comportamiento responsive del sidebar lateral
+  - Inline             → Lógica de agenda, edición de días, bloqueos y render
 -->
-
+<!doctype html>
 <html lang="es">
   <head>
     <script src='/route-guard.js'></script>

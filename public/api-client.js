@@ -1,6 +1,47 @@
 /**
- * Descripción: Archivo TypeScript del proyecto NestJS.
-  */
+ * API-CLIENT.JS — CLIENTE HTTP CENTRALIZADO P.U.F.A.B.
+ * RESPONSABILIDADES:
+ * 1. Definir la URL base de la API según el origen del navegador o un fallback local
+ * 2. Gestionar el token JWT y los datos de sesión en localStorage
+ * 3. Proveer un método genérico de petición HTTP (JSON) con inyección automática del token
+ * 4. Proveer un método de petición multipart/form-data para la carga de archivos
+ * 5. Exponer métodos organizados por dominio para consumir todos los endpoints del backend
+ * SESIÓN:
+ * - localStorage['pufab_token']   → Token JWT para las cabeceras Authorization: Bearer
+ * - localStorage['pufab_session'] → Objeto con loggedIn, userId, email, roles, role y permisos
+ * MÉTODOS INTERNOS:
+ * - getToken()                      → Lee el token JWT de localStorage
+ * - setSession(token, user)         → Guarda token y datos de sesión en localStorage
+ * - getSession()                    → Lee y parsea el objeto de sesión de localStorage
+ * - clearSession()                  → Elimina token y sesión de localStorage (logout)
+ * - request(method, endpoint, body) → Petición JSON con token; extrae datos de payload estándar
+ * - requestFormData(method, endpoint, formData) → Petición multipart sin Content-Type fijo
+ * MÓDULOS EXPUESTOS:
+ * - auth           → register, login, me, cambiarPassword
+ * - usuarios       → listar, obtenerPorId, completarPerfilNatural, completarPerfilJuridica,
+ *                    cambiarEstado, asignarRol
+ * - catalogos      → municipios, tiposProduccion, estadosTramite, tiposEspacio,
+ *                    rolesEquipoTecnico, tiposIdentificacion, tiposEntidad, gruposEtnicos,
+ *                    sexosNacer, identidadesGenero, nivelesEducativos, tiposDiscapacidad,
+ *                    tiemposDedicacionSector, tiposIngresosSector, tiposPropiedadEquipos,
+ *                    gamasEquipos, rangosExperienciaSector, tiposProduccionParticipa,
+ *                    tiposTramite, tiposPago, estadosPago
+ * - registro       → crearSolicitud, listarSolicitudes, revisarSolicitud
+ * - perfiles       → categorias, directorio, editarProveedor, editarProductora, verificarProveedor
+ * - proyectos      → listar, obtenerPorId, obtener (alias), crear, actualizar
+ * - tramites       → listar, obtenerPorId, obtener (alias), crear, cambiarEstado
+ * - documentos     → subir (multipart), listarPorTramite, validar
+ * - pagos          → registrar, listarPorTramite, cambiarEstado, obtenerAbono
+ * - entidades      → listar, crear, actualizar, eliminar
+ * - portal.productor  → proyectosMenu, locacionesMenu
+ * - portal.proveedor  → panel, portafolio, disponibilidad, solicitudes, mensajes,
+ *                       guardarDisponibilidad, enviarMensaje
+ * - portal.academico  → panel, observatorio, capacitacion, pasantias, recursos
+ * MANEJO DE ERRORES:
+ * - Las peticiones fallidas lanzan un objeto con status, message y errors
+ * - El mensaje se extrae de payload.mensaje, payload.message o payload.errores[0].mensaje
+ * - Todos los errores se loguean en consola con el método y endpoint correspondientes
+ */
 
 /**
  * Cliente API centralizado para PUFAB

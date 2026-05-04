@@ -1,7 +1,43 @@
 /**
- * Descripción: Archivo TypeScript del proyecto NestJS.
-  */
-
+ * SIDEBAR-SLIDER.JS — NAVEGACIÓN SPA DEL SIDEBAR DE PORTAL P.U.F.A.B.
+ * RESPONSABILIDADES:
+ * 1. Interceptar los clics en los enlaces del sidebar para hacer navegación parcial sin recarga
+ * 2. Cachear las vistas del portal en memoria para evitar peticiones repetidas
+ * 3. Precargar rutas del sidebar al hacer hover o focus sobre sus enlaces
+ * 4. Sincronizar el indicador visual del sidebar (slider) con el enlace activo
+ * 5. Gestionar el historial del navegador (pushState/popstate) para soporte del botón Atrás
+ * 6. Inyectar el botón "Generar PDF" en vistas del portal de administración que lo soporten
+ * NAVEGACIÓN PARCIAL (navigateTo):
+ * - Normaliza la ruta destino y la compara con la actual para evitar navegaciones redundantes
+ * - Busca la vista en caché antes de hacer fetch; si existe la aplica directamente
+ * - Hace fetch con cabecera X-Requested-With: PUFAB-Partial al HTML completo de la ruta
+ * - Parsea el HTML recibido con DOMParser y extrae el bloque .portal-shell
+ * - Reemplaza el .portal-shell actual con el nuevo, actualiza el título y re-ejecuta los scripts inline
+ * - En caso de error o respuesta no OK hace una navegación normal (window.location.href)
+ * CACHÉ DE VISTAS (viewCache):
+ * - Implementada como Map con orden de inserción; máximo 20 entradas (LRU simple)
+ * - La clave es la ruta normalizada (pathname + search, sin trailing slash)
+ * - La vista inicial se cachea al cargar la página por primera vez
+ * PRECARGA (prefetchRoute):
+ * - Se lanza en mouseenter y focus de cada enlace del sidebar
+ * - Usa un Map de promesas en vuelo (inflightPrefetch) para evitar peticiones duplicadas
+ * - Los errores de prefetch se ignoran silenciosamente; la navegación normal actúa de fallback
+ * SLIDER VISUAL (initSidebarSlider):
+ * - Calcula y actualiza las CSS variables --slider-y y --slider-height del sidebar
+ *   para animar el indicador de posición del enlace activo
+ * - Evita re-inicialización con el atributo data-slider-bound="1"
+ * - Se llama en DOMContentLoaded, tras cada navegación parcial y en resize de ventana
+ * - Expuesta en window.initSidebarSlider para ser llamada desde otros scripts
+ * EXPORTACIÓN PDF (exportPortalContentAsPdf):
+ * - Solo disponible en rutas /admin/admin-*.html; resolveAdminReportSection() mapea la ruta a
+ *   la sección correspondiente (usuarios, verificacion, locaciones, permisos, comités, finanzas, kpis)
+ * - Llama a POST /api/v1/reportes/admin/{section} y descarga el archivo desde la URL devuelta
+ * - ensurePdfExportButton() inyecta el botón en .portal-head-row o al inicio de .portal-content
+ * - Expuesta en window.exportPortalContentAsPdf para uso externo
+ * HISTORIAL:
+ * - Usa history.pushState al navegar hacia adelante y history.replaceState en la carga inicial
+ * - El evento popstate dispara navigateTo con preferCache: true para restaurar vistas anteriores
+ */
 (function () {
   const viewCache = new Map();
   const inflightPrefetch = new Map();

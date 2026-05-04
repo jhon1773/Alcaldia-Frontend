@@ -1,8 +1,51 @@
-<!doctype html>
 <!--
-  Descripción: Página HTML del frontend del proyecto.
+  ADMIN-DASHBOARD.HTML — PANEL DE ADMINISTRACIÓN P.U.F.A.B.
+  RESPONSABILIDADES:
+  1. Verificar que el usuario autenticado tenga rol 'admin' antes de renderizar cualquier contenido
+  2. Mostrar estadísticas globales del sistema: total de usuarios, solicitudes, trámites y crecimiento
+  3. Gestionar usuarios, solicitudes de registro, trámites, documentos, pagos y entidades revisoras
+  4. Permitir revisar solicitudes de registro (aprobar, solicitar subsanación o rechazar)
+  5. Permitir validar documentos cargados por los usuarios (aprobar o rechazar)
+  SECCIONES:
+  - admin-sidebar:   Menú lateral con 7 vistas: Dashboard, Usuarios, Solicitudes, Trámites,
+                     Documentos, Pagos y Entidades; cambia la vista activa al hacer clic
+  - admin-main:      Área de contenido con una vista activa a la vez (animación fadeIn)
+  VISTAS:
+  - Dashboard:    Tarjetas con totales de usuarios, solicitudes, trámites y crecimiento
+  - Usuarios:     Tabla con ID, email, rol y estado de cada usuario
+  - Solicitudes:  Tabla con solicitudes de registro pendientes; botón "Revisar" abre el modal
+  - Trámites:     Tabla con radicado, proyecto, usuario, estado y fecha; botón "Ver" va al detalle
+  - Documentos:   Tabla agregada de documentos por trámite; botón "Validar" abre el modal
+  - Pagos:        Tabla agregada de pagos por trámite con monto, tipo y estado
+  - Entidades:    Tabla de entidades revisoras con nombre, sigla y correo de contacto
+  MODALES:
+  - modalRevisarSolicitud:  Selector de estado (aprobar/subsanación/rechazar) y campo de observaciones
+                            → llama a API_CLIENT.registro.revisarSolicitud()
+  - modalValidarDocumento:  Selector de estado (aprobar/rechazar) y campo de observaciones
+                            → llama a API_CLIENT.documentos.validar()
+  PROTECCIÓN DE RUTA:
+  - Inline (antes del head): lee localStorage['pufab_session'] y redirige a / si el rol no es 'admin'
+  - No usa route-guard.js externo; la verificación es inmediata antes de cualquier render
+  FLUJO:
+  1. Script inline verifica rol admin en localStorage; si falla redirige a /
+  2. DOMContentLoaded enlaza los botones del menú lateral a sus vistas y carga las estadísticas
+  3. Cada vista carga sus datos de la API solo cuando el usuario la activa por primera vez
+  4. Documentos y pagos se obtienen iterando sobre todos los trámites y agregando sus sub-recursos
+  INTEGRACIÓN:
+  - API_CLIENT.usuarios.listar(1, 100)                          → Vista de usuarios
+  - API_CLIENT.registro.listarSolicitudes(1, 100)               → Vista de solicitudes
+  - API_CLIENT.registro.revisarSolicitud(id, estado, notas)     → Modal de revisión de solicitud
+  - API_CLIENT.tramites.listar(1, 100)                          → Vista de trámites, documentos y pagos
+  - API_CLIENT.documentos.listarPorTramite(tramiteId)           → Documentos por trámite
+  - API_CLIENT.documentos.validar(docId, estado, observaciones) → Modal de validación de documento
+  - API_CLIENT.pagos.listarPorTramite(tramiteId)                → Pagos por trámite
+  - API_CLIENT.entidades.listar(1, 100)                         → Vista de entidades
+  - API_CLIENT.clearSession()                                   → Cierre de sesión desde el nav
+  SCRIPTS:
+  - /api-client.js → Cliente HTTP con todos los métodos administrativos
+  - Inline         → Lógica de menú, carga de vistas, modales y estadísticas
 -->
-
+<!doctype html>
 <html lang="es">
   <head>
     <script>

@@ -1,8 +1,23 @@
-<!doctype html>
 <!--
-  Descripción: Página HTML del frontend del proyecto.
--->
+  ACADEMICO-4.HTML — PORTAL ACADÉMICO: PASANTÍAS EN PROYECTOS
 
+  RESPONSABILIDADES:
+  1. Listar las convocatorias de pasantías activas en producciones cinematográficas
+  2. Mostrar código, estado, ciudad, fechas de inicio y cierre de cada vacante
+  3. Permitir al usuario aplicar a una pasantía abriendo un correo prellenado
+
+  SECCIONES:
+  - Listado de vacantes: Tarjetas con datos de la convocatoria y botones de acción
+  - Aplicar ahora:       Abre el cliente de correo con asunto y cuerpo prellenados
+  - Ver detalles:        Enlace reservado para futura implementación
+
+  INTEGRACIÓN:
+  - Consume API_CLIENT.portal.academico.pasantias() del cliente API compartido
+  - La acción "Aplicar" construye un mailto con el código y nombre del proyecto
+  - route-guard.js protege el acceso a la página por rol
+  - nav-session.js y sidebar-slider.js gestionan sesión y sidebar en móvil
+-->
+<!doctype html>
 <html lang="es">
   <head>
     <script src='/route-guard.js'></script>

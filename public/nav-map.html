@@ -1,8 +1,31 @@
-<!doctype html>
 <!--
-  Descripción: Página HTML del frontend del proyecto.
+  NAV-MAP.HTML — MAPA DE NAVEGACIÓN DEL SISTEMA P.U.F.A.B.
+  RESPONSABILIDADES:
+  1. Proveer un índice visual de todas las vistas del sistema con acceso directo a cada una
+  2. Documentar los flujos principales de usuario con diagramas de pasos secuenciales
+  3. Listar los 36 endpoints conectados al backend organizados por módulo y estado
+  4. Resumir las características implementadas en el sistema (seguridad, formularios, UI, integración)
+  SECCIONES:
+  - Acceso Rápido:       Botones directos a Home, Login, Registro, Dashboard, Admin y Tests
+  - Vistas Disponibles:  Grilla de tarjetas por módulo con descripción, enlaces y badges de endpoints:
+                         Home, Autenticación, Dashboard, Proyectos, Trámites,
+                         Documentos, Pagos, Admin Dashboard y Test Operations
+  - Flujos Principales:  Diagramas de 3 flujos secuenciales:
+                         1. Nuevo usuario   → Registro → Completar perfil → Dashboard
+                         2. Proyecto/trámite → Crear proyecto → Crear trámite → Ver detalle
+                         3. Docs y pagos    → Subir documentos → Registrar pago → Admin revisa
+  - Endpoints (36):      Tabla con módulo, endpoints y estado (✓ OK) para:
+                         Auth, Usuarios, Proyectos, Trámites, Documentos, Pagos,
+                         Catálogos (8 tipos), Entidades y Registro
+  - Características:     Resumen de seguridad (JWT, roles, rutas protegidas),
+                         formularios (validación, catálogos, estados de carga),
+                         interfaz (drag & drop, modales, responsive) e integración (Google Maps)
+  NOTA:
+  - Esta página es exclusivamente una herramienta de desarrollo y navegación interna
+  - No consume la API ni requiere autenticación
+  - Referencia al archivo FRONTEND-GUIDE.md para documentación detallada del proyecto
 -->
-
+<!doctype html>
 <html lang="es">
   <head>
     <meta charset="UTF-8" />

@@ -1,8 +1,40 @@
-<!doctype html>
 <!--
-  Descripción: Página HTML del frontend del proyecto.
+  SUBIR-DOCUMENTOS.HTML — VISTA DE CARGA DE DOCUMENTOS P.U.F.A.B.
+  RESPONSABILIDADES:
+  1. Permitir al usuario seleccionar un trámite y cargar uno o varios documentos asociados
+  2. Gestionar la selección de archivos mediante clic o arrastrar y soltar
+  3. Validar el tamaño de cada archivo (máx. 10 MB) y evitar duplicados en la lista
+  4. Subir los archivos secuencialmente mostrando el progreso mediante una barra
+  5. Redirigir al detalle del trámite tras la carga exitosa de todos los documentos
+  SECCIONES:
+  - gov-header:       Barra institucional con logo GOV.CO y enlaces a entidades
+  - site-nav:         Navegación con botón de cierre de sesión
+  - upload-card:      Tarjeta única con selector de trámite, zona de carga, lista de archivos,
+                      campo de descripción, barra de progreso y botones de acción
+  ZONA DE CARGA DE ARCHIVOS:
+  - Admite clic para abrir el selector de archivos y arrastrar y soltar
+  - Formatos aceptados: PDF, DOC, DOCX, JPG, PNG, MP4, MOV
+  - Tamaño máximo por archivo: 10 MB
+  - Permite seleccionar múltiples archivos; omite duplicados por nombre
+  - Cada archivo en la lista muestra nombre, tamaño y botón para eliminarlo
+  FLUJO:
+  1. cargarTramites() llama a API_CLIENT.tramites.listar() y puebla el selector
+  2. El usuario agrega archivos; agregarArchivos() valida tamaño y descarta duplicados
+  3. Al enviar se valida que haya un trámite seleccionado y al menos un archivo
+  4. Los archivos se suben secuencialmente llamando a API_CLIENT.documentos.subir() por cada uno
+  5. La barra de progreso avanza proporcionalmente al número de archivos subidos
+  6. Tras completar la carga se redirige a /detalle-tramite/?id={tramiteId}
+  7. El botón "Cerrar Sesión" llama a API_CLIENT.clearSession() y redirige al login
+  INTEGRACIÓN:
+  - API_CLIENT.tramites.listar(1, 100)             → Lista de trámites para el selector
+  - API_CLIENT.documentos.subir(tramiteId, file)   → Sube cada archivo individualmente
+  - API_CLIENT.clearSession()                      → Cierre de sesión desde el nav
+  - Tras carga exitosa redirige a /detalle-tramite/?id={tramiteId}
+  SCRIPTS:
+  - /api-client.js → Cliente HTTP con métodos de trámites y documentos
+  - Inline         → Lógica de carga de trámites, manejo de archivos, progreso y envío
 -->
-
+<!doctype html>
 <html lang="es">
   <head>
     <meta charset="UTF-8" />

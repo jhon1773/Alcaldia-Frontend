@@ -1,8 +1,24 @@
-<!doctype html>
 <!--
-  Descripción: Página HTML del frontend del proyecto.
--->
+  ADMIN-INDEX.HTML — PANEL ADMINISTRATIVO: RESUMEN DEL SISTEMA
 
+  RESPONSABILIDADES:
+  1. Mostrar las métricas globales del sistema: usuarios activos, permisos pendientes,
+     reservas del mes y porcentaje de satisfacción
+  2. Proveer accesos rápidos a las acciones administrativas más frecuentes
+  3. Listar las notificaciones recientes generadas por trámites del sistema
+
+  SECCIONES:
+  - Métricas:              Usuarios activos, permisos pendientes, reservas del mes y satisfacción
+  - Acciones rápidas:      Estado de permisos, perfiles por revisar, pagos por confirmar
+                           y accesos directos a crear proyecto/trámite
+  - Notificaciones:        Últimas actualizaciones de trámites radicados
+
+  INTEGRACIÓN:
+  - Consume GET /api/v1/portal/admin/resumen para obtener stats, acciones y notificaciones
+  - route-guard.js protege el acceso a la página por rol admin
+  - nav-session.js y sidebar-slider.js gestionan sesión y sidebar en móvil
+-->
+<!doctype html>
 <html lang="es">
   <head>
     <script src='/route-guard.js'></script>

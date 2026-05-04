@@ -1,8 +1,24 @@
-<!doctype html>
 <!--
-  Descripción: Página HTML del frontend del proyecto.
--->
+  ACADEMICO-2.HTML — PORTAL ACADÉMICO: OBSERVATORIO CINEMATOGRÁFICO
 
+  RESPONSABILIDADES:
+  1. Presentar las métricas generales del sector cinematográfico en Boyacá
+  2. Mostrar la distribución de producciones por tipo de espacio y por provincia
+  3. Visualizar la tendencia mensual de producciones y la documentación legal disponible
+
+  SECCIONES:
+  - Métricas:            Inversión total, trámites, equipos inscritos y tiempo promedio de respuesta
+  - Producciones por tipo y por provincia: barras comparativas
+  - Tendencia mensual:   Gráfico de barras con valores históricos
+  - Documentación:       Listado de leyes, decretos y guías del sector
+
+  INTEGRACIÓN:
+  - Consume API_CLIENT.portal.academico.observatorio() del cliente API compartido
+  - Usa /styles.css para los estilos del portal institucional
+  - route-guard.js protege el acceso a la página por rol
+  - nav-session.js y sidebar-slider.js gestionan sesión y sidebar en móvil
+-->
+<!doctype html>
 <html lang="es">
   <head>
     <script src='/route-guard.js'></script>

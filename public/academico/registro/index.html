@@ -1,3 +1,30 @@
+<!--
+ — FORMULARIO DE REGISTRO PARA ACADEMIA
+
+  RESPONSABILIDADES:
+  1. Guiar al usuario académico a través de un registro en 4 pasos con validación por etapa
+  2. Recopilar datos de acceso, datos institucionales, perfil académico y confirmación final
+  3. Enviar el payload al endpoint de registro y redirigir al login con flag registered=1
+
+  PASOS DEL FORMULARIO:
+  - Paso 1 (Acceso):       Email, teléfono, contraseña y confirmación
+  - Paso 2 (Institución):  Razón social, NIT, tipo de entidad, municipio y datos de contacto
+  - Paso 3 (Perfil):       Representante legal, objeto social, áreas de trabajo y proyectos
+  - Paso 4 (Confirmación): Resumen de datos y aceptación de términos
+
+  FUNCIONALIDADES:
+  - Carga de catálogos dinámicos desde la API (tiposEntidad, municipios, tiposIdentificacion)
+  - Guardado de borrador en localStorage bajo la clave 'pufab_academic_draft'
+  - Restauración automática del borrador al recargar la página
+  - Stepper visual con barra de progreso animada
+  - Validación por paso antes de avanzar
+
+  INTEGRACIÓN:
+  - Consume API_CLIENT.auth.register() para el envío final del formulario
+  - Consume API_CLIENT.catalogos para poblar los selectores dinámicos
+  - tipo_persona se envía como 'juridica' y rolSolicitado como 'academico'
+  - Redirige a /iniciar-sesion/?registered=1 tras el registro exitoso
+-->
 <!doctype html>
 <html lang="es">
   <head>

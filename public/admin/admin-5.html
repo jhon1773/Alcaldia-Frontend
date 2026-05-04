@@ -1,8 +1,28 @@
-<!doctype html>
 <!--
-  Descripción: Página HTML del frontend del proyecto.
--->
+  ADMIN-5.HTML — PANEL ADMINISTRATIVO: FLUJO DE PERMISOS P.U.F.A.B.
 
+  RESPONSABILIDADES:
+  1. Mostrar el resumen cuantitativo del flujo: pendientes, en revisión, aprobados y rechazados
+  2. Listar los trámites radicados con búsqueda por radicado o nombre de proyecto
+  3. Permitir aprobar, enviar a corrección o rechazar un trámite directamente desde la lista
+  4. Mostrar el detalle completo de un trámite en un modal antes de actuar
+
+  MODAL:
+  - modalDetallesPermiso: Detalle del permiso con radicado, proyecto, productora, fechas,
+                          presupuesto, duración y documentos requeridos
+
+  FUNCIONALIDADES:
+  - Búsqueda reactiva en input y al pulsar el botón Buscar
+  - Modal de detalles construido dinámicamente si no existe en el DOM (ensurePermisoModal)
+  - Acciones (aprobar / correccion / rechazar) con actualización inmediata del listado
+  - Guía rápida del flujo embebida en la página para orientar al administrador
+
+  INTEGRACIÓN:
+  - GET  /api/v1/portal/admin/flujo-permisos          → Listado con resumen y filtro
+  - GET  /api/v1/portal/admin/flujo-permisos/:id       → Detalle del permiso
+  - POST /api/v1/portal/admin/flujo-permisos/:id/estado → Cambiar estado del trámite
+-->
+<!doctype html>
 <html lang="es">
   <head>
     <script src='/route-guard.js'></script><meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" /><title>PUFAB - Admin | Flujo de Permisos</title><link rel="stylesheet" href="/styles.css" /></head>

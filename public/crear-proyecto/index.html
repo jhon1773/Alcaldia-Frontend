@@ -1,8 +1,37 @@
-<!doctype html>
 <!--
-  Descripción: Página HTML del frontend del proyecto.
--->
+ — FORMULARIO DE CREACIÓN DE PROYECTO AUDIOVISUAL
 
+  RESPONSABILIDADES:
+  1. Permitir al administrador o productor registrar un nuevo proyecto audiovisual en el sistema
+  2. Cargar los catálogos de tipos de producción y municipios para poblar los selectores
+  3. Calcular automáticamente la fecha de fin a partir de la fecha de inicio y la duración en días
+  4. Enviar el proyecto al backend y redirigir al detalle del proyecto recién creado
+
+  CAMPOS DEL FORMULARIO:
+  - nombre_proyecto:          Título del proyecto (obligatorio)
+  - sinopsis:                 Descripción o sinopsis del proyecto (obligatorio)
+  - tipo_produccion_id:       Tipo de producción desde catálogo (obligatorio)
+  - presupuesto_total:        Presupuesto en COP (obligatorio)
+  - municipio_principal_id:   Municipio principal de rodaje desde catálogo (obligatorio)
+  - fecha_inicio_prevista:    Fecha estimada de inicio (obligatorio)
+  - fecha_fin_prevista:       Calculada automáticamente: fecha_inicio + duracion_dias - 1
+  - equipo / contacto:        Tamaño del equipo, contacto principal y teléfono (UI únicamente,
+                               no se envían al backend en el payload actual)
+
+  FLUJO:
+  1. Se cargan los catálogos al iniciar la página
+  2. El usuario completa el formulario y lo envía
+  3. Se construye el payload y se llama a API_CLIENT.proyectos.crear(data)
+  4. Tras el éxito se redirige a /detalle-proyecto/?id=<id> después de 1.5 segundos
+
+  INTEGRACIÓN:
+  - API_CLIENT.catalogos.tiposProduccion() → Selector de tipo de producción
+  - API_CLIENT.catalogos.municipios()      → Selector de municipio principal
+  - API_CLIENT.proyectos.crear(data)       → Creación del proyecto en el backend
+  - API_CLIENT.clearSession()              → Cierre de sesión desde el botón del nav
+  - route-guard.js protege el acceso a la página por rol
+-->
+<!doctype html>
 <html lang="es">
   <head>
     <meta charset="UTF-8" />

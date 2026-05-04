@@ -1,8 +1,34 @@
-<!doctype html>
 <!--
-  Descripción: Página HTML del frontend del proyecto.
--->
+  ADMIN-4.HTML — PANEL ADMINISTRATIVO: GESTIÓN DE LOCACIONES
 
+  RESPONSABILIDADES:
+  1. Crear locaciones manuales con nombre, municipio, tipo de espacio e imágenes
+  2. Listar locaciones existentes (manuales y de trámites) con su estado y reservas
+  3. Activar/desactivar locaciones o marcarlas en mantenimiento según su origen
+  4. Gestionar el banco de imágenes de cada locación manual: subir, reordenar y eliminar
+
+  MODAL:
+  - modalImagenesLocacion: Interfaz de gestión de imágenes con orden drag-like (↑ ↓) y eliminación
+
+  FUNCIONALIDADES:
+  - Carga de catálogos municipios y tipos de espacio al iniciar
+  - Subida de múltiples imágenes al crear una locación (máx. 10 por locación)
+  - Reordenamiento de imágenes persistido en backend tras cada movimiento
+  - Toggle de mantenimiento diferenciado por origen: 'manual' vs 'tramite'
+  - Correo de confirmación al solicitante si hay email de sesión disponible
+
+  INTEGRACIÓN:
+  - GET  /api/v1/catalogos/municipios                              → Selector de municipio
+  - GET  /api/v1/catalogos/tipos-espacio                          → Selector de tipo de espacio
+  - GET  /api/v1/portal/admin/activos                             → Listado de locaciones
+  - POST /api/v1/portal/admin/locaciones                          → Crear locación manual
+  - POST /api/v1/portal/admin/locaciones/:id/imagenes             → Subir imagen
+  - GET  /api/v1/portal/admin/locaciones/:id/imagenes             → Listar imágenes
+  - POST /api/v1/portal/admin/locaciones/:id/imagenes/reordenar   → Persistir nuevo orden
+  - POST /api/v1/portal/admin/locaciones/:id/imagenes/:imgId/eliminar → Eliminar imagen
+  - POST /api/v1/portal/admin/activos/:id/toggle-mantenimiento    → Cambiar estado
+-->
+<!doctype html>
 <html lang="es">
   <head>
     <script src='/route-guard.js'></script><meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" /><title>PUFAB - Admin | Gestión de Locaciones</title><link rel="stylesheet" href="/styles.css" /></head>

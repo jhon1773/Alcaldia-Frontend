@@ -1,8 +1,26 @@
-<!doctype html>
 <!--
-  Descripción: Página HTML del frontend del proyecto.
--->
+ — PÁGINA DE CONTACTO DE LA COMISIÓN FÍLMICA DE BOYACÁ
 
+  RESPONSABILIDADES:
+  1. Mostrar la información de contacto institucional: teléfono, correo, dirección y horario
+  2. Proveer un formulario de contacto para que usuarios envíen mensajes al equipo
+  3. Mostrar la ubicación de la Alcaldía de Tunja mediante un iframe de Google Maps
+
+  SECCIONES:
+  - Hero:              Llamado a la acción con enlace a inicio de sesión
+  - Panel de contacto: Teléfono, correo electrónico, dirección, horario de atención y mapa
+  - Formulario:        Nombre, correo, asunto (select) y mensaje; envío estático (action="#")
+  - Footer:            Links del directorio, datos de contacto y redes sociales
+
+  NOTAS:
+  - El formulario no tiene lógica de envío implementada; el action="#" es un placeholder
+  - El mapa se carga con loading="lazy" para no bloquear el renderizado inicial de la página
+
+  INTEGRACIÓN:
+  - nav-session.js actualiza la sesión del usuario en la barra de navegación
+  - No consume ningún endpoint de la API
+-->
+<!doctype html>
 <html lang="es">
   <head>
     <meta charset="UTF-8" />

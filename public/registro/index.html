@@ -1,8 +1,54 @@
-<!doctype html>
 <!--
-  Descripción: Página HTML del frontend del proyecto.
+  REGISTRO-PRODUCTORA.HTML — VISTA DE REGISTRO DE PRODUCTORA P.U.F.A.B.
+  RESPONSABILIDADES:
+  1. Guiar a la productora a través de un flujo de registro en 4 pasos con validación por paso
+  2. Soportar dos tipos de persona (natural y jurídica) con campos específicos para cada una
+  3. Cargar catálogos del backend para poblar los selectores del formulario
+  4. Permitir guardar y restaurar un borrador en localStorage
+  5. Enviar el registro a la API y redirigir al login con aviso de cuenta pendiente
+  SECCIONES:
+  - gov-header:       Barra institucional con logo GOV.CO y enlaces a entidades
+  - site-nav:         Navegación principal con menú responsive
+  - registro-rail:    Panel lateral fijo con instrucciones, contacto de apoyo y mini-cards informativas
+  - registro-card:    Tarjeta principal con stepper, tabs de tipo de persona y pasos del formulario
+  PASOS DEL FORMULARIO:
+  - Paso 1 (Acceso):       Correo, teléfono, contraseña y confirmación de contraseña
+  - Paso 2 (Perfil base):  Municipio de operación, tiempo en el sector y descripción de la productora
+  - Paso 3 (Detalles):     Datos específicos según tipo de persona (natural o jurídica)
+  - Paso 4 (Confirmación): Resumen con correo y tipo de persona, checkboxes de términos y autorización
+  SECCIÓN PERSONA NATURAL (Paso 3):
+  - Identificación, nombre completo, fecha y lugar de nacimiento, municipio y dirección,
+    sexo al nacer, identidad de género, grupo étnico, discapacidad, zona rural,
+    condición de campesino, víctima del conflicto, migrante, nivel educativo,
+    dedicación y experiencia en el sector, equipos propios, producción en que participa
+    y niveles de inglés (habla, lee, escribe en escala 0-5)
+  SECCIÓN PERSONA JURÍDICA (Paso 3):
+  - Razón social, NIT, tipo de entidad, fecha de constitución, municipio, dirección,
+    correo institucional, objeto social, representante legal (datos y periodo de nombramiento),
+    áreas de trabajo, proyectos realizados y en curso, público objetivo,
+    documentos adjuntos (certificado, acta, RUT, nombramiento),
+    registros culturales, estímulos públicos y participación en redes
+  FLUJO:
+  1. loadCatalogs() carga todos los selectores con datos reales del backend vía API_CLIENT.catalogos
+  2. Se restaura el borrador desde localStorage['pufab_productora_draft'] si existe
+  3. El usuario selecciona tipo de persona; se muestra la sección correspondiente en el paso 3
+  4. nextBtn valida el paso actual antes de avanzar; backBtn retrocede sin validar
+  5. saveDraftBtn serializa el estado actual del formulario en localStorage
+  6. Al enviar se validan todos los pasos y se llama a API_CLIENT.auth.register(payload)
+  7. Tras registro exitoso se elimina el borrador y se redirige a /iniciar-sesion/
+  BORRADOR:
+  - localStorage['pufab_productora_draft']  → Objeto con los valores del formulario para restaurar
+  INTEGRACIÓN:
+  - API_CLIENT.catalogos.*           → Municipios, niveles educativos, tipos de identificación,
+                                       sexos, géneros, grupos étnicos, discapacidades, equipos,
+                                       tipos de entidad y demás catálogos
+  - API_CLIENT.auth.register(payload)→ POST de registro con tipo_persona, rolSolicitado='productora'
+                                       y perfilNatural o perfilJuridica según corresponda
+  SCRIPTS:
+  - /api-client.js → Cliente HTTP con métodos de autenticación y catálogos
+  - Inline         → Lógica completa de stepper, tabs, catálogos, validación, borrador y envío
 -->
-
+<!doctype html>
 <html lang="es">
   <head>
     <meta charset="UTF-8" />

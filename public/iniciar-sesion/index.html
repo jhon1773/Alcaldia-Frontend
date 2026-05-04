@@ -1,8 +1,38 @@
-<!doctype html>
 <!--
-  Descripción: Página HTML del frontend del proyecto.
+  INICIAR-SESION.HTML — VISTA DE AUTENTICACIÓN P.U.F.A.B.
+  RESPONSABILIDADES:
+  1. Presentar el formulario de inicio de sesión con selección de rol
+  2. Gestionar la autenticación contra la API y redirigir según el rol del usuario
+  3. Mostrar retroalimentación visual del estado de la cuenta (pendiente, error, validando)
+  4. Adaptar el enlace de registro y el banner informativo según el rol seleccionado
+  SECCIONES:
+  - gov-header:         Barra institucional con logo GOV.CO y enlaces a entidades
+  - site-nav:           Navegación principal con menú responsive
+  - auth-card:          Tarjeta central con pestañas de rol, formulario y mensajes de estado
+  - site-footer:        Pie de página con enlaces, contacto y redes sociales
+  PESTAÑAS DE ROL:
+  - Productor:  Redirige a /tramites/         al autenticarse
+  - Proveedor:  Redirige a /proveedor/        al autenticarse
+  - Academia:   Redirige a /academico/        al autenticarse (activo por defecto)
+  - Administrador: Redirige a /admin/         al autenticarse
+  FLUJO:
+  1. El usuario selecciona su rol mediante las pestañas; el banner y el enlace de registro se actualizan
+  2. Al enviar el formulario se llama a POST /api/v1/auth/login con email, password y rolSolicitado
+  3. Se valida que el tipo_perfil devuelto por el backend coincida con el rol seleccionado
+  4. Si es correcto, se persiste la sesión en localStorage y se redirige al panel correspondiente
+  5. Si la cuenta está pendiente o el rol no coincide, se muestra un mensaje de error o el aviso de registro
+  SESIÓN:
+  - localStorage['pufab_session'] → Objeto con loggedIn, role, name, email, avatarUrl, token, startedAt
+  - localStorage['pufab_token']   → Token de acceso para peticiones autenticadas
+  INTEGRACIÓN:
+  - POST /api/v1/auth/login   → { email, password, rolSolicitado } → datos del usuario y access_token
+  - ?registered=1             → Query param que activa el aviso de cuenta pendiente de aprobación
+  - ?redirect=                → Query param para redirigir a una ruta específica tras el login
+  SCRIPTS:
+  - /nav-session.js → Manejo de sesión y estado del menú de navegación
+  - Inline          → Lógica completa de tabs, toggle de contraseña, submit y redirección
 -->
-
+<!doctype html>
 <html lang="es">
   <head>
     <meta charset="UTF-8" />

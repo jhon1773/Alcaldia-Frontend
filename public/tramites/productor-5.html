@@ -1,8 +1,29 @@
-<!doctype html>
 <!--
-  Descripción: Página HTML del frontend del proyecto.
+  PRODUCTOR-5.HTML — EVALUACIONES Y OBSERVACIONES DEL PRODUCTOR P.U.F.A.B.
+  RESPONSABILIDADES:
+  1. Mostrar las observaciones del comité evaluador sobre el trámite activo del productor
+  2. Listar los documentos requeridos pendientes de carga o actualización
+  3. Presentar evaluaciones de proveedores con promedio y número de reseñas si la API los devuelve
+  SECCIONES:
+  - portal-sidebar:   Navegación lateral del portal del productor (activo: Evaluaciones)
+  - evaluacionCard:   Tarjeta dinámica con datos del trámite en evaluación, observaciones,
+                      documentos requeridos y botón para enviar respuesta al comité
+  RENDERIZADO CONDICIONAL:
+  - Si la API devuelve un array → se muestran evaluaciones de proveedores con promedio y reseñas
+  - Si la API devuelve un objeto → se muestra la evaluación del trámite con observaciones y documentos
+  FLUJO:
+  1. route-guard.js verifica sesión activa
+  2. cargarEvaluacion() llama a GET /api/v1/portal/productor/evaluaciones y renderiza según el tipo de dato
+  3. El botón "Enviar Respuesta al Comité" redirige a /crear-tramite/
+  INTEGRACIÓN:
+  - GET /api/v1/portal/productor/evaluaciones  → Evaluación del trámite activo o lista de evaluaciones de proveedores
+  SCRIPTS:
+  - /route-guard.js    → Protección de ruta
+  - /nav-session.js    → Manejo de sesión y menú de navegación
+  - /sidebar-slider.js → Comportamiento responsive del sidebar lateral
+  - Inline             → Lógica de carga, render condicional y manejo de errores
 -->
-
+<!doctype html>
 <html lang="es">
   <head>
     <script src='/route-guard.js'></script>

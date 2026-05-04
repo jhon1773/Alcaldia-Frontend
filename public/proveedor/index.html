@@ -1,8 +1,36 @@
-<!doctype html>
 <!--
-  Descripción: Página HTML del frontend del proyecto.
+  PROVEEDOR-1.HTML — PANEL PRINCIPAL DEL PROVEEDOR P.U.F.A.B.
+  RESPONSABILIDADES:
+  1. Mostrar el resumen general del perfil del proveedor autenticado
+  2. Presentar métricas clave: proyectos completados, solicitudes pendientes, reseñas y tarifa base
+  3. Listar los servicios publicados con su precio en COP
+  4. Mostrar las solicitudes recientes con código, estado, proyecto, cliente, fecha y valor
+  5. Permitir editar los datos públicos del perfil mediante un modal
+  SECCIONES:
+  - portal-sidebar:     Navegación lateral del portal de proveedor (activo: Mi Panel)
+  - proveedorPanel:     Contenedor dinámico con encabezado, métricas, servicios y solicitudes
+  - editProfileModal:   Modal con formulario para editar descripción, sitio web, teléfono
+                        y visibilidad en el directorio público
+  MODAL DE EDICIÓN:
+  - Campos: descripción del perfil, sitio web, teléfono, checkbox de visibilidad en directorio
+  - Se abre con el botón "Editar Perfil" y se cierra con ✕, "Cancelar" o tras guardar
+  - Al guardar llama a API_CLIENT.perfiles.editarProveedor() y recarga el panel
+  FLUJO:
+  1. route-guard.js verifica sesión activa; si no existe redirige a /iniciar-sesion/
+  2. bootstrap() llama a API_CLIENT.portal.proveedor.panel() y renderiza el panel completo
+  3. El botón "Editar Perfil" abre el modal precargado con los datos actuales de currentProfile
+  4. Al enviar el formulario del modal se actualiza el perfil y se recarga el panel
+  INTEGRACIÓN:
+  - API_CLIENT.portal.proveedor.panel()         → Datos del panel: nombre, rol, métricas, servicios, solicitudes
+  - API_CLIENT.perfiles.editarProveedor({})     → PATCH con descripcion_perfil, sitio_web, telefono, visible_directorio
+  SCRIPTS:
+  - /route-guard.js    → Protección de ruta
+  - /api-client.js     → Cliente HTTP con métodos del portal de proveedor
+  - /nav-session.js    → Manejo de sesión y menú de navegación
+  - /sidebar-slider.js → Comportamiento responsive del sidebar lateral
+  - Inline             → Lógica de render, modal, edición de perfil y manejo de errores
 -->
-
+<!doctype html>
 <html lang="es">
   <head>
     <script src='/route-guard.js'></script>

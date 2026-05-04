@@ -1,8 +1,31 @@
-<!doctype html>
 <!--
-  Descripción: Página HTML del frontend del proyecto.
+  PROVEEDOR-4.HTML — SOLICITUDES DE SERVICIO DEL PROVEEDOR P.U.F.A.B.
+  RESPONSABILIDADES:
+  1. Listar todas las solicitudes de servicio recibidas por el proveedor
+  2. Mostrar por cada solicitud: código, estado, proyecto, cliente, fecha, duración y valor en COP
+  3. Permitir exportar la lista de solicitudes como archivo CSV
+  SECCIONES:
+  - portal-sidebar:       Navegación lateral del portal de proveedor (activo: Solicitudes)
+  - solicitudesContent:   Contenedor dinámico con encabezado, conteo y listado de solicitudes
+  EXPORTACIÓN CSV:
+  - El botón "Exportar CSV" genera un archivo con columnas: codigo, estado, proyecto,
+    cliente, fecha, dias, valor
+  - El archivo se descarga con nombre solicitudes-proveedor-YYYY-MM-DD.csv
+  FLUJO:
+  1. route-guard.js verifica sesión activa
+  2. init() llama a API_CLIENT.portal.proveedor.solicitudes() y renderiza el listado
+  3. El botón de exportación opera sobre el array solicitudesActuales ya cargado en memoria
+  INTEGRACIÓN:
+  - API_CLIENT.portal.proveedor.solicitudes()  → solicitudes[] con codigo, estado, proyecto,
+                                                  cliente, fecha, dias, valor
+  SCRIPTS:
+  - /route-guard.js    → Protección de ruta
+  - /api-client.js     → Cliente HTTP con métodos del portal de proveedor
+  - /nav-session.js    → Manejo de sesión y menú de navegación
+  - /sidebar-slider.js → Comportamiento responsive del sidebar lateral
+  - Inline             → Lógica de render, exportación CSV y manejo de errores
 -->
-
+<!doctype html>
 <html lang="es">
   <head>
     <script src='/route-guard.js'></script>

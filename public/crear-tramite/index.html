@@ -1,8 +1,44 @@
-<!doctype html>
 <!--
-  Descripción: Página HTML del frontend del proyecto.
--->
+  CREAR-TRAMITE.HTML — FORMULARIO DE SOLICITUD DE PERMISO P.U.F.A.B.
 
+  RESPONSABILIDADES:
+  1. Guiar al usuario en la creación de una solicitud de permiso de rodaje en 4 secciones
+  2. Cargar proyectos, locaciones disponibles y roles técnicos desde la API
+  3. Permitir agregar múltiples locaciones y roles técnicos al trámite
+  4. Validar los compromisos éticos antes de enviar la solicitud
+
+  SECCIONES DEL FORMULARIO:
+  - Proyecto:          Selector del proyecto audiovisual asociado al trámite
+  - Locaciones:        Selección de locaciones ya registradas en el sistema (mínimo 1)
+  - Equipo técnico:    Roles técnicos con cantidad y descripción mediante modal (mínimo 1)
+  - Compromisos éticos: 5 checkboxes obligatorios de aceptación de condiciones
+
+  MODAL:
+  - equipoModal: Formulario para agregar un rol técnico con selector, cantidad y descripción
+
+  FUNCIONALIDADES:
+  - Pre-selección automática de locación si viene del query param ?locacion= o de
+    localStorage bajo la clave 'pufab_reserva_locacion'
+  - Fallback a API_CLIENT.proyectos.listar() si el endpoint del portal falla
+  - Renderizado dinámico de las listas de locaciones y equipo con botón de eliminación
+  - Validación completa antes del envío: proyecto, locaciones, equipo y compromisos
+
+  FLUJO:
+  1. Se cargan catálogos (roles, proyectos y locaciones) al iniciar la página
+  2. El usuario completa las 4 secciones y envía el formulario
+  3. Se construye el payload y se llama a API_CLIENT.tramites.crear(data)
+  4. Tras el éxito se muestra el número de radicado y se redirige al detalle del trámite
+
+  INTEGRACIÓN:
+  - API_CLIENT.catalogos.rolesEquipoTecnico()        → Selector de roles en el modal
+  - API_CLIENT.portal.productor.proyectosMenu()      → Selector de proyectos
+  - API_CLIENT.portal.productor.locacionesMenu()     → Selector de locaciones disponibles
+  - API_CLIENT.proyectos.listar()                    → Fallback si proyectosMenu falla
+  - API_CLIENT.tramites.crear(data)                  → Creación del trámite en el backend
+  - API_CLIENT.clearSession()                        → Cierre de sesión desde el nav
+  - route-guard.js protege el acceso a la página por rol
+-->
+<!doctype html>
 <html lang="es">
   <head>
     <meta charset="UTF-8" />

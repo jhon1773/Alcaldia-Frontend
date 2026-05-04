@@ -1,8 +1,18 @@
-<!doctype html>
 <!--
-  Descripción: Página HTML del frontend del proyecto.
+  LOCACIONES-TALENTOS.HTML — REDIRECCIÓN AL DIRECTORIO P.U.F.A.B.
+  RESPONSABILIDADES:
+  1. Redirigir inmediatamente al usuario hacia /directorio/ mediante meta refresh
+  2. Proveer un enlace de respaldo visible en caso de que la redirección automática falle
+  3. Indicar mediante link canónico que /directorio/ es la URL definitiva de este contenido
+  FLUJO:
+  1. El meta http-equiv="refresh" redirige a /directorio/ con un retraso de 0 segundos
+  2. El enlace canónico evita contenido duplicado en buscadores
+  3. El párrafo con enlace sirve de respaldo si el navegador no soporta meta refresh
+  NOTA:
+  - Este archivo no tiene lógica propia; todo el contenido del directorio
+    vive en /directorio/index.html (DIRECTORIO.HTML)
 -->
-
+<!doctype html>
 <html lang="es">
   <head>
     <meta charset="UTF-8" />

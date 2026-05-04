@@ -1,7 +1,34 @@
 /**
- * Descripción: Archivo TypeScript del proyecto NestJS.
-  */
-
+ * SCRIPTS/DOCTOR.JS — DIAGNÓSTICO DE ENTORNO P.U.F.A.B.
+ * RESPONSABILIDADES:
+ * 1. Verificar que la versión de Node.js sea una LTS recomendada (20 o 22)
+ * 2. Confirmar que el archivo .env existe y cargarlo para leer las variables de entorno
+ * 3. Comprobar que el puerto de la aplicación esté disponible (no ocupado)
+ * 4. Verificar la conectividad con la base de datos PostgreSQL configurada en .env
+ * 5. Reportar el resultado del diagnóstico con código de salida 0 (éxito) o 1 (fallas)
+ * USO:
+ * - Ejecutar desde la raíz del proyecto: node scripts/doctor.js
+ * VARIABLES DE ENTORNO REQUERIDAS (.env):
+ * - PORT / APP_PORT   → Puerto de la aplicación (por defecto 3000)
+ * - DB_HOST           → Host de PostgreSQL
+ * - DB_PORT           → Puerto de PostgreSQL (por defecto 5432)
+ * - DB_USERNAME       → Usuario de la base de datos
+ * - DB_PASSWORD       → Contraseña de la base de datos
+ * - DB_DATABASE / DB_NAME → Nombre de la base de datos
+ * FUNCIONES:
+ * - ok(msg)                        → Imprime mensaje verde [OK]
+ * - warn(msg)                      → Imprime mensaje amarillo [WARN]
+ * - fail(msg)                      → Imprime mensaje rojo [FAIL]
+ * - info(msg)                      → Imprime mensaje cyan [INFO]
+ * - parsePort(value, fallback)     → Parsea un puerto numérico con fallback seguro
+ * - checkPortAvailability(port)    → Devuelve true si el puerto está libre (intento de bind)
+ * - checkDatabaseConnection(config)→ Intenta conectar a PostgreSQL con SELECT 1; devuelve
+ *                                    true o el error capturado
+ * - run()                          → Orquesta todos los pasos del diagnóstico en secuencia
+ * SALIDA:
+ * - process.exitCode = 0 → Sin fallas críticas
+ * - process.exitCode = 1 → Una o más fallas críticas (conexión a BD o variables faltantes)
+ */
 const fs = require('fs');
 const path = require('path');
 const net = require('net');

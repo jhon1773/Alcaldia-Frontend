@@ -1,8 +1,22 @@
-<!doctype html>
 <!--
-  Descripción: Página HTML del frontend del proyecto.
--->
+  ADMIN-9.HTML — PANEL ADMINISTRATIVO: CENTRO DE COMUNICACIONES
 
+  RESPONSABILIDADES:
+  1. Mostrar la configuración de notificaciones del sistema con su estado activo/inactivo
+  2. Permitir activar o desactivar cada tipo de notificación con un toggle switch
+  3. Persistir el cambio inmediatamente en el backend al interactuar con el switch
+
+  FUNCIONALIDADES:
+  - Cada switch revierte visualmente su estado si el endpoint devuelve un error
+  - El cambio se guarda automáticamente sin necesidad de botón de confirmación
+
+  INTEGRACIÓN:
+  - GET  /api/v1/portal/admin/comunicaciones          → Listado de configuraciones de notificación
+  - POST /api/v1/portal/admin/comunicaciones/:id/toggle → Activar o desactivar una notificación
+  - route-guard.js protege el acceso a la página por rol admin
+  - nav-session.js y sidebar-slider.js gestionan sesión y sidebar en móvil
+-->
+<!doctype html>
 <html lang="es">
   <head>
     <script src='/route-guard.js'></script><meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" /><title>PUFAB - Admin | Comunicaciones</title><link rel="stylesheet" href="/styles.css" /></head>

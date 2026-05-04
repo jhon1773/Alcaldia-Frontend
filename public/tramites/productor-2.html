@@ -1,8 +1,31 @@
-<!doctype html>
 <!--
-  Descripción: Página HTML del frontend del proyecto.
+  PRODUCTOR-2.HTML — LISTADO DE PERMISOS DEL PRODUCTOR P.U.F.A.B.
+  RESPONSABILIDADES:
+  1. Listar todos los permisos del productor con filtrado por estado mediante pestañas
+  2. Mostrar por cada permiso: radicado, proyecto, locación, fechas, progreso y correcciones
+  3. Ofrecer acceso a ver el detalle y descargar cada permiso
+  SECCIONES:
+  - portal-sidebar:      Navegación lateral del portal del productor (activo: Mis Permisos)
+  - permisosTabs:        Pestañas de filtro por estado (Todos, Pendientes, Aprobados, En Subsanación)
+  - permisosContainer:   Contenedor dinámico con las tarjetas de permisos filtrados
+  TARJETA DE PERMISO:
+  - Número de radicado, nombre del proyecto y locación con fechas de solicitud y respuesta estimada
+  - Barra de progreso visual en 4 pasos proporcional al porcentaje de avance
+  - Lista de correcciones requeridas si las hay
+  - Botones "Ver Detalle" y "Descargar"
+  FLUJO:
+  1. route-guard.js verifica sesión activa
+  2. cargarPermisos() llama a GET /api/v1/portal/productor/permisos filtrando por estado si aplica
+  3. Al cambiar de pestaña se actualiza estadoActual y se recarga el listado
+  INTEGRACIÓN:
+  - GET /api/v1/portal/productor/permisos?estado={estado}  → Permisos filtrados por estado
+  SCRIPTS:
+  - /route-guard.js    → Protección de ruta
+  - /nav-session.js    → Manejo de sesión y menú de navegación
+  - /sidebar-slider.js → Comportamiento responsive del sidebar lateral
+  - Inline             → Lógica de carga, filtrado por pestañas y render de tarjetas
 -->
-
+<!doctype html>
 <html lang="es">
   <head>
     <script src='/route-guard.js'></script>
